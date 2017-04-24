@@ -12,7 +12,11 @@ object DataSetAPI {
 trait DataSetAPI[T] {
   def map[That: ClassTag: Manifest](map: T => That): DataSetAPI[That]
   def filter(p: T => Boolean): DataSetAPI[T]
+  def count(): Long
+  def foreach(f: (T) => Unit): Unit
   def collect(): Array[T]
+
+  override def toString: String = collect().toSeq.toString
 
   override def equals(obj: scala.Any): Boolean = obj match {
     case d:DataSetAPI[T] => this.collect().sameElements(d.collect())

@@ -16,7 +16,7 @@ trait SparkLocalBaseTest extends FunSuite {
     }
   }
 
-  def assertDatasetOperation[T:Manifest, That](data: Seq[T])(op: DataSetAPI[T] => DataSetAPI[That]): Unit = {
+  def assertDatasetOperation[T:Manifest, Result](data: Seq[T])(op: DataSetAPI[T] => Result): Unit = {
     val ds = spark.createDataset(data)(ExpressionEncoder[T]())
 
     assert(op(DataSetAPI(data)) == op(DataSetAPI(ds)))

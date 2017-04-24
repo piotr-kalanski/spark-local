@@ -14,12 +14,10 @@ class FilterTest extends SparkLocalBaseTest {
     }
   }
 
-  test("Filter values") {
-
+  test("Filter equal") {
     assertDatasetOperation(Seq(1,2,3)){
       ds => ds.filter(_ % 2 == 0)
     }
-
   }
 
 }

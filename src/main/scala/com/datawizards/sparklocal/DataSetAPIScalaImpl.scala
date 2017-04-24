@@ -10,9 +10,10 @@ class DataSetAPIScalaImpl[T: ClassTag](iterable: Iterable[T]) extends DataSetAPI
 
   override def collect(): Array[T] = data.toArray
 
-  override def toString: String = data.toString
-
   override def filter(p: T => Boolean): DataSetAPI[T] =
     new DataSetAPIScalaImpl(data.filter(p))
 
+  override def count(): Long = data.size
+
+  override def foreach(f: (T) => Unit): Unit = data.foreach(f)
 }

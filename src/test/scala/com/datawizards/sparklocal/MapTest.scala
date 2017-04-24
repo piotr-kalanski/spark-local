@@ -14,12 +14,10 @@ class MapTest extends SparkLocalBaseTest {
     }
   }
 
-  test("Map values") {
-
+  test("Map equal") {
     assertDatasetOperation(Seq(1,2,3)){
       ds => ds.map(x => x+1)
     }
-
   }
 
 }
