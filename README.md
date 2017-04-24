@@ -17,6 +17,10 @@ Please report any bugs or submit feature requests to [spark-local Github issue t
 
 [Build History](https://travis-ci.org/piotr-kalanski/spark-local/builds)
 
+# Code coverage
+
+[![codecov.io](http://codecov.io/github/piotr-kalanski/spark-local/coverage.svg?branch=development)](http://codecov.io/github/piotr-kalanski/spark-local/coverage.svg?branch=development)
+
 # Contact
 
 piotr.kalanski@gmail.com

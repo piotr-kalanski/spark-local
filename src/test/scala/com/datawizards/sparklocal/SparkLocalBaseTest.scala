@@ -10,6 +10,12 @@ trait SparkLocalBaseTest extends FunSuite {
   lazy val sc: SparkContext = spark.sparkContext
   lazy val sqlContext: SQLContext = spark.sqlContext
 
+  def assertDatasetOperationResult[T](ds: DataSetAPI[T])(expected: Array[T]): Unit = {
+    assertResult(expected){
+      ds.collect()
+    }
+  }
+
   def assertDatasetOperation[T:Manifest, That](data: Seq[T])(op: DataSetAPI[T] => DataSetAPI[That]): Unit = {
     val ds = spark.createDataset(data)(ExpressionEncoder[T]())
 
