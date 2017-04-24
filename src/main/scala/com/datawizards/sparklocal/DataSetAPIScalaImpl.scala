@@ -23,4 +23,7 @@ class DataSetAPIScalaImpl[T: ClassTag](iterable: Iterable[T]) extends DataSetAPI
 
   override def head(n: Int): Array[T] = data.take(n).toArray
 
+  override def reduce(func: (T, T) => T): T = data.reduce(func)
+
+  override def cache(): DataSetAPI[T] = this
 }

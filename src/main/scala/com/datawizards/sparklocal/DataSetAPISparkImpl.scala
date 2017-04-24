@@ -24,4 +24,8 @@ class DataSetAPISparkImpl[T: ClassTag](ds: Dataset[T]) extends DataSetAPI[T] {
   override def head(): T = ds.head()
 
   override def head(n: Int): Array[T] = ds.head(n)
+
+  override def reduce(func: (T, T) => T): T = ds.reduce(func)
+
+  override def cache(): DataSetAPI[T] = new DataSetAPISparkImpl(ds.cache())
 }
