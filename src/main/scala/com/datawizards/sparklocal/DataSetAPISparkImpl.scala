@@ -19,4 +19,9 @@ class DataSetAPISparkImpl[T: ClassTag](ds: Dataset[T]) extends DataSetAPI[T] {
 
   override def foreach(f: (T) => Unit): Unit = ds.foreach(f)
 
+  override def foreachPartition(f: (Iterator[T]) => Unit): Unit = ds.foreachPartition(f)
+
+  override def head(): T = ds.head()
+
+  override def head(n: Int): Array[T] = ds.head(n)
 }

@@ -9,9 +9,15 @@ import scala.collection.mutable.ListBuffer
 class ForeachTest extends SparkLocalBaseTest {
 
   test("Foreach") {
-      val buff = new ListBuffer[Int]
-      DataSetAPI(Seq(1,2,3)).foreach(x => buff += x)
-      assert(buff.toList == List(1,2,3))
+    val buff1 = new ListBuffer[Int]
+    DataSetAPI(Seq(1,2,3)).foreach(x => buff1 += x)
+    assert(buff1.toList == List(1,2,3))
+  }
+
+  test("Foreach partition") {
+    val buff1 = new ListBuffer[Int]
+    DataSetAPI(Seq(1,2,3)).foreachPartition(x => buff1 ++= x)
+    assert(buff1.toList == List(1,2,3))
   }
 
 }

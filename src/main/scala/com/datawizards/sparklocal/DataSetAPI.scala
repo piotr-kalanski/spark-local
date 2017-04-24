@@ -14,7 +14,11 @@ trait DataSetAPI[T] {
   def filter(p: T => Boolean): DataSetAPI[T]
   def count(): Long
   def foreach(f: (T) => Unit): Unit
+  def foreachPartition(f: (Iterator[T]) => Unit): Unit
   def collect(): Array[T]
+  def head(): T
+  def head(n: Int): Array[T]
+
 
   override def toString: String = collect().toSeq.toString
 

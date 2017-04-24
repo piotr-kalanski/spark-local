@@ -16,4 +16,11 @@ class DataSetAPIScalaImpl[T: ClassTag](iterable: Iterable[T]) extends DataSetAPI
   override def count(): Long = data.size
 
   override def foreach(f: (T) => Unit): Unit = data.foreach(f)
+
+  override def foreachPartition(f: (Iterator[T]) => Unit): Unit = f(data.iterator)
+
+  override def head(): T = data.head
+
+  override def head(n: Int): Array[T] = data.take(n).toArray
+
 }
