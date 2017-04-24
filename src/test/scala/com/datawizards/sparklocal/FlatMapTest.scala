@@ -8,7 +8,7 @@ class FlatMapTest extends SparkLocalBaseTest {
 
   test("Map result") {
     assertDatasetOperationResult(
-      DataSetAPI(Seq(1,2,3)).flatMap(x => 1 until x)
+      DataSetAPI(Seq(1,2,3)).flatMap(x => 1 to x)
     ) {
       Array(1,1,2,1,2,3)
     }

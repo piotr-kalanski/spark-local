@@ -6,7 +6,11 @@ import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.scalatest.FunSuite
 
 trait SparkLocalBaseTest extends FunSuite {
-  lazy val spark: SparkSession = SparkSession.builder().master("local").getOrCreate()
+  lazy val spark: SparkSession = {
+    val r = SparkSession.builder().master("local").getOrCreate()
+    r.sparkContext.setCheckpointDir("checkpoints/")
+    r
+  }
   lazy val sc: SparkContext = spark.sparkContext
   lazy val sqlContext: SQLContext = spark.sqlContext
 

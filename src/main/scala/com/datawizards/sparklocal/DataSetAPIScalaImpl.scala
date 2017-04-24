@@ -7,7 +7,7 @@ import scala.reflect.ClassTag
 class DataSetAPIScalaImpl[T: ClassTag](iterable: Iterable[T]) extends DataSetAPI[T] {
   private val data: Seq[T] = iterable.toSeq
 
-  private def create[U](it: Iterable[U]) = new DataSetAPIScalaImpl(it)
+  private def create[U: ClassTag](it: Iterable[U]) = new DataSetAPIScalaImpl(it)
 
   override def map[That: ClassTag: Manifest](map: T => That): DataSetAPI[That] = create(data.map(map))
 
@@ -35,6 +35,7 @@ class DataSetAPIScalaImpl[T: ClassTag](iterable: Iterable[T]) extends DataSetAPI
 
   override def persist(): DataSetAPI[T] = this
 
-  override def flatMap[U](func: (T) => TraversableOnce[U]): DataSetAPI[U] = create(data.flatMap(func))
+  override def flatMap[U: ClassTag: Manifest](func: (T) => TraversableOnce[U]): DataSetAPI[U] = create(data.flatMap(func))
 
+  override def distinct(): DataSetAPI[T] = create(data.distinct)
 }

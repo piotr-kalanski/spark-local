@@ -25,7 +25,10 @@ trait DataSetAPI[T] {
   def checkpoint(): DataSetAPI[T] = checkpoint(true)
   def persist(newLevel: StorageLevel): DataSetAPI[T]
   def persist(): DataSetAPI[T]
-  def flatMap[U](func: (T) ⇒ TraversableOnce[U]): DataSetAPI[U]
+  def flatMap[U: ClassTag: Manifest](func: (T) ⇒ TraversableOnce[U]): DataSetAPI[U]
+  def distinct(): DataSetAPI[T]
+  //TODO group by
+  //TODO join
 
   def take(n: Int): Array[T] = head(n)
 

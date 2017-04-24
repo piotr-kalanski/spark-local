@@ -8,7 +8,7 @@ import scala.reflect.ClassTag
 
 class DataSetAPISparkImpl[T: ClassTag](data: Dataset[T]) extends DataSetAPI[T] {
 
-  private def create[U](ds: Dataset[U]) = new DataSetAPISparkImpl(ds)
+  private def create[U: ClassTag](ds: Dataset[U]) = new DataSetAPISparkImpl(ds)
 
   override def map[That: ClassTag: Manifest](map: T => That): DataSetAPI[That] =
     create(data.map(map)(ExpressionEncoder[That]()))
@@ -38,5 +38,7 @@ class DataSetAPISparkImpl[T: ClassTag](data: Dataset[T]) extends DataSetAPI[T] {
 
   override def persist(): DataSetAPI[T] = create(data.persist())
 
-  override def flatMap[U](func: (T) => TraversableOnce[U]): DataSetAPI[U] = create(data.flatMap(func))
+  override def flatMap[U: ClassTag: Manifest](func: (T) => TraversableOnce[U]): DataSetAPI[U] = create(data.flatMap(func)(ExpressionEncoder[U]()))
+
+  override def distinct(): DataSetAPI[T] = create(data.distinct)
 }
