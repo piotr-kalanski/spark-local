@@ -7,6 +7,24 @@ API enabling switching between Spark execution engine and local fast implementat
 - Speed up unit testing when using Spark
 - Enable possibility to switch between Spark execution engine and Scala collections depending on use case, especially size of data
 
+# Getting started
+
+Include dependency:
+
+```scala
+"com.github.piotr-kalanski" % "spark-local" % "0.1.0"
+```
+
+or
+
+```xml
+<dependency>
+    <groupId>com.github.piotr-kalanski</groupId>
+    <artifactId>spark-local</artifactId>
+    <version>0.1.0</version>
+</dependency>
+```
+
 # Example
 
 ```scala

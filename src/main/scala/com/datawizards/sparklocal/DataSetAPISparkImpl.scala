@@ -2,30 +2,41 @@ package com.datawizards.sparklocal
 
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.sql.Dataset
+import org.apache.spark.storage.StorageLevel
 
 import scala.reflect.ClassTag
 
-class DataSetAPISparkImpl[T: ClassTag](ds: Dataset[T]) extends DataSetAPI[T] {
+class DataSetAPISparkImpl[T: ClassTag](data: Dataset[T]) extends DataSetAPI[T] {
+
+  private def create[U](ds: Dataset[U]) = new DataSetAPISparkImpl(ds)
 
   override def map[That: ClassTag: Manifest](map: T => That): DataSetAPI[That] =
-    new DataSetAPISparkImpl(ds.map(map)(ExpressionEncoder[That]()))
+    create(data.map(map)(ExpressionEncoder[That]()))
 
-  override def collect(): Array[T] = ds.collect()
+  override def collect(): Array[T] = data.collect()
 
   override def filter(p: T => Boolean): DataSetAPI[T] =
-    new DataSetAPISparkImpl(ds.filter(p))
+    create(data.filter(p))
 
-  override def count(): Long = ds.count()
+  override def count(): Long = data.count()
 
-  override def foreach(f: (T) => Unit): Unit = ds.foreach(f)
+  override def foreach(f: (T) => Unit): Unit = data.foreach(f)
 
-  override def foreachPartition(f: (Iterator[T]) => Unit): Unit = ds.foreachPartition(f)
+  override def foreachPartition(f: (Iterator[T]) => Unit): Unit = data.foreachPartition(f)
 
-  override def head(): T = ds.head()
+  override def head(): T = data.head()
 
-  override def head(n: Int): Array[T] = ds.head(n)
+  override def head(n: Int): Array[T] = data.head(n)
 
-  override def reduce(func: (T, T) => T): T = ds.reduce(func)
+  override def reduce(func: (T, T) => T): T = data.reduce(func)
 
-  override def cache(): DataSetAPI[T] = new DataSetAPISparkImpl(ds.cache())
+  override def cache(): DataSetAPI[T] = create(data.cache())
+
+  override def checkpoint(eager: Boolean): DataSetAPI[T] = create(data.checkpoint(eager))
+
+  override def persist(newLevel: StorageLevel): DataSetAPI[T] = create(data.persist(newLevel))
+
+  override def persist(): DataSetAPI[T] = create(data.persist())
+
+  override def flatMap[U](func: (T) => TraversableOnce[U]): DataSetAPI[U] = create(data.flatMap(func))
 }
