@@ -22,8 +22,10 @@ class HeadTest extends SparkLocalBaseTest {
   }
 
   test("Head(n) equal") {
-    assertDatasetOperation(Seq(1,2,3)){
-      ds => ds.head(2)
+    def head2:(DataSetAPI[Int] => Array[Int]) = ds => ds.head(2)
+
+    assertDatasetOperationWithEqual(Seq(1,2,3), head2) {
+      case(r1,r2) => r1 sameElements r2
     }
   }
 

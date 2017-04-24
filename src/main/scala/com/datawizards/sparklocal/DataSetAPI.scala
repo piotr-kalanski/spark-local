@@ -19,7 +19,6 @@ trait DataSetAPI[T] {
   def head(): T
   def head(n: Int): Array[T]
 
-
   override def toString: String = collect().toSeq.toString
 
   override def equals(obj: scala.Any): Boolean = obj match {
