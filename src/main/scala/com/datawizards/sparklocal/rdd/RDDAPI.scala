@@ -2,6 +2,7 @@ package com.datawizards.sparklocal.rdd
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.storage.StorageLevel
 
 import scala.reflect.ClassTag
 
@@ -26,6 +27,10 @@ trait RDDAPI[T] {
   def zip[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)]
   def foreach(f: (T) => Unit): Unit
   def foreachPartition(f: (Iterator[T]) => Unit): Unit
+  def checkpoint(): RDDAPI[T]
+  def cache(): RDDAPI[T]
+  def persist(newLevel: StorageLevel): RDDAPI[T]
+  def persist(): RDDAPI[T]
 
   override def toString: String = collect().toSeq.toString
 

@@ -21,9 +21,9 @@ trait DataSetAPI[T] {
   def head(n: Int): Array[T]
   def take(n: Int): Array[T] = head(n)
   def reduce(func: (T,T) => T): T
-  def cache(): DataSetAPI[T]
   def checkpoint(eager: Boolean): DataSetAPI[T]
   def checkpoint(): DataSetAPI[T] = checkpoint(true)
+  def cache(): DataSetAPI[T]
   def persist(newLevel: StorageLevel): DataSetAPI[T]
   def persist(): DataSetAPI[T]
   def flatMap[U: ClassTag: Manifest](func: (T) ⇒ TraversableOnce[U]): DataSetAPI[U]

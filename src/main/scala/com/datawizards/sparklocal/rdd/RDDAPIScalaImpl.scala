@@ -1,5 +1,7 @@
 package com.datawizards.sparklocal.rdd
 
+import org.apache.spark.storage.StorageLevel
+
 import scala.reflect.ClassTag
 
 class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] {
@@ -35,4 +37,11 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
 
   override def foreachPartition(f: (Iterator[T]) => Unit): Unit = f(data.iterator)
 
+  override def checkpoint(): RDDAPI[T] = this
+
+  override def cache(): RDDAPI[T] = this
+
+  override def persist(newLevel: StorageLevel): RDDAPI[T] = this
+
+  override def persist(): RDDAPI[T] = this
 }
