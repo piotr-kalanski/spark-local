@@ -122,106 +122,106 @@ object ExampleRDD1 {
 
 |Operation|Supported?|
 |---------|---------|
-|aggregate| <ul><li>- [] </li></ul>|
+|aggregate||
 |cache| <ul><li>- [x] </li></ul>|
-|cartesian| <ul><li>- [] </li></ul>|
-|checkpoint| <ul><li>- [] </li></ul>|
-|coalesce| <ul><li>- [] </li></ul>|
+|cartesian||
+|checkpoint||
+|coalesce||
 |collect| <ul><li>- [x] </li></ul>|
 |count| <ul><li>- [x] </li></ul>|
-|countApprox| <ul><li>- [] </li></ul>|
-|countApproxDistinct| <ul><li>- [] </li></ul>|
-|countByValue| <ul><li>- [] </li></ul>|
-|countByValueApprox| <ul><li>- [] </li></ul>|
-|dependencies| <ul><li>- [] </li></ul>|
-|distinct| <ul><li>- [] </li></ul>|
+|countApprox||
+|countApproxDistinct||
+|countByValue||
+|countByValueApprox||
+|dependencies||
+|distinct||
 |filter| <ul><li>- [x] </li></ul>|
-|first| <ul><li>- [] </li></ul>|
+|first||
 |flatMap| <ul><li>- [x] </li></ul>|
 |fold| <ul><li>- [x] </li></ul>|
 |foreach| <ul><li>- [x] </li></ul>|
 |foreachPartition| <ul><li>- [x] </li></ul>|
-|getCheckpointFile| <ul><li>- [] </li></ul>|
-|getNumPartitions| <ul><li>- [] </li></ul>|
-|getStorageLevel| <ul><li>- [] </li></ul>|
-|glom| <ul><li>- [] </li></ul>|
-|groupBy| <ul><li>- [] </li></ul>|
-|id| <ul><li>- [] </li></ul>|
+|getCheckpointFile||
+|getNumPartitions||
+|getStorageLevel||
+|glom||
+|groupBy||
+|id||
 |intersection| <ul><li>- [x] </li></ul>|
-|isCheckpointed| <ul><li>- [] </li></ul>|
+|isCheckpointed||
 |isEmpty| <ul><li>- [x] </li></ul>|
-|iterator| <ul><li>- [] </li></ul>|
-|keyBy| <ul><li>- [] </li></ul>|
-|localCheckpoint| <ul><li>- [] </li></ul>|
+|iterator||
+|keyBy||
+|localCheckpoint||
 |map| <ul><li>- [x] </li></ul>|
 |mapPartitions| <ul><li>- [x] </li></ul>|
-|mapPartitionsWithIndex| <ul><li>- [] </li></ul>|
+|mapPartitionsWithIndex||
 |max| <ul><li>- [x] </li></ul>|
 |min| <ul><li>- [x] </li></ul>|
-|name| <ul><li>- [] </li></ul>|
-|partitioner| <ul><li>- [] </li></ul>|
-|partitions| <ul><li>- [] </li></ul>|
+|name||
+|partitioner||
+|partitions||
 |persist| <ul><li>- [x] </li></ul>|
-|pipe| <ul><li>- [] </li></ul>|
-|preferredLocations| <ul><li>- [] </li></ul>|
-|randomSplit| <ul><li>- [] </li></ul>|
+|pipe||
+|preferredLocations||
+|randomSplit||
 |reduce| <ul><li>- [x] </li></ul>|
-|repartition| <ul><li>- [] </li></ul>|
-|sample| <ul><li>- [] </li></ul>|
-|saveAsObjectFile| <ul><li>- [] </li></ul>|
-|saveAsTextFile| <ul><li>- [] </li></ul>|
-|setName| <ul><li>- [] </li></ul>|
+|repartition||
+|sample||
+|saveAsObjectFile||
+|saveAsTextFile||
+|setName||
 |sortBy| <ul><li>- [x] </li></ul>|
-|subtract| <ul><li>- [] </li></ul>|
+|subtract||
 |take| <ul><li>- [x] </li></ul>|
-|takeOrdered| <ul><li>- [] </li></ul>|
-|takeSample| <ul><li>- [] </li></ul>|
-|toDebugString| <ul><li>- [] </li></ul>|
-|toJavaRDD| <ul><li>- [] </li></ul>|
-|toLocalIterator| <ul><li>- [] </li></ul>|
-|top| <ul><li>- [] </li></ul>|
-|treeAggregate| <ul><li>- [] </li></ul>|
-|treeReduce| <ul><li>- [] </li></ul>|
+|takeOrdered||
+|takeSample||
+|toDebugString||
+|toJavaRDD||
+|toLocalIterator||
+|top||
+|treeAggregate||
+|treeReduce||
 |union| <ul><li>- [x] </li></ul>|
-|unpersist| <ul><li>- [] </li></ul>|
+|unpersist||
 |zip| <ul><li>- [x] </li></ul>|
-|zipPartitions| <ul><li>- [] </li></ul>|
+|zipPartitions||
 |zipWithIndex| <ul><li>- [x] </li></ul>|
-|zipWithUniqueId| <ul><li>- [] </li></ul>|
+|zipWithUniqueId||
 
 ### Pair RDD API
 
 |Operation|Supported?|
 |---------|---------|
-|aggregateByKey| <ul><li>- [] </li></ul>|
-|cogroup| <ul><li>- [] </li></ul>|
-|collectAsMap| <ul><li>- [] </li></ul>|
-|combineByKey| <ul><li>- [] </li></ul>|
-|combineByKeyWithClassTag| <ul><li>- [] </li></ul>|
-|countApproxDistinctByKey| <ul><li>- [] </li></ul>|
-|countByKey| <ul><li>- [] </li></ul>|
-|countByKeyApprox| <ul><li>- [] </li></ul>|
-|flatMapValues| <ul><li>- [] </li></ul>|
-|foldByKey| <ul><li>- [] </li></ul>|
-|fullOuterJoin| <ul><li>- [] </li></ul>|
-|groupByKey| <ul><li>- [] </li></ul>|
-|groupWith| <ul><li>- [] </li></ul>|
-|join| <ul><li>- [] </li></ul>|
-|keys| <ul><li>- [] </li></ul>|
-|leftOuterJoin| <ul><li>- [] </li></ul>|
-|lookup| <ul><li>- [] </li></ul>|
-|mapValues| <ul><li>- [] </li></ul>|
-|partitionBy| <ul><li>- [] </li></ul>|
-|reduceByKey| <ul><li>- [] </li></ul>|
-|reduceByKeyLocally| <ul><li>- [] </li></ul>|
-|rightOuterJoin| <ul><li>- [] </li></ul>|
-|sampleByKey| <ul><li>- [] </li></ul>|
-|sampleByKeyExact| <ul><li>- [] </li></ul>|
-|saveAsHadoopDataset| <ul><li>- [] </li></ul>|
-|saveAsHadoopFile| <ul><li>- [] </li></ul>|
-|saveAsNewAPIHadoopDataset| <ul><li>- [] </li></ul>|
-|subtractByKey| <ul><li>- [] </li></ul>|
-|values| <ul><li>- [] </li></ul>|
+|aggregateByKey||
+|cogroup||
+|collectAsMap||
+|combineByKey||
+|combineByKeyWithClassTag||
+|countApproxDistinctByKey||
+|countByKey||
+|countByKeyApprox||
+|flatMapValues||
+|foldByKey||
+|fullOuterJoin||
+|groupByKey||
+|groupWith||
+|join||
+|keys||
+|leftOuterJoin||
+|lookup||
+|mapValues||
+|partitionBy||
+|reduceByKey||
+|reduceByKeyLocally||
+|rightOuterJoin||
+|sampleByKey||
+|sampleByKeyExact||
+|saveAsHadoopDataset||
+|saveAsHadoopFile||
+|saveAsNewAPIHadoopDataset||
+|subtractByKey||
+|values||
 
 ## Dataset API
 
@@ -230,102 +230,102 @@ object ExampleRDD1 {
 |Operation|Supported?|
 |---------|---------|
 |collect| <ul><li>- [x] </li></ul>|
-|collectAsList| <ul><li>- [] </li></ul>|
+|collectAsList||
 |count| <ul><li>- [x] </li></ul>|
-|describe| <ul><li>- [] </li></ul>|
+|describe||
 |first| <ul><li>- [x] </li></ul>|
 |foreach| <ul><li>- [x] </li></ul>|
 |foreachPartition| <ul><li>- [x] </li></ul>|
 |head| <ul><li>- [x] </li></ul>|
 |reduce| <ul><li>- [x] </li></ul>|
-|show| <ul><li>- [] </li></ul>|
+|show||
 |take| <ul><li>- [x] </li></ul>|
-|takeAsList| <ul><li>- [] </li></ul>|
-|toLocalIterator| <ul><li>- [] </li></ul>|
+|takeAsList||
+|toLocalIterator||
 
 ### Dataset API - Basic Dataset functions
 
 |Operation|Supported?|
 |---------|---------|
-|as| <ul><li>- [] </li></ul>|
+|as||
 |cache| <ul><li>- [x] </li></ul>|
 |checkpoint| <ul><li>- [x] </li></ul>|
-|columns| <ul><li>- [] </li></ul>|
-|createGlobalTempView| <ul><li>- [] </li></ul>|
-|createOrReplaceTempView| <ul><li>- [] </li></ul>|
-|createTempView| <ul><li>- [] </li></ul>|
-|dtypes| <ul><li>- [] </li></ul>|
-|explain| <ul><li>- [] </li></ul>|
-|inputFiles| <ul><li>- [] </li></ul>|
-|isLocal| <ul><li>- [] </li></ul>|
-|javaRDD| <ul><li>- [] </li></ul>|
+|columns||
+|createGlobalTempView||
+|createOrReplaceTempView||
+|createTempView||
+|dtypes||
+|explain||
+|inputFiles||
+|isLocal||
+|javaRDD||
 |persist| <ul><li>- [x] </li></ul>|
-|printSchema| <ul><li>- [] </li></ul>|
-|rdd| <ul><li>- [] </li></ul>|
-|schema| <ul><li>- [] </li></ul>|
-|storageLevel| <ul><li>- [] </li></ul>|
-|toDF| <ul><li>- [] </li></ul>|
-|toJavaRDD| <ul><li>- [] </li></ul>|
-|unpersist| <ul><li>- [] </li></ul>|
-|write| <ul><li>- [] </li></ul>|
-|writeStream| <ul><li>- [] </li></ul>|
+|printSchema||
+|rdd||
+|schema||
+|storageLevel||
+|toDF||
+|toJavaRDD||
+|unpersist||
+|write||
+|writeStream||
 
 ### Dataset API - streaming
 
 |Operation|Supported?|
 |---------|---------|
-|isStreaming| <ul><li>- [] </li></ul>|
-|withWatermark| <ul><li>- [] </li></ul>|
+|isStreaming||
+|withWatermark||
 
 ### Dataset API - Typed transformations
 
 |Operation|Supported?|
 |---------|---------|
-|alias| <ul><li>- [] </li></ul>|
-|as| <ul><li>- [] </li></ul>|
-|coalesce| <ul><li>- [] </li></ul>|
-|distinct| <ul><li>- [] </li></ul>|
-|dropDuplicates| <ul><li>- [] </li></ul>|
-|except| <ul><li>- [] </li></ul>|
+|alias||
+|as||
+|coalesce||
+|distinct||
+|dropDuplicates||
+|except||
 |filter| <ul><li>- [x] </li></ul>|
 |flatMap| <ul><li>- [x] </li></ul>|
-|groupByKey| <ul><li>- [] </li></ul>|
-|intersect| <ul><li>- [] </li></ul>|
-|joinWith| <ul><li>- [] </li></ul>|
-|limit| <ul><li>- [] </li></ul>|
+|groupByKey||
+|intersect||
+|joinWith||
+|limit||
 |map| <ul><li>- [x] </li></ul>|
 |mapPartitions| <ul><li>- [x] </li></ul>|
-|orderBy| <ul><li>- [] </li></ul>|
-|randomSplit| <ul><li>- [] </li></ul>|
-|randomSplitAsList| <ul><li>- [] </li></ul>|
-|repartition| <ul><li>- [] </li></ul>|
-|sample| <ul><li>- [] </li></ul>|
-|select| <ul><li>- [] </li></ul>|
-|sort| <ul><li>- [] </li></ul>|
-|sortWithinPartitions| <ul><li>- [] </li></ul>|
-|transform| <ul><li>- [] </li></ul>|
-|union| <ul><li>- [] </li></ul>|
-|where| <ul><li>- [] </li></ul>|
+|orderBy||
+|randomSplit||
+|randomSplitAsList||
+|repartition||
+|sample||
+|select||
+|sort||
+|sortWithinPartitions||
+|transform||
+|union||
+|where||
 
 ### Dataset API - Untyped transformations
 
 |Operation|Supported?|
 |---------|---------|
-|agg| <ul><li>- [] </li></ul>|
-|apply| <ul><li>- [] </li></ul>|
-|col| <ul><li>- [] </li></ul>|
-|crossJoin| <ul><li>- [] </li></ul>|
-|cube| <ul><li>- [] </li></ul>|
-|drop| <ul><li>- [] </li></ul>|
-|groupBy| <ul><li>- [] </li></ul>|
-|join| <ul><li>- [] </li></ul>|
-|na| <ul><li>- [] </li></ul>|
-|rollup| <ul><li>- [] </li></ul>|
-|select| <ul><li>- [] </li></ul>|
-|selectExpr| <ul><li>- [] </li></ul>|
-|stat| <ul><li>- [] </li></ul>|
-|withColumn| <ul><li>- [] </li></ul>|
-|withColumnRenamed| <ul><li>- [] </li></ul>|
+|agg||
+|apply||
+|col||
+|crossJoin||
+|cube||
+|drop||
+|groupBy||
+|join||
+|na||
+|rollup||
+|select||
+|selectExpr||
+|stat||
+|withColumn||
+|withColumnRenamed||
 
 # Bugs
 
