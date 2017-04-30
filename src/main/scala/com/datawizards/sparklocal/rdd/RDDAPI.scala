@@ -12,7 +12,7 @@ object RDDAPI {
 trait RDDAPI[T] {
   def collect(): Array[T]
   def map[That: ClassTag](map: T => That): RDDAPI[That]
-
+  def filter(p: T => Boolean): RDDAPI[T]
   override def toString: String = collect().toSeq.toString
 
   override def equals(obj: scala.Any): Boolean = obj match {
