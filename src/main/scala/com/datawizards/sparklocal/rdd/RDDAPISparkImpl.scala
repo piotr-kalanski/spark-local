@@ -26,4 +26,10 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
   override def head(n: Int): Array[T] = data.take(n)
 
   override def isEmpty: Boolean = data.isEmpty
+
+  override def zip[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)] = other match {
+    case rddScala:RDDAPIScalaImpl[U] => RDDAPI(data zip spark.sparkContext.parallelize(rddScala.data))
+    case rddSpark:RDDAPISparkImpl[U] => create(data zip rddSpark.data)
+  }
+
 }

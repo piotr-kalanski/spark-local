@@ -1,6 +1,7 @@
 package com.datawizards.sparklocal.rdd
 
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SparkSession
 
 import scala.reflect.ClassTag
 
@@ -10,6 +11,7 @@ object RDDAPI {
 }
 
 trait RDDAPI[T] {
+  protected lazy val spark = SparkSession.builder().getOrCreate()
   def collect(): Array[T]
   def map[That: ClassTag](map: T => That): RDDAPI[That]
   def flatMap[U: ClassTag: Manifest](func: (T) ⇒ TraversableOnce[U]): RDDAPI[U]
@@ -21,6 +23,7 @@ trait RDDAPI[T] {
   def take(n: Int): Array[T] = head(n)
   def first(): T = head()
   def isEmpty: Boolean
+  def zip[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)]
 
   override def toString: String = collect().toSeq.toString
 

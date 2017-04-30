@@ -3,7 +3,7 @@ package com.datawizards.sparklocal.rdd
 import scala.reflect.ClassTag
 
 class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] {
-  private val data: Seq[T] = iterable.toSeq
+  private[rdd] val data: Seq[T] = iterable.toSeq
 
   private def create[U: ClassTag](data: Iterable[U]) = new RDDAPIScalaImpl(data)
 
@@ -25,4 +25,10 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
   override def head(n: Int): Array[T] = data.take(n).toArray
 
   override def isEmpty: Boolean = data.isEmpty
+
+  override def zip[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)] = other match {
+    case rddScala:RDDAPIScalaImpl[U] => create(data zip rddScala.data)
+    case rddSpark:RDDAPISparkImpl[U] => RDDAPI(spark.sparkContext.parallelize(data) zip rddSpark.data)
+  }
+
 }
