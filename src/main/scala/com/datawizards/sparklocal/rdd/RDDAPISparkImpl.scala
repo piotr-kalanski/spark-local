@@ -1,5 +1,6 @@
 package com.datawizards.sparklocal.rdd
 
+import org.apache.spark.Partition
 import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 
@@ -59,4 +60,8 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
 
   override def max()(implicit ord: Ordering[T]): T = data.max
 
+  override def partitions: Array[Partition] = data.partitions
+
+  override def sortBy[K](f: (T) => K, ascending: Boolean, numPartitions: Int)(implicit ord: Ordering[K], ctag: ClassTag[K]): RDDAPI[T] =
+    create(data.sortBy(f,ascending,numPartitions)(ord,ctag))
 }

@@ -1,5 +1,7 @@
 package com.datawizards.sparklocal.rdd
 
+import org.apache.spark.Partition
+import org.apache.spark.rdd.RDD
 import org.apache.spark.storage.StorageLevel
 
 import scala.reflect.ClassTag
@@ -55,5 +57,10 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
   override def min()(implicit ord: Ordering[T]): T = data.min
 
   override def max()(implicit ord: Ordering[T]): T = data.max
+
+  override def partitions: Array[Partition] = Array.empty
+
+  override def sortBy[K](f: (T) => K, ascending: Boolean, numPartitions: Int)(implicit ord: Ordering[K], ctag: ClassTag[K]): RDDAPI[T] =
+    create(data.sortBy(f)(if(ascending) ord else ord.reverse))
 
 }
