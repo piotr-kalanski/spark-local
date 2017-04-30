@@ -53,4 +53,5 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
     case rddSpark:RDDAPISparkImpl[T] => create(data union rddSpark.data)
   }
 
+  override def zipWithIndex(): RDDAPI[(T, Long)] = create(data.zipWithIndex())
 }

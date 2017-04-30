@@ -49,4 +49,6 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
     case rddScala:RDDAPIScalaImpl[T] => create(data union rddScala.data)
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(spark.sparkContext.parallelize(data) union rddSpark.data)
   }
+
+  override def zipWithIndex(): RDDAPI[(T, Long)] = create(data zip (0L until data.size))
 }
