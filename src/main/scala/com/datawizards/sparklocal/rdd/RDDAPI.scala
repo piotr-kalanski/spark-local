@@ -14,6 +14,8 @@ trait RDDAPI[T] {
   def map[That: ClassTag](map: T => That): RDDAPI[That]
   def flatMap[U: ClassTag: Manifest](func: (T) ⇒ TraversableOnce[U]): RDDAPI[U]
   def filter(p: T => Boolean): RDDAPI[T]
+  def reduce(func: (T,T) => T): T
+  def fold(zeroValue: T)(op: (T, T) => T): T
 
   override def toString: String = collect().toSeq.toString
 

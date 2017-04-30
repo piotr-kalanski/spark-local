@@ -16,4 +16,8 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
 
   override def flatMap[U: ClassTag : Manifest](func: (T) => TraversableOnce[U]): RDDAPI[U] =
     create(data.flatMap(func))
+
+  override def reduce(func: (T, T) => T): T = data.reduce(func)
+
+  override def fold(zeroValue: T)(op: (T, T) => T): T = data.fold(zeroValue)(op)
 }
