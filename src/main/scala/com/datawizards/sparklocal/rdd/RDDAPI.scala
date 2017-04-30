@@ -31,6 +31,7 @@ trait RDDAPI[T] {
   def cache(): RDDAPI[T]
   def persist(newLevel: StorageLevel): RDDAPI[T]
   def persist(): RDDAPI[T]
+  def union(other: RDDAPI[T]): RDDAPI[T]
 
   override def toString: String = collect().toSeq.toString
 

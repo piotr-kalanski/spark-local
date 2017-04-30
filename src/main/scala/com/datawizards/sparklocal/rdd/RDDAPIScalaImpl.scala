@@ -44,4 +44,9 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
   override def persist(newLevel: StorageLevel): RDDAPI[T] = this
 
   override def persist(): RDDAPI[T] = this
+
+  override def union(other: RDDAPI[T]): RDDAPI[T] = other match {
+    case rddScala:RDDAPIScalaImpl[T] => create(data union rddScala.data)
+    case rddSpark:RDDAPISparkImpl[T] => RDDAPI(spark.sparkContext.parallelize(data) union rddSpark.data)
+  }
 }
