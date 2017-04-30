@@ -24,7 +24,7 @@ API enabling switching between Spark execution engine and local fast implementat
 Include dependency:
 
 ```scala
-"com.github.piotr-kalanski" % "spark-local" % "0.1.0"
+"com.github.piotr-kalanski" %% "spark-local" % "0.1.0"
 ```
 
 or
@@ -32,7 +32,7 @@ or
 ```xml
 <dependency>
     <groupId>com.github.piotr-kalanski</groupId>
-    <artifactId>spark-local</artifactId>
+    <artifactId>spark-local_2.11</artifactId>
     <version>0.1.0</version>
 </dependency>
 ```
