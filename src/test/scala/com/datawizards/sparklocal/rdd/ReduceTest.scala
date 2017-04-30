@@ -1,5 +1,6 @@
-package com.datawizards.sparklocal
+package com.datawizards.sparklocal.rdd
 
+import com.datawizards.sparklocal.SparkLocalBaseTest
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -7,11 +8,11 @@ import org.scalatest.junit.JUnitRunner
 class ReduceTest extends SparkLocalBaseTest {
 
   test("Reduce result") {
-      assert(DataSetAPI(Seq(1,2,3)).reduce(_ + _) == 6)
+      assert(RDDAPI(Seq(1,2,3)).reduce(_ + _) == 6)
   }
 
   test("Reduce equal") {
-    assertDatasetOperation(Seq(1,2,3)){
+    assertRDDOperation(Seq(1,2,3)){
       ds => ds.reduce(_ + _)
     }
   }

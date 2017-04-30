@@ -1,5 +1,6 @@
-package com.datawizards.sparklocal
+package com.datawizards.sparklocal.rdd
 
+import com.datawizards.sparklocal.SparkLocalBaseTest
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -7,15 +8,15 @@ import org.scalatest.junit.JUnitRunner
 class FilterTest extends SparkLocalBaseTest {
 
   test("Filter result") {
-    assertDatasetOperationResult(
-      DataSetAPI(Seq(1,2,3)).filter(_ % 2 == 0)
+    assertRDDOperationResult(
+      RDDAPI(Seq(1,2,3)).filter(_ % 2 == 0)
     ) {
       Array(2)
     }
   }
 
   test("Filter equal") {
-    assertDatasetOperation(Seq(1,2,3)){
+    assertRDDOperation(Seq(1,2,3)){
       ds => ds.filter(_ % 2 == 0)
     }
   }

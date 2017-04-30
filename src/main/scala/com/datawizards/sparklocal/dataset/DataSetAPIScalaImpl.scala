@@ -1,4 +1,4 @@
-package com.datawizards.sparklocal
+package com.datawizards.sparklocal.dataset
 
 import org.apache.spark.storage.StorageLevel
 

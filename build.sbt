@@ -13,3 +13,5 @@ libraryDependencies ++= Seq(
 )
 
 javaOptions ++= Seq("-Xms512M", "-Xmx2048M", "-XX:MaxPermSize=2048M")
+
+coverageExcludedPackages := "com.datawizards.sparklocal.examples.*"

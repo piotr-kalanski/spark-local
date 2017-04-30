@@ -1,7 +1,7 @@
-package com.datawizards.sparklocal
+package com.datawizards.sparklocal.dataset
 
-import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.sql.Dataset
+import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.storage.StorageLevel
 
 import scala.reflect.ClassTag

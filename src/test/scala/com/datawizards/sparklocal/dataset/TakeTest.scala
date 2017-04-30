@@ -1,5 +1,6 @@
-package com.datawizards.sparklocal
+package com.datawizards.sparklocal.dataset
 
+import com.datawizards.sparklocal.SparkLocalBaseTest
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -18,6 +19,5 @@ class TakeTest extends SparkLocalBaseTest {
       case(r1,r2) => r1 sameElements r2
     }
   }
-
 
 }
