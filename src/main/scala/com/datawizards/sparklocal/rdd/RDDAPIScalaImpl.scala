@@ -31,4 +31,8 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
     case rddSpark:RDDAPISparkImpl[U] => RDDAPI(spark.sparkContext.parallelize(data) zip rddSpark.data)
   }
 
+  override def foreach(f: (T) => Unit): Unit = data.foreach(f)
+
+  override def foreachPartition(f: (Iterator[T]) => Unit): Unit = f(data.iterator)
+
 }

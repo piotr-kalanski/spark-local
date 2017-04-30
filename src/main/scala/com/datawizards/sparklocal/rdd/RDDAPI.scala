@@ -11,7 +11,7 @@ object RDDAPI {
 }
 
 trait RDDAPI[T] {
-  protected lazy val spark = SparkSession.builder().getOrCreate()
+  protected lazy val spark: SparkSession = SparkSession.builder().getOrCreate()
   def collect(): Array[T]
   def map[That: ClassTag](map: T => That): RDDAPI[That]
   def flatMap[U: ClassTag: Manifest](func: (T) ⇒ TraversableOnce[U]): RDDAPI[U]
@@ -24,6 +24,8 @@ trait RDDAPI[T] {
   def first(): T = head()
   def isEmpty: Boolean
   def zip[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)]
+  def foreach(f: (T) => Unit): Unit
+  def foreachPartition(f: (Iterator[T]) => Unit): Unit
 
   override def toString: String = collect().toSeq.toString
 
