@@ -25,4 +25,5 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
 
   override def head(n: Int): Array[T] = data.take(n)
 
+  override def isEmpty: Boolean = data.isEmpty
 }

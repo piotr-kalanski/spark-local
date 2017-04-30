@@ -19,6 +19,8 @@ trait RDDAPI[T] {
   def head(): T
   def head(n: Int): Array[T]
   def take(n: Int): Array[T] = head(n)
+  def first(): T = head()
+  def isEmpty: Boolean
 
   override def toString: String = collect().toSeq.toString
 

@@ -24,4 +24,5 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
 
   override def head(n: Int): Array[T] = data.take(n).toArray
 
+  override def isEmpty: Boolean = data.isEmpty
 }
