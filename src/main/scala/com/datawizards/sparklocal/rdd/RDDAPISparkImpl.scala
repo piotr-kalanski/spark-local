@@ -14,4 +14,6 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
 
   override def filter(p: (T) => Boolean): RDDAPI[T] = create(data.filter(p))
 
+  override def flatMap[U: ClassTag : Manifest](func: (T) => TraversableOnce[U]): RDDAPI[U] =
+    create(data.flatMap(func))
 }
