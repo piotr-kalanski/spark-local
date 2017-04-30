@@ -1,6 +1,6 @@
 package com.datawizards.sparklocal.rdd
 
-import org.apache.spark.Partition
+import org.apache.spark.{Partition, Partitioner}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
@@ -38,6 +38,10 @@ trait RDDAPI[T] {
   def max()(implicit ord: Ordering[T]): T
   def partitions: Array[Partition]
   def sortBy[K](f: (T) => K, ascending: Boolean = true, numPartitions: Int = this.partitions.length)(implicit ord: Ordering[K], ctag: ClassTag[K]): RDDAPI[T]
+  def intersection(other: RDDAPI[T]): RDDAPI[T]
+  def intersection(other: RDDAPI[T], numPartitions: Int): RDDAPI[T]
+  def intersection(other: RDDAPI[T], partitioner: Partitioner)(implicit ord: Ordering[T] = null): RDDAPI[T]
+  def count(): Long
 
   override def toString: String = collect().toSeq.toString
 

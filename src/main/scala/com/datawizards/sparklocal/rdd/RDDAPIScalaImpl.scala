@@ -1,7 +1,6 @@
 package com.datawizards.sparklocal.rdd
 
-import org.apache.spark.Partition
-import org.apache.spark.rdd.RDD
+import org.apache.spark.{Partition, Partitioner}
 import org.apache.spark.storage.StorageLevel
 
 import scala.reflect.ClassTag
@@ -62,5 +61,22 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
 
   override def sortBy[K](f: (T) => K, ascending: Boolean, numPartitions: Int)(implicit ord: Ordering[K], ctag: ClassTag[K]): RDDAPI[T] =
     create(data.sortBy(f)(if(ascending) ord else ord.reverse))
+
+  override def intersection(other: RDDAPI[T]): RDDAPI[T] = other match {
+    case rddScala:RDDAPIScalaImpl[T] => create(data intersect rddScala.data)
+    case rddSpark:RDDAPISparkImpl[T] => RDDAPI(spark.sparkContext.parallelize(data) intersection rddSpark.data)
+  }
+
+  override def intersection(other: RDDAPI[T], numPartitions: Int): RDDAPI[T] = other match {
+    case rddScala:RDDAPIScalaImpl[T] => create(data intersect rddScala.data)
+    case rddSpark:RDDAPISparkImpl[T] => RDDAPI(spark.sparkContext.parallelize(data).intersection(rddSpark.data, numPartitions))
+  }
+
+  override def intersection(other: RDDAPI[T], partitioner: Partitioner)(implicit ord: Ordering[T]): RDDAPI[T] = other match {
+    case rddScala:RDDAPIScalaImpl[T] => create(data intersect rddScala.data)
+    case rddSpark:RDDAPISparkImpl[T] => RDDAPI(spark.sparkContext.parallelize(data).intersection(rddSpark.data, partitioner)(ord))
+  }
+
+  override def count(): Long = data.size
 
 }
