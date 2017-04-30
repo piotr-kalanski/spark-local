@@ -19,6 +19,7 @@ trait DataSetAPI[T] {
   def collect(): Array[T]
   def head(): T
   def head(n: Int): Array[T]
+  def take(n: Int): Array[T] = head(n)
   def reduce(func: (T,T) => T): T
   def cache(): DataSetAPI[T]
   def checkpoint(eager: Boolean): DataSetAPI[T]
@@ -27,10 +28,6 @@ trait DataSetAPI[T] {
   def persist(): DataSetAPI[T]
   def flatMap[U: ClassTag: Manifest](func: (T) ⇒ TraversableOnce[U]): DataSetAPI[U]
   def distinct(): DataSetAPI[T]
-  //TODO group by
-  //TODO join
-
-  def take(n: Int): Array[T] = head(n)
 
   override def toString: String = collect().toSeq.toString
 

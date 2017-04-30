@@ -16,6 +16,9 @@ trait RDDAPI[T] {
   def filter(p: T => Boolean): RDDAPI[T]
   def reduce(func: (T,T) => T): T
   def fold(zeroValue: T)(op: (T, T) => T): T
+  def head(): T
+  def head(n: Int): Array[T]
+  def take(n: Int): Array[T] = head(n)
 
   override def toString: String = collect().toSeq.toString
 

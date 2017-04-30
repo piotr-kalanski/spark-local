@@ -20,4 +20,9 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
   override def reduce(func: (T, T) => T): T = data.reduce(func)
 
   override def fold(zeroValue: T)(op: (T, T) => T): T = data.fold(zeroValue)(op)
+
+  override def head(): T = data.first()
+
+  override def head(n: Int): Array[T] = data.take(n)
+
 }
