@@ -1,5 +1,6 @@
-package com.datawizards.sparklocal
+package com.datawizards.sparklocal.dataset
 
+import com.datawizards.sparklocal.SparkLocalBaseTest
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 

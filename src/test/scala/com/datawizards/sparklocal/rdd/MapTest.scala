@@ -1,5 +1,6 @@
-package com.datawizards.sparklocal
+package com.datawizards.sparklocal.rdd
 
+import com.datawizards.sparklocal.SparkLocalBaseTest
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -7,15 +8,15 @@ import org.scalatest.junit.JUnitRunner
 class MapTest extends SparkLocalBaseTest {
 
   test("Map result") {
-    assertDatasetOperationResult(
-      DataSetAPI(Seq(1,2,3)).map(x => x+1)
+    assertRDDOperationResult(
+      RDDAPI(Seq(1,2,3)).map(x => x+1)
     ) {
       Array(2,3,4)
     }
   }
 
   test("Map equal") {
-    assertDatasetOperation(Seq(1,2,3)){
+    assertRDDOperation(Seq(1,2,3)){
       ds => ds.map(x => x+1)
     }
   }
