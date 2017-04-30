@@ -33,6 +33,8 @@ trait RDDAPI[T] {
   def persist(): RDDAPI[T]
   def union(other: RDDAPI[T]): RDDAPI[T]
   def zipWithIndex(): RDDAPI[(T, Long)]
+  def min()(implicit ord: Ordering[T]): T
+  def max()(implicit ord: Ordering[T]): T
 
   override def toString: String = collect().toSeq.toString
 

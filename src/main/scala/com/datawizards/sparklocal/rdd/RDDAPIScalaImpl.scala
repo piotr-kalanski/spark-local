@@ -51,4 +51,9 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
   }
 
   override def zipWithIndex(): RDDAPI[(T, Long)] = create(data zip (0L until data.size))
+
+  override def min()(implicit ord: Ordering[T]): T = data.min
+
+  override def max()(implicit ord: Ordering[T]): T = data.max
+
 }
