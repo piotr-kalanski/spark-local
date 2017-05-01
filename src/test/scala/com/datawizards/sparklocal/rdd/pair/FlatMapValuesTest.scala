@@ -17,7 +17,7 @@ class FlatMapValuesTest extends SparkLocalBaseTest {
   }
 
   test("flatMapValues equal") {
-    assertRDDOperation(Seq(("a",1),("b",2))){
+    assertRDDOperationReturnsSameResult(Seq(("a",1),("b",2))){
       ds => ds.flatMapValues(x => 1 to x)
     }
   }

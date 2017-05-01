@@ -12,7 +12,7 @@ class CountTest extends SparkLocalBaseTest {
   }
 
   test("Count equal") {
-    assertRDDOperation(Seq(1,2,3)) {
+    assertRDDOperationReturnsSameResult(Seq(1,2,3)) {
       ds => ds.count()
     }
   }

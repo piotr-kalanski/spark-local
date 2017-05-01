@@ -17,28 +17,28 @@ class IntersectionTest extends SparkLocalBaseTest {
 
   test("Intersection equal - scala intersection spark") {
     val r2 = RDDAPI(Seq(3,4,5))
-    assertRDDOperationWithSortedResult(Seq(1,2,3,4)){
+    assertRDDOperationReturnsSameResultWithSorted(Seq(1,2,3,4)){
       ds => ds intersection r2
     }
   }
 
   test("Intersection equal - spark intersection scala") {
     val r2 = RDDAPI(Seq(3,4,5))
-    assertRDDOperationWithSortedResult(Seq(1,2,3,4)) {
+    assertRDDOperationReturnsSameResultWithSorted(Seq(1,2,3,4)) {
       ds => r2 intersection ds
     }
   }
 
   test("Intersection equal with partitions - scala intersection spark") {
     val r2 = RDDAPI(Seq(3,4,5))
-    assertRDDOperationWithSortedResult(Seq(1,2,3,4)){
+    assertRDDOperationReturnsSameResultWithSorted(Seq(1,2,3,4)){
       ds => ds.intersection(r2,2)
     }
   }
 
   test("Intersection equal with partitions - spark intersection scala") {
     val r2 = RDDAPI(Seq(3,4,5))
-    assertRDDOperationWithSortedResult(Seq(1,2,3,4)){
+    assertRDDOperationReturnsSameResultWithSorted(Seq(1,2,3,4)){
       ds => r2.intersection(ds,2)
     }
   }

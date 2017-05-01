@@ -17,7 +17,7 @@ class MapValuesTest extends SparkLocalBaseTest {
   }
 
   test("Map values equal") {
-    assertRDDOperation(Seq(("a",1),("b",2))){
+    assertRDDOperationReturnsSameResult(Seq(("a",1),("b",2))){
       ds => ds.mapValues(x => x+1)
     }
   }

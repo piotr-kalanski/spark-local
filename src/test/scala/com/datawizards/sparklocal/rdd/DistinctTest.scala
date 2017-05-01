@@ -16,7 +16,7 @@ class DistinctTest extends SparkLocalBaseTest {
   }
 
   test("Distinct equal") {
-    assertRDDOperationWithSortedResult(Seq(1,1,2,3,2,3,1)){
+    assertRDDOperationReturnsSameResultWithSorted(Seq(1,1,2,3,2,3,1)){
       ds => ds.distinct()
     }
   }

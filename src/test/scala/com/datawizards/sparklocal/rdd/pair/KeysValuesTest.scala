@@ -25,13 +25,13 @@ class KeysValuesTest extends SparkLocalBaseTest {
   }
 
   test("Keys equal") {
-    assertRDDOperation(Seq(("a",1),("b",2))){
+    assertRDDOperationReturnsSameResult(Seq(("a",1),("b",2))){
       ds => ds.keys
     }
   }
 
   test("Values equal") {
-    assertRDDOperation(Seq(("a",1),("b",2))){
+    assertRDDOperationReturnsSameResult(Seq(("a",1),("b",2))){
       ds => ds.values
     }
   }
