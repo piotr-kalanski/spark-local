@@ -14,7 +14,7 @@ object RDDAPI {
   implicit def rddToPairRDDFunctions[K, V](rdd: RDDAPI[(K, V)])
     (implicit kt: ClassTag[K], vt: ClassTag[V], ord: Ordering[K] = null): PairRDDFunctionsAPI[K, V] = {
     rdd match {
-      case rddScala:RDDAPIScalaImpl[(K,V)] => new PairRDDFunctionsAPIScalaImpl(rddScala)
+      case rddScala:RDDAPIScalaImpl[(K,V)] => new PairRDDFunctionsAPIScalaImpl(rddScala)(kt,vt,ord)
       case rddSpark:RDDAPISparkImpl[(K,V)] => new PairRDDFunctionsAPISparkImpl(rddSpark)(kt,vt,ord)
       case _ => throw new Exception("Unknown type")
     }
