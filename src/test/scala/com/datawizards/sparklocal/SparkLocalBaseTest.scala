@@ -7,6 +7,8 @@ import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.sql.{SQLContext, SparkSession}
 import org.scalatest.FunSuite
 
+import scala.math.Ordering
+
 trait SparkLocalBaseTest extends FunSuite {
   lazy val spark: SparkSession = {
     val r = SparkSession.builder().master("local").getOrCreate()
@@ -46,6 +48,12 @@ trait SparkLocalBaseTest extends FunSuite {
     val rdd = sc.parallelize(data)
 
     assert(eq(op(RDDAPI(data)),op(RDDAPI(rdd))))
+  }
+
+  def assertRDDOperationWithSortedResult[T:Manifest](data: Seq[T])(op: RDDAPI[T] => RDDAPI[T])(implicit ord: Ordering[T]): Unit = {
+    assertRDDOperationWithEqual[T,RDDAPI[T]](data, op) {
+      case (d1,d2) => d1.collect().sorted(ord) sameElements d2.collect().sorted(ord)
+    }
   }
 
 }

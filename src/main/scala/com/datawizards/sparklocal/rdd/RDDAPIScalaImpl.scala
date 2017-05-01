@@ -79,4 +79,7 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
 
   override def count(): Long = data.size
 
+  override def distinct(): RDDAPI[T] = create(data.distinct)
+
+  override def distinct(numPartitions: Int)(implicit ord: Ordering[T]): RDDAPI[T] = distinct()
 }

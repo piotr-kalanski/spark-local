@@ -42,6 +42,8 @@ trait RDDAPI[T] {
   def intersection(other: RDDAPI[T], numPartitions: Int): RDDAPI[T]
   def intersection(other: RDDAPI[T], partitioner: Partitioner)(implicit ord: Ordering[T] = null): RDDAPI[T]
   def count(): Long
+  def distinct(): RDDAPI[T]
+  def distinct(numPartitions: Int)(implicit ord: Ordering[T] = null): RDDAPI[T]
 
   override def toString: String = collect().toSeq.toString
 

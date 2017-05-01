@@ -82,4 +82,8 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
 
   override def count(): Long = data.count()
 
+  override def distinct(): RDDAPI[T] = create(data.distinct())
+
+  override def distinct(numPartitions: Int)(implicit ord: Ordering[T]): RDDAPI[T] =
+    create(data.distinct(numPartitions)(ord))
 }
