@@ -32,6 +32,7 @@ trait RDDAPI[T] {
   def cache(): RDDAPI[T]
   def persist(newLevel: StorageLevel): RDDAPI[T]
   def persist(): RDDAPI[T]
+  def unpersist(blocking: Boolean = true): RDDAPI[T]
   def union(other: RDDAPI[T]): RDDAPI[T]
   def zipWithIndex(): RDDAPI[(T, Long)]
   def min()(implicit ord: Ordering[T]): T
@@ -42,6 +43,9 @@ trait RDDAPI[T] {
   def intersection(other: RDDAPI[T], numPartitions: Int): RDDAPI[T]
   def intersection(other: RDDAPI[T], partitioner: Partitioner)(implicit ord: Ordering[T] = null): RDDAPI[T]
   def count(): Long
+  def distinct(): RDDAPI[T]
+  def distinct(numPartitions: Int)(implicit ord: Ordering[T] = null): RDDAPI[T]
+  def top(num: Int)(implicit ord: Ordering[T]): Array[T]
 
   override def toString: String = collect().toSeq.toString
 

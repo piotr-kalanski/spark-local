@@ -15,10 +15,17 @@ class UnionTest extends SparkLocalBaseTest {
     }
   }
 
-  test("Union equal") {
+  test("Union equal - scala union spark") {
     val r2 = RDDAPI(Seq(1,2,3))
     assertRDDOperation(Seq(4,5)){
       ds => ds union r2
+    }
+  }
+
+  test("Union equal - spark union scala") {
+    val r2 = RDDAPI(Seq(1,2,3))
+    assertRDDOperation(Seq(4,5)){
+      ds => r2 union ds
     }
   }
 
