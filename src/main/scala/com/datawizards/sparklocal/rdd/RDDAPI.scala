@@ -45,6 +45,7 @@ trait RDDAPI[T] {
   def count(): Long
   def distinct(): RDDAPI[T]
   def distinct(numPartitions: Int)(implicit ord: Ordering[T] = null): RDDAPI[T]
+  def top(num: Int)(implicit ord: Ordering[T]): Array[T]
 
   override def toString: String = collect().toSeq.toString
 
