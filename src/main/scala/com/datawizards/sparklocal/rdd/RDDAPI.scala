@@ -10,6 +10,16 @@ import scala.reflect.ClassTag
 object RDDAPI {
   def apply[T: ClassTag](iterable: Iterable[T]) = new RDDAPIScalaImpl(iterable)
   def apply[T: ClassTag](rdd: RDD[T]) = new RDDAPISparkImpl(rdd)
+
+  implicit def rddToPairRDDFunctions[K, V](rdd: RDDAPI[(K, V)])
+    (implicit kt: ClassTag[K], vt: ClassTag[V], ord: Ordering[K] = null): PairRDDFunctionsAPI[K, V] = {
+    rdd match {
+      case rddScala:RDDAPIScalaImpl[(K,V)] => new PairRDDFunctionsAPIScalaImpl(rddScala)
+      case rddSpark:RDDAPISparkImpl[(K,V)] => new PairRDDFunctionsAPISparkImpl(rddSpark)(kt,vt,ord)
+      case _ => throw new Exception("Unknown type")
+    }
+  }
+
 }
 
 trait RDDAPI[T] {

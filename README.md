@@ -1,6 +1,6 @@
 # spark-local
 
-API enabling switching between Spark execution engine and local fast implementation based on Scala collections.
+API enabling switching between Spark execution engine and local implementation based on Scala collections.
 
 [![Build Status](https://api.travis-ci.org/piotr-kalanski/spark-local.png?branch=development)](https://api.travis-ci.org/piotr-kalanski/spark-local.png?branch=development)
 [![codecov.io](http://codecov.io/github/piotr-kalanski/spark-local/coverage.svg?branch=development)](http://codecov.io/github/piotr-kalanski/spark-local/coverage.svg?branch=development)
