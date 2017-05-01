@@ -5,16 +5,16 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class PersistTest extends SparkLocalBaseTest {
+class UnpersistTest extends SparkLocalBaseTest {
 
-  test("Persist result") {
+  test("Unpersist result") {
       val ds = DataSetAPI(Seq(1,2,3))
-      assert(ds.persist() == ds)
+      assert(ds.persist().unpersist() == ds)
   }
 
-  test("Persist equal") {
+  test("Unpersist equal") {
     assertDatasetOperationReturnsSameResult(Seq(1,2,3)){
-      ds => ds.persist()
+      ds => ds.persist().unpersist()
     }
   }
 

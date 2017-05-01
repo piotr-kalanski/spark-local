@@ -2,7 +2,6 @@ package com.datawizards.sparklocal.rdd.pair
 
 import com.datawizards.sparklocal.SparkLocalBaseTest
 import com.datawizards.sparklocal.rdd.RDDAPI
-import org.apache.spark.HashPartitioner
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 

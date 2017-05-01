@@ -16,7 +16,7 @@ class FlatMapTest extends SparkLocalBaseTest {
   }
 
   test("Map equal") {
-    assertDatasetOperation(Seq(1,2,3)){
+    assertDatasetOperationReturnsSameResult(Seq(1,2,3)){
       ds => ds.flatMap(x => 1 until x)
     }
   }

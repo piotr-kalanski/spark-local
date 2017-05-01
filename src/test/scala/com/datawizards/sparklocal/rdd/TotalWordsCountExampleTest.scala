@@ -5,21 +5,21 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class WordsCountExampleTest extends SparkLocalBaseTest {
+class TotalWordsCountExampleTest extends SparkLocalBaseTest {
 
   val lines = Seq("w1 w2", "w1 w2 w3")
 
-  test("Words count result") {
-    assert(wordsCount(RDDAPI(lines)) == 5)
+  test("Total words count result") {
+    assert(totalWordsCount(RDDAPI(lines)) == 5)
   }
 
-  test("Words count") {
+  test("Total words count") {
     assertRDDOperationReturnsSameResult(lines) {
-      wordsCount
+      totalWordsCount
     }
   }
 
-  private def wordsCount(data: RDDAPI[String]): Int = {
+  private def totalWordsCount(data: RDDAPI[String]): Int = {
     data
       .flatMap(line => line.split(" "))
       .map(_  => 1)
