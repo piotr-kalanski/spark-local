@@ -46,6 +46,8 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
 
   override def persist(): RDDAPI[T] = this
 
+  override def unpersist(blocking: Boolean): RDDAPI[T] = this
+
   override def union(other: RDDAPI[T]): RDDAPI[T] = other match {
     case rddScala:RDDAPIScalaImpl[T] => create(data union rddScala.data)
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(spark.sparkContext.parallelize(data) union rddSpark.data)
@@ -82,4 +84,5 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
   override def distinct(): RDDAPI[T] = create(data.distinct)
 
   override def distinct(numPartitions: Int)(implicit ord: Ordering[T]): RDDAPI[T] = distinct()
+
 }
