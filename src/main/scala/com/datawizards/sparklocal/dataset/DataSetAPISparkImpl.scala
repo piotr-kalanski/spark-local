@@ -1,5 +1,7 @@
 package com.datawizards.sparklocal.dataset
 
+import java.util
+
 import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.sql.Dataset
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
@@ -18,6 +20,8 @@ class DataSetAPISparkImpl[T: ClassTag: TypeTag](val data: Dataset[T]) extends Da
     create(data.map(map)(ExpressionEncoder[That]()))
 
   override def collect(): Array[T] = data.collect()
+
+  override def collectAsList(): java.util.List[T] = data.collectAsList()
 
   override def filter(p: T => Boolean): DataSetAPI[T] =
     create(data.filter(p))
@@ -42,6 +46,10 @@ class DataSetAPISparkImpl[T: ClassTag: TypeTag](val data: Dataset[T]) extends Da
 
   override def persist(): DataSetAPI[T] = create(data.persist())
 
+  override def unpersist(): DataSetAPI[T] = create(data.unpersist())
+
+  override def unpersist(blocking: Boolean): DataSetAPI[T] = create(data.unpersist(blocking))
+
   override def flatMap[U: ClassTag: TypeTag](func: (T) => TraversableOnce[U]): DataSetAPI[U] = create(data.flatMap(func)(ExpressionEncoder[U]()))
 
   override def distinct(): DataSetAPI[T] = create(data.distinct)
@@ -51,4 +59,6 @@ class DataSetAPISparkImpl[T: ClassTag: TypeTag](val data: Dataset[T]) extends Da
   override def union(other: DataSetAPI[T]): DataSetAPI[T] = create(data.union(other.toDataset))
 
   override def intersect(other: DataSetAPI[T]): DataSetAPI[T] = create(data.intersect(other.toDataset))
+
+  override def takeAsList(n: Int): util.List[T] = data.takeAsList(n)
 }

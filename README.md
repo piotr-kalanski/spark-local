@@ -230,7 +230,7 @@ object ExampleRDD1 {
 |Operation|Supported?|
 |---------|---------|
 |collect| ![](images/API-supported-green.png)|
-|collectAsList||
+|collectAsList|![](images/API-supported-green.png)|
 |count| ![](images/API-supported-green.png)|
 |describe||
 |first| ![](images/API-supported-green.png)|
@@ -240,7 +240,7 @@ object ExampleRDD1 {
 |reduce| ![](images/API-supported-green.png)|
 |show||
 |take| ![](images/API-supported-green.png)|
-|takeAsList||
+|takeAsList|![](images/API-supported-green.png)|
 |toLocalIterator||
 
 ### Dataset API - Basic Dataset functions
@@ -266,7 +266,7 @@ object ExampleRDD1 {
 |storageLevel||
 |toDF||
 |toJavaRDD||
-|unpersist||
+|unpersist|![](images/API-supported-green.png)|
 |write||
 |writeStream||
 
@@ -290,7 +290,7 @@ object ExampleRDD1 {
 |filter| ![](images/API-supported-green.png)|
 |flatMap| ![](images/API-supported-green.png)|
 |groupByKey||
-|intersect||
+|intersect|![](images/API-supported-green.png)|
 |joinWith||
 |limit||
 |map| ![](images/API-supported-green.png)|
@@ -304,7 +304,7 @@ object ExampleRDD1 {
 |sort||
 |sortWithinPartitions||
 |transform||
-|union||
+|union|![](images/API-supported-green.png)|
 |where||
 
 ### Dataset API - Untyped transformations

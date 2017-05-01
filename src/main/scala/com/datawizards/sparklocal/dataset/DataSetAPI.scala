@@ -27,15 +27,19 @@ trait DataSetAPI[T] {
   def foreach(f: (T) => Unit): Unit
   def foreachPartition(f: (Iterator[T]) => Unit): Unit
   def collect(): Array[T]
+  def collectAsList(): java.util.List[T]
   def head(): T
   def head(n: Int): Array[T]
   def take(n: Int): Array[T] = head(n)
+  def takeAsList(n: Int): java.util.List[T]
   def reduce(func: (T,T) => T): T
   def checkpoint(eager: Boolean): DataSetAPI[T]
   def checkpoint(): DataSetAPI[T] = checkpoint(true)
   def cache(): DataSetAPI[T]
   def persist(newLevel: StorageLevel): DataSetAPI[T]
   def persist(): DataSetAPI[T]
+  def unpersist(): DataSetAPI[T]
+  def unpersist(blocking: Boolean): DataSetAPI[T]
   def flatMap[U: ClassTag: TypeTag](func: (T) => TraversableOnce[U]): DataSetAPI[U]
   def distinct(): DataSetAPI[T]
   def rdd(): RDDAPI[T]
