@@ -4,7 +4,7 @@ API enabling switching between Spark execution engine and local fast implementat
 
 [![Build Status](https://api.travis-ci.org/piotr-kalanski/spark-local.png?branch=development)](https://api.travis-ci.org/piotr-kalanski/spark-local.png?branch=development)
 [![codecov.io](http://codecov.io/github/piotr-kalanski/spark-local/coverage.svg?branch=development)](http://codecov.io/github/piotr-kalanski/spark-local/coverage.svg?branch=development)
-[<img src="https://img.shields.io/maven-central/v/com.github.piotr-kalanski/spark-local.svg?label=latest%20release"/>](http://search.maven.org/#search|ga|1|a%3A%22spark-local%22)
+[<img src="https://img.shields.io/maven-central/v/com.github.piotr-kalanski/spark-local_2.11.svg?label=latest%20release"/>](http://search.maven.org/#search|ga|1|a%3A%22spark-local%22)
 [![License](http://img.shields.io/:license-Apache%202-red.svg)](http://www.apache.org/licenses/LICENSE-2.0.txt)
 
 # Table of contents
