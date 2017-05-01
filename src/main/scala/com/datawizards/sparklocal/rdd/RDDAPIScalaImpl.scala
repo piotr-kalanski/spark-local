@@ -16,7 +16,7 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
 
   override def filter(p: (T) => Boolean): RDDAPI[T] = create(data.filter(p))
 
-  override def flatMap[U: ClassTag : Manifest](func: (T) => TraversableOnce[U]): RDDAPI[U] =
+  override def flatMap[U: ClassTag](func: (T) => TraversableOnce[U]): RDDAPI[U] =
     create(data.flatMap(func))
 
   override def reduce(func: (T, T) => T): T = data.reduce(func)

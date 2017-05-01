@@ -14,4 +14,6 @@ class PairRDDFunctionsAPISparkImpl[K, V](rdd: RDDAPISparkImpl[(K,V)])(implicit k
   override def keys: RDDAPI[K] = RDDAPI(data.keys)
 
   override def values: RDDAPI[V] = RDDAPI(data.values)
+
+  override def flatMapValues[U](f: (V) => TraversableOnce[U]): RDDAPI[(K, U)] = RDDAPI(data.flatMapValues(f))
 }

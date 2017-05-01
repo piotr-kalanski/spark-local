@@ -13,4 +13,7 @@ class PairRDDFunctionsAPIScalaImpl[K,V](rdd: RDDAPIScalaImpl[(K,V)])(implicit kt
   override def keys: RDDAPI[K] = rdd.map(_._1)
 
   override def values: RDDAPI[V] = rdd.map(_._2)
+
+  override def flatMapValues[U](f: (V) => TraversableOnce[U]): RDDAPI[(K, U)] =
+    rdd.flatMap{ case(k,v) => f(v).map(x => (k,x))}
 }
