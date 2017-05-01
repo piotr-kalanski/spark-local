@@ -1,5 +1,6 @@
 package com.datawizards.sparklocal.dataset
 
+import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.sql.Dataset
 import org.apache.spark.storage.StorageLevel
 
@@ -28,6 +29,7 @@ trait DataSetAPI[T] {
   def persist(): DataSetAPI[T]
   def flatMap[U: ClassTag: Manifest](func: (T) ⇒ TraversableOnce[U]): DataSetAPI[U]
   def distinct(): DataSetAPI[T]
+  def rdd(): RDDAPI[T]
 
   override def toString: String = collect().toSeq.toString
 

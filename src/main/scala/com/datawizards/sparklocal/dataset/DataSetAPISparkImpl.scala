@@ -1,5 +1,6 @@
 package com.datawizards.sparklocal.dataset
 
+import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.sql.Dataset
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.storage.StorageLevel
@@ -41,4 +42,6 @@ class DataSetAPISparkImpl[T: ClassTag](data: Dataset[T]) extends DataSetAPI[T] {
   override def flatMap[U: ClassTag: Manifest](func: (T) => TraversableOnce[U]): DataSetAPI[U] = create(data.flatMap(func)(ExpressionEncoder[U]()))
 
   override def distinct(): DataSetAPI[T] = create(data.distinct)
+
+  override def rdd(): RDDAPI[T] = RDDAPI(data.rdd)
 }

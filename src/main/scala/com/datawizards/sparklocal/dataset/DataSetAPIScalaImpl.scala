@@ -1,5 +1,6 @@
 package com.datawizards.sparklocal.dataset
 
+import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.storage.StorageLevel
 
 import scala.reflect.ClassTag
@@ -38,4 +39,6 @@ class DataSetAPIScalaImpl[T: ClassTag](iterable: Iterable[T]) extends DataSetAPI
   override def flatMap[U: ClassTag: Manifest](func: (T) => TraversableOnce[U]): DataSetAPI[U] = create(data.flatMap(func))
 
   override def distinct(): DataSetAPI[T] = create(data.distinct)
+
+  override def rdd(): RDDAPI[T] = RDDAPI(data)
 }

@@ -12,7 +12,7 @@ class ReduceTest extends SparkLocalBaseTest {
   }
 
   test("Reduce equal") {
-    assertDatasetOperation(Seq(1,2,3)){
+    assertDatasetOperationReturnsSameResult(Seq(1,2,3)){
       ds => ds.reduce(_ + _)
     }
   }

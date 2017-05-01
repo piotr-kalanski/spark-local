@@ -24,11 +24,38 @@ trait SparkLocalBaseTest extends FunSuite {
     }
   }
 
-  def assertDatasetOperation[T:Manifest, Result](data: Seq[T])(op: DataSetAPI[T] => Result): Unit = {
-    assertDatasetOperationWithEqual(data,op){case(r1,r2) => r1 == r2}
+  /**
+    * Verifies that different implementations (Spark, pure Scala) returns the same result for provided operation and input data
+    * <br />
+    * Function:
+    * <ul>
+    * <li>Creates Dataset</li>
+    * <li>Run operation on Dataset and Scala implementation</li>
+    * <li>Check that result is the same</li>
+    * </ul>
+    *
+    * @param data test data
+    * @param op operation that should be performed on Dataset
+    */
+  def assertDatasetOperationReturnsSameResult[T:Manifest, Result](data: Seq[T])(op: DataSetAPI[T] => Result): Unit = {
+    assertDatasetOperationReturnsSameResultWithEqual(data,op){case(r1,r2) => r1 == r2}
   }
 
-  def assertDatasetOperationWithEqual[T:Manifest, Result](data: Seq[T], op: DataSetAPI[T] => Result)(eq: ((Result,Result) => Boolean)): Unit = {
+  /**
+    * Verifies that different implementations (Spark, pure Scala) returns the same result for provided operation and input data
+    * <br />
+    * Function:
+    * <ul>
+    * <li>Creates Dataset</li>
+    * <li>Run operation on Dataset and Scala implementation</li>
+    * <li>Check that result is the same using provided comparison function (eq)</li>
+    * </ul>
+    *
+    * @param data test data
+    * @param op operation that should be performed on Dataset
+    * @param eq function to compare result
+    */
+  def assertDatasetOperationReturnsSameResultWithEqual[T:Manifest, Result](data: Seq[T], op: DataSetAPI[T] => Result)(eq: ((Result,Result) => Boolean)): Unit = {
     val ds = spark.createDataset(data)(ExpressionEncoder[T]())
 
     assert(eq(op(DataSetAPI(data)),op(DataSetAPI(ds))))
