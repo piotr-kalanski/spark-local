@@ -20,13 +20,13 @@ class HeadTest extends SparkLocalBaseTest {
   }
 
   test("Head equal") {
-    assertRDDOperation(Seq(1,2,3)){
+    assertRDDOperationReturnsSameResult(Seq(1,2,3)){
       ds => ds.head()
     }
   }
 
   test("First equal") {
-    assertRDDOperation(Seq(1,2,3)){
+    assertRDDOperationReturnsSameResult(Seq(1,2,3)){
       ds => ds.first()
     }
   }
@@ -34,7 +34,7 @@ class HeadTest extends SparkLocalBaseTest {
   test("Head(n) equal") {
     def head2:(RDDAPI[Int] => Array[Int]) = ds => ds.head(2)
 
-    assertRDDOperationWithEqual(Seq(1,2,3), head2) {
+    assertRDDOperationReturnsSameResultWithEqual(Seq(1,2,3), head2) {
       case(r1,r2) => r1 sameElements r2
     }
   }

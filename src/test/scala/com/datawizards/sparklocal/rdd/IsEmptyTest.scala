@@ -13,10 +13,10 @@ class IsEmptyTest extends SparkLocalBaseTest {
   }
 
   test("isEmpty equal") {
-    assertRDDOperation[Int, Boolean](Seq(1,2,3)) {
+    assertRDDOperationReturnsSameResult[Int, Boolean](Seq(1,2,3)) {
       d => d.isEmpty
     }
-    assertRDDOperation[Int, Boolean](Seq()) {
+    assertRDDOperationReturnsSameResult[Int, Boolean](Seq()) {
       d => d.isEmpty
     }
   }

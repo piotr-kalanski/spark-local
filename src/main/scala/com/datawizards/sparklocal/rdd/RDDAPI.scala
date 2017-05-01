@@ -10,13 +10,26 @@ import scala.reflect.ClassTag
 object RDDAPI {
   def apply[T: ClassTag](iterable: Iterable[T]) = new RDDAPIScalaImpl(iterable)
   def apply[T: ClassTag](rdd: RDD[T]) = new RDDAPISparkImpl(rdd)
+
+  implicit def rddToPairRDDFunctions[K, V](rdd: RDDAPI[(K, V)])
+    (implicit kt: ClassTag[K], vt: ClassTag[V], ord: Ordering[K] = null): PairRDDFunctionsAPI[K, V] = {
+    rdd match {
+      case rddScala:RDDAPIScalaImpl[(K,V)] => new PairRDDFunctionsAPIScalaImpl(rddScala)(kt,vt,ord)
+      case rddSpark:RDDAPISparkImpl[(K,V)] => new PairRDDFunctionsAPISparkImpl(rddSpark)(kt,vt,ord)
+      case _ => throw new Exception("Unknown type")
+    }
+  }
+
 }
 
 trait RDDAPI[T] {
   protected lazy val spark: SparkSession = SparkSession.builder().getOrCreate()
+  protected def parallelize[That: ClassTag](d: Seq[That]): RDD[That] = spark.sparkContext.parallelize(d)
+  private[rdd] def toRDD: RDD[T]
+
   def collect(): Array[T]
   def map[That: ClassTag](map: T => That): RDDAPI[That]
-  def flatMap[U: ClassTag: Manifest](func: (T) ⇒ TraversableOnce[U]): RDDAPI[U]
+  def flatMap[U: ClassTag](func: (T) ⇒ TraversableOnce[U]): RDDAPI[U]
   def filter(p: T => Boolean): RDDAPI[T]
   def reduce(func: (T,T) => T): T
   def fold(zeroValue: T)(op: (T, T) => T): T

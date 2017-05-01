@@ -1,6 +1,6 @@
 # spark-local
 
-API enabling switching between Spark execution engine and local fast implementation based on Scala collections.
+API enabling switching between Spark execution engine and local implementation based on Scala collections.
 
 [![Build Status](https://api.travis-ci.org/piotr-kalanski/spark-local.png?branch=development)](https://api.travis-ci.org/piotr-kalanski/spark-local.png?branch=development)
 [![codecov.io](http://codecov.io/github/piotr-kalanski/spark-local/coverage.svg?branch=development)](http://codecov.io/github/piotr-kalanski/spark-local/coverage.svg?branch=development)
@@ -199,21 +199,21 @@ object ExampleRDD1 {
 |combineByKey||
 |combineByKeyWithClassTag||
 |countApproxDistinctByKey||
-|countByKey||
+|countByKey|<ul><li>- [x] </li></ul>|
 |countByKeyApprox||
-|flatMapValues||
-|foldByKey||
+|flatMapValues|<ul><li>- [x] </li></ul>|
+|foldByKey|<ul><li>- [x] </li></ul>|
 |fullOuterJoin||
-|groupByKey||
+|groupByKey|<ul><li>- [x] </li></ul>|
 |groupWith||
 |join||
-|keys||
+|keys|<ul><li>- [x] </li></ul>|
 |leftOuterJoin||
 |lookup||
-|mapValues||
+|mapValues|<ul><li>- [x] </li></ul>|
 |partitionBy||
-|reduceByKey||
-|reduceByKeyLocally||
+|reduceByKey|<ul><li>- [x] </li></ul>|
+|reduceByKeyLocally|<ul><li>- [x] </li></ul>|
 |rightOuterJoin||
 |sampleByKey||
 |sampleByKeyExact||
@@ -221,7 +221,7 @@ object ExampleRDD1 {
 |saveAsHadoopFile||
 |saveAsNewAPIHadoopDataset||
 |subtractByKey||
-|values||
+|values|<ul><li>- [x] </li></ul>|
 
 ## Dataset API
 

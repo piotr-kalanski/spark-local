@@ -14,7 +14,7 @@ class TopTest extends SparkLocalBaseTest {
   test("Top equal") {
     def top2:(RDDAPI[Int] => Array[Int]) = ds => ds.top(2)
 
-    assertRDDOperationWithEqual(Seq(6,4,7,4,6,3,4,6,9,2,3,1,8), top2) {
+    assertRDDOperationReturnsSameResultWithEqual(Seq(6,4,7,4,6,3,4,6,9,2,3,1,8), top2) {
       case(r1,r2) => r1 sameElements r2
     }
   }

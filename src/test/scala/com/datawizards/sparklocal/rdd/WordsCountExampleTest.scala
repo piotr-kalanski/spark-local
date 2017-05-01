@@ -14,7 +14,7 @@ class WordsCountExampleTest extends SparkLocalBaseTest {
   }
 
   test("Words count") {
-    assertRDDOperation(lines) {
+    assertRDDOperationReturnsSameResult(lines) {
       wordsCount
     }
   }
