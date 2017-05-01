@@ -7,49 +7,49 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ReduceByKeyTest extends SparkLocalBaseTest {
+class FoldByKeyTest extends SparkLocalBaseTest {
 
   val data = Seq(("a",1),("a",2),("b",2),("b",3),("c",1),("c",1),("c",2))
 
-  test("reduceByKey result") {
+  test("foldByKey result") {
     assertRDDOperationResultWithSorted(
-      RDDAPI(data).reduceByKey(_ + _)
+      RDDAPI(data).foldByKey(0)(_ + _)
     ) {
       Array(("a",3),("b",5),("c",4))
     }
   }
 
-  test("reduceByKey(numPartitions) result") {
+  test("foldByKey(numPartitions) result") {
     assertRDDOperationResultWithSorted(
-      RDDAPI(data).reduceByKey(_ + _, 2)
+      RDDAPI(data).foldByKey(0, 2)(_ + _)
     ) {
       Array(("a",3),("b",5),("c",4))
     }
   }
 
-  test("reduceByKey(partitioner) result") {
+  test("foldByKey(partitioner) result") {
     assertRDDOperationResultWithSorted(
-      RDDAPI(data).reduceByKey(new HashPartitioner(2), _ + _)
+      RDDAPI(data).foldByKey(0, new HashPartitioner(2))(_ + _)
     ) {
       Array(("a",3),("b",5),("c",4))
     }
   }
 
-  test("reduceByKey equal") {
+  test("foldByKey equal") {
     assertRDDOperationReturnsSameResultWithSorted(data){
-      ds => ds.reduceByKey(_ + _)
+      ds => ds.foldByKey(0)(_ + _)
     }
   }
 
-  test("reduceByKey(numPartitions) equal") {
+  test("foldByKey(numPartitions) equal") {
     assertRDDOperationReturnsSameResultWithSorted(data){
-      ds => ds.reduceByKey(_ + _, 1)
+      ds => ds.foldByKey(0, 1)(_ + _)
     }
   }
 
-  test("reduceByKey(partitioner) equal") {
+  test("foldByKey(partitioner) equal") {
     assertRDDOperationReturnsSameResultWithSorted(data){
-      ds => ds.reduceByKey(new HashPartitioner(2), _ + _)
+      ds => ds.foldByKey(0, new HashPartitioner(2))(_ + _)
     }
   }
 

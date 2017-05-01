@@ -108,8 +108,8 @@ trait SparkLocalBaseTest extends FunSuite {
     * @param op operation that should be performed on RDD
     * @param ord ordering that should be used to sort result
     */
-  def assertRDDOperationReturnsSameResultWithSorted[T:Manifest](data: Seq[T])(op: RDDAPI[T] => RDDAPI[T])(implicit ord: Ordering[T]): Unit = {
-    assertRDDOperationReturnsSameResultWithEqual[T,RDDAPI[T]](data, op) {
+  def assertRDDOperationReturnsSameResultWithSorted[T:Manifest,Result](data: Seq[T])(op: RDDAPI[T] => RDDAPI[Result])(implicit ord: Ordering[Result]): Unit = {
+    assertRDDOperationReturnsSameResultWithEqual[T,RDDAPI[Result]](data, op) {
       case (d1,d2) => d1.collect().sorted(ord) sameElements d2.collect().sorted(ord)
     }
   }

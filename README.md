@@ -199,21 +199,21 @@ object ExampleRDD1 {
 |combineByKey||
 |combineByKeyWithClassTag||
 |countApproxDistinctByKey||
-|countByKey||
+|countByKey|<ul><li>- [x] </li></ul>|
 |countByKeyApprox||
-|flatMapValues||
-|foldByKey||
+|flatMapValues|<ul><li>- [x] </li></ul>|
+|foldByKey|<ul><li>- [x] </li></ul>|
 |fullOuterJoin||
-|groupByKey||
+|groupByKey|<ul><li>- [x] </li></ul>|
 |groupWith||
 |join||
-|keys||
+|keys|<ul><li>- [x] </li></ul>|
 |leftOuterJoin||
 |lookup||
-|mapValues||
+|mapValues|<ul><li>- [x] </li></ul>|
 |partitionBy||
-|reduceByKey||
-|reduceByKeyLocally||
+|reduceByKey|<ul><li>- [x] </li></ul>|
+|reduceByKeyLocally|<ul><li>- [x] </li></ul>|
 |rightOuterJoin||
 |sampleByKey||
 |sampleByKeyExact||
@@ -221,7 +221,7 @@ object ExampleRDD1 {
 |saveAsHadoopFile||
 |saveAsNewAPIHadoopDataset||
 |subtractByKey||
-|values||
+|values|<ul><li>- [x] </li></ul>|
 
 ## Dataset API
 

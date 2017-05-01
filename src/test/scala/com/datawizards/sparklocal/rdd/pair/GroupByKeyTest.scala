@@ -7,49 +7,49 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ReduceByKeyTest extends SparkLocalBaseTest {
+class GroupByKeyTest extends SparkLocalBaseTest {
 
   val data = Seq(("a",1),("a",2),("b",2),("b",3),("c",1),("c",1),("c",2))
 
-  test("reduceByKey result") {
+  test("groupByKey result") {
     assertRDDOperationResultWithSorted(
-      RDDAPI(data).reduceByKey(_ + _)
+      RDDAPI(data).groupByKey()
     ) {
-      Array(("a",3),("b",5),("c",4))
+      Array(("a",Iterable(1,2)),("b",Iterable(2,3)),("c",Iterable(1,1,2)))
     }
   }
 
-  test("reduceByKey(numPartitions) result") {
+  test("groupByKey(numPartitions) result") {
     assertRDDOperationResultWithSorted(
-      RDDAPI(data).reduceByKey(_ + _, 2)
+      RDDAPI(data).groupByKey(2)
     ) {
-      Array(("a",3),("b",5),("c",4))
+      Array(("a",Iterable(1,2)),("b",Iterable(2,3)),("c",Iterable(1,1,2)))
     }
   }
 
-  test("reduceByKey(partitioner) result") {
+  test("groupByKey(partitioner) result") {
     assertRDDOperationResultWithSorted(
-      RDDAPI(data).reduceByKey(new HashPartitioner(2), _ + _)
+      RDDAPI(data).groupByKey(new HashPartitioner(2))
     ) {
-      Array(("a",3),("b",5),("c",4))
+      Array(("a",Iterable(1,2)),("b",Iterable(2,3)),("c",Iterable(1,1,2)))
     }
   }
 
-  test("reduceByKey equal") {
+  test("groupByKey equal") {
     assertRDDOperationReturnsSameResultWithSorted(data){
-      ds => ds.reduceByKey(_ + _)
+      ds => ds.groupByKey()
     }
   }
 
-  test("reduceByKey(numPartitions) equal") {
+  test("groupByKey(numPartitions) equal") {
     assertRDDOperationReturnsSameResultWithSorted(data){
-      ds => ds.reduceByKey(_ + _, 1)
+      ds => ds.groupByKey(2)
     }
   }
 
-  test("reduceByKey(partitioner) equal") {
+  test("groupByKey(partitioner) equal") {
     assertRDDOperationReturnsSameResultWithSorted(data){
-      ds => ds.reduceByKey(new HashPartitioner(2), _ + _)
+      ds => ds.groupByKey(new HashPartitioner(2))
     }
   }
 
