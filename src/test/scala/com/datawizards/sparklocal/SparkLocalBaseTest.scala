@@ -7,6 +7,8 @@ import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.sql.{SQLContext, SparkSession}
 import org.scalatest.FunSuite
 
+import scala.reflect.ClassTag
+import scala.reflect.runtime.universe.TypeTag
 import scala.math.Ordering
 
 trait SparkLocalBaseTest extends FunSuite {
@@ -37,7 +39,7 @@ trait SparkLocalBaseTest extends FunSuite {
     * @param data test data
     * @param op operation that should be performed on Dataset
     */
-  def assertDatasetOperationReturnsSameResult[T:Manifest, Result](data: Seq[T])(op: DataSetAPI[T] => Result): Unit = {
+  def assertDatasetOperationReturnsSameResult[T:ClassTag:TypeTag, Result](data: Seq[T])(op: DataSetAPI[T] => Result): Unit = {
     assertDatasetOperationReturnsSameResultWithEqual(data,op){case(r1,r2) => r1 == r2}
   }
 
@@ -55,10 +57,30 @@ trait SparkLocalBaseTest extends FunSuite {
     * @param op operation that should be performed on Dataset
     * @param eq function to compare result
     */
-  def assertDatasetOperationReturnsSameResultWithEqual[T:Manifest, Result](data: Seq[T], op: DataSetAPI[T] => Result)(eq: ((Result,Result) => Boolean)): Unit = {
+  def assertDatasetOperationReturnsSameResultWithEqual[T:ClassTag:TypeTag, Result](data: Seq[T], op: DataSetAPI[T] => Result)(eq: ((Result,Result) => Boolean)): Unit = {
     val ds = spark.createDataset(data)(ExpressionEncoder[T]())
 
     assert(eq(op(DataSetAPI(data)),op(DataSetAPI(ds))))
+  }
+
+  /**
+    * Verifies that different implementations (Spark, pure Scala) returns the same result (after sorting) for provided operation and input data
+    * <br />
+    * Function:
+    * <ul>
+    * <li>Creates Dataset</li>
+    * <li>Run operation on Dataset and Scala implementation</li>
+    * <li>Sort results using provided ordering</li>
+    * <li>Check that sorted result is the same</li>
+    * </ul>
+    * @param data test data
+    * @param op operation that should be performed on Dataset
+    * @param ord ordering that should be used to sort result
+    */
+  def assertDatasetOperationReturnsSameResultWithSorted[T:ClassTag:TypeTag,Result](data: Seq[T])(op: DataSetAPI[T] => DataSetAPI[Result])(implicit ord: Ordering[Result]): Unit = {
+    assertDatasetOperationReturnsSameResultWithEqual[T,DataSetAPI[Result]](data, op) {
+      case (d1,d2) => d1.collect().sorted(ord) sameElements d2.collect().sorted(ord)
+    }
   }
 
   /**
@@ -97,7 +119,7 @@ trait SparkLocalBaseTest extends FunSuite {
     * @param data test data
     * @param op operation that should be performed on RDD
     */
-  def assertRDDOperationReturnsSameResult[T:Manifest, Result](data: Seq[T])(op: RDDAPI[T] => Result): Unit = {
+  def assertRDDOperationReturnsSameResult[T:ClassTag:TypeTag, Result](data: Seq[T])(op: RDDAPI[T] => Result): Unit = {
     assertRDDOperationReturnsSameResultWithEqual(data,op){case(r1,r2) => r1 == r2}
   }
 
@@ -115,7 +137,7 @@ trait SparkLocalBaseTest extends FunSuite {
     * @param op operation that should be performed on RDD
     * @param eq function to compare result
     */
-  def assertRDDOperationReturnsSameResultWithEqual[T:Manifest, Result](data: Seq[T], op: RDDAPI[T] => Result)(eq: ((Result,Result) => Boolean)): Unit = {
+  def assertRDDOperationReturnsSameResultWithEqual[T:ClassTag:TypeTag, Result](data: Seq[T], op: RDDAPI[T] => Result)(eq: ((Result,Result) => Boolean)): Unit = {
     val rdd = sc.parallelize(data)
 
     assert(eq(op(RDDAPI(data)),op(RDDAPI(rdd))))
@@ -135,7 +157,7 @@ trait SparkLocalBaseTest extends FunSuite {
     * @param op operation that should be performed on RDD
     * @param ord ordering that should be used to sort result
     */
-  def assertRDDOperationReturnsSameResultWithSorted[T:Manifest,Result](data: Seq[T])(op: RDDAPI[T] => RDDAPI[Result])(implicit ord: Ordering[Result]): Unit = {
+  def assertRDDOperationReturnsSameResultWithSorted[T:ClassTag:TypeTag,Result](data: Seq[T])(op: RDDAPI[T] => RDDAPI[Result])(implicit ord: Ordering[Result]): Unit = {
     assertRDDOperationReturnsSameResultWithEqual[T,RDDAPI[Result]](data, op) {
       case (d1,d2) => d1.collect().sorted(ord) sameElements d2.collect().sorted(ord)
     }

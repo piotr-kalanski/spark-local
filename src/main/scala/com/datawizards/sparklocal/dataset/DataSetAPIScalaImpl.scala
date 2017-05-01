@@ -4,13 +4,16 @@ import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.storage.StorageLevel
 
 import scala.reflect.ClassTag
+import scala.reflect.runtime.universe.TypeTag
 
-class DataSetAPIScalaImpl[T: ClassTag](iterable: Iterable[T]) extends DataSetAPI[T] {
+class DataSetAPIScalaImpl[T: ClassTag: TypeTag](iterable: Iterable[T]) extends DataSetAPI[T] {
   private val data: Seq[T] = iterable.toSeq
 
-  private def create[U: ClassTag](it: Iterable[U]) = new DataSetAPIScalaImpl(it)
+  private def create[U: ClassTag: TypeTag](it: Iterable[U]) = new DataSetAPIScalaImpl(it)
 
-  override def map[That: ClassTag: Manifest](map: T => That): DataSetAPI[That] = create(data.map(map))
+  override private[dataset] def toDataset = createDataset(data)
+
+  override def map[That: ClassTag: TypeTag](map: T => That): DataSetAPI[That] = create(data.map(map))
 
   override def collect(): Array[T] = data.toArray
 
@@ -36,9 +39,19 @@ class DataSetAPIScalaImpl[T: ClassTag](iterable: Iterable[T]) extends DataSetAPI
 
   override def persist(): DataSetAPI[T] = this
 
-  override def flatMap[U: ClassTag: Manifest](func: (T) => TraversableOnce[U]): DataSetAPI[U] = create(data.flatMap(func))
+  override def flatMap[U: ClassTag: TypeTag](func: (T) => TraversableOnce[U]): DataSetAPI[U] = create(data.flatMap(func))
 
   override def distinct(): DataSetAPI[T] = create(data.distinct)
 
   override def rdd(): RDDAPI[T] = RDDAPI(data)
+
+  override def union(other: DataSetAPI[T]): DataSetAPI[T] = other match {
+    case dsSpark:DataSetAPISparkImpl[T] => DataSetAPI(this.toDataset.union(dsSpark.data))
+    case dsScala:DataSetAPIScalaImpl[T] => create(data.union(dsScala.data))
+  }
+
+  override def intersect(other: DataSetAPI[T]): DataSetAPI[T] = other match {
+    case dsSpark:DataSetAPISparkImpl[T] => DataSetAPI(this.toDataset.intersect(dsSpark.data))
+    case dsScala:DataSetAPIScalaImpl[T] => create(data.intersect(dsScala.data))
+  }
 }

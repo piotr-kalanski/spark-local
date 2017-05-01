@@ -6,12 +6,15 @@ import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.storage.StorageLevel
 
 import scala.reflect.ClassTag
+import scala.reflect.runtime.universe.TypeTag
 
-class DataSetAPISparkImpl[T: ClassTag](data: Dataset[T]) extends DataSetAPI[T] {
+class DataSetAPISparkImpl[T: ClassTag: TypeTag](val data: Dataset[T]) extends DataSetAPI[T] {
 
-  private def create[U: ClassTag](ds: Dataset[U]) = new DataSetAPISparkImpl(ds)
+  private def create[U: ClassTag: TypeTag](ds: Dataset[U]) = new DataSetAPISparkImpl(ds)
 
-  override def map[That: ClassTag: Manifest](map: T => That): DataSetAPI[That] =
+  override private[dataset] def toDataset = data
+
+  override def map[That: ClassTag: TypeTag](map: T => That): DataSetAPI[That] =
     create(data.map(map)(ExpressionEncoder[That]()))
 
   override def collect(): Array[T] = data.collect()
@@ -39,9 +42,13 @@ class DataSetAPISparkImpl[T: ClassTag](data: Dataset[T]) extends DataSetAPI[T] {
 
   override def persist(): DataSetAPI[T] = create(data.persist())
 
-  override def flatMap[U: ClassTag: Manifest](func: (T) => TraversableOnce[U]): DataSetAPI[U] = create(data.flatMap(func)(ExpressionEncoder[U]()))
+  override def flatMap[U: ClassTag: TypeTag](func: (T) => TraversableOnce[U]): DataSetAPI[U] = create(data.flatMap(func)(ExpressionEncoder[U]()))
 
   override def distinct(): DataSetAPI[T] = create(data.distinct)
 
   override def rdd(): RDDAPI[T] = RDDAPI(data.rdd)
+
+  override def union(other: DataSetAPI[T]): DataSetAPI[T] = create(data.union(other.toDataset))
+
+  override def intersect(other: DataSetAPI[T]): DataSetAPI[T] = create(data.intersect(other.toDataset))
 }

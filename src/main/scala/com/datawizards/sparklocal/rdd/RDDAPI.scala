@@ -29,7 +29,7 @@ trait RDDAPI[T] {
 
   def collect(): Array[T]
   def map[That: ClassTag](map: T => That): RDDAPI[That]
-  def flatMap[U: ClassTag](func: (T) ⇒ TraversableOnce[U]): RDDAPI[U]
+  def flatMap[U: ClassTag](func: (T) => TraversableOnce[U]): RDDAPI[U]
   def filter(p: T => Boolean): RDDAPI[T]
   def reduce(func: (T,T) => T): T
   def fold(zeroValue: T)(op: (T, T) => T): T
