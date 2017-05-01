@@ -24,6 +24,9 @@ object RDDAPI {
 
 trait RDDAPI[T] {
   protected lazy val spark: SparkSession = SparkSession.builder().getOrCreate()
+  protected def parallelize[That: ClassTag](d: Seq[That]): RDD[That] = spark.sparkContext.parallelize(d)
+  private[rdd] def toRDD: RDD[T]
+
   def collect(): Array[T]
   def map[That: ClassTag](map: T => That): RDDAPI[That]
   def flatMap[U: ClassTag](func: (T) ⇒ TraversableOnce[U]): RDDAPI[U]

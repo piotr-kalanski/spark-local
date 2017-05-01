@@ -10,6 +10,8 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
 
   private def create[U: ClassTag](rdd: RDD[U]) = new RDDAPISparkImpl(rdd)
 
+  override private[rdd] def toRDD = data
+
   override def collect(): Array[T] = data.collect()
 
   override def map[That: ClassTag](map: (T) => That): RDDAPI[That] = create(data.map(map))
@@ -30,7 +32,7 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
   override def isEmpty: Boolean = data.isEmpty
 
   override def zip[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)] = other match {
-    case rddScala:RDDAPIScalaImpl[U] => RDDAPI(data zip spark.sparkContext.parallelize(rddScala.data))
+    case rddScala:RDDAPIScalaImpl[U] => RDDAPI(data zip parallelize(rddScala.data))
     case rddSpark:RDDAPISparkImpl[U] => create(data zip rddSpark.data)
   }
 
@@ -52,7 +54,7 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
   override def unpersist(blocking: Boolean): RDDAPI[T] = create(data.unpersist(blocking))
 
   override def union(other: RDDAPI[T]): RDDAPI[T] = other match {
-    case rddScala:RDDAPIScalaImpl[T] => RDDAPI(data union spark.sparkContext.parallelize(rddScala.data))
+    case rddScala:RDDAPIScalaImpl[T] => RDDAPI(data union parallelize(rddScala.data))
     case rddSpark:RDDAPISparkImpl[T] => create(data union rddSpark.data)
   }
 
@@ -68,17 +70,17 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
     create(data.sortBy(f,ascending,numPartitions)(ord,ctag))
 
   override def intersection(other: RDDAPI[T]): RDDAPI[T] = other match {
-    case rddScala:RDDAPIScalaImpl[T] => create(data.intersection(spark.sparkContext.parallelize(rddScala.data)))
+    case rddScala:RDDAPIScalaImpl[T] => create(data.intersection(parallelize(rddScala.data)))
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(data.intersection(rddSpark.data))
   }
 
   override def intersection(other: RDDAPI[T], numPartitions: Int): RDDAPI[T] = other match {
-    case rddScala:RDDAPIScalaImpl[T] => create(data.intersection(spark.sparkContext.parallelize(rddScala.data), numPartitions))
+    case rddScala:RDDAPIScalaImpl[T] => create(data.intersection(parallelize(rddScala.data), numPartitions))
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(data.intersection(rddSpark.data, numPartitions))
   }
 
   override def intersection(other: RDDAPI[T], partitioner: Partitioner)(implicit ord: Ordering[T]): RDDAPI[T] = other match {
-    case rddScala:RDDAPIScalaImpl[T] => create(data.intersection(spark.sparkContext.parallelize(rddScala.data), partitioner)(ord))
+    case rddScala:RDDAPIScalaImpl[T] => create(data.intersection(parallelize(rddScala.data), partitioner)(ord))
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(data.intersection(rddSpark.data, partitioner)(ord))
   }
 

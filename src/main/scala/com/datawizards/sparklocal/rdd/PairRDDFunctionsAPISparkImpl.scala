@@ -40,4 +40,29 @@ class PairRDDFunctionsAPISparkImpl[K, V](rdd: RDDAPISparkImpl[(K,V)])(implicit k
   override def foldByKey(zeroValue: V, numPartitions: Int)(func: (V, V) => V): RDDAPI[(K, V)] = RDDAPI(data.foldByKey(zeroValue, numPartitions)(func))
 
   override def foldByKey(zeroValue: V, partitioner: Partitioner)(func: (V, V) => V): RDDAPI[(K, V)] = RDDAPI(data.foldByKey(zeroValue, partitioner)(func))
+
+  override def join[W](other: RDDAPI[(K, W)]): RDDAPI[(K, (V, W))] = RDDAPI(data.join(other.toRDD))
+
+  override def join[W](other: RDDAPI[(K, W)], numPartitions: Int): RDDAPI[(K, (V, W))] = RDDAPI(data.join(other.toRDD, numPartitions))
+
+  override def join[W](other: RDDAPI[(K, W)], partitioner: Partitioner): RDDAPI[(K, (V, W))] = RDDAPI(data.join(other.toRDD, partitioner))
+
+  override def leftOuterJoin[W](other: RDDAPI[(K, W)]): RDDAPI[(K, (V, Option[W]))] = RDDAPI(data.leftOuterJoin(other.toRDD))
+
+  override def leftOuterJoin[W](other: RDDAPI[(K, W)], numPartitions: Int): RDDAPI[(K, (V, Option[W]))] = RDDAPI(data.leftOuterJoin(other.toRDD, numPartitions))
+
+  override def leftOuterJoin[W](other: RDDAPI[(K, W)], partitioner: Partitioner): RDDAPI[(K, (V, Option[W]))] = RDDAPI(data.leftOuterJoin(other.toRDD, partitioner))
+
+  override def rightOuterJoin[W](other: RDDAPI[(K, W)]): RDDAPI[(K, (Option[V], W))] = RDDAPI(data.rightOuterJoin(other.toRDD))
+
+  override def rightOuterJoin[W](other: RDDAPI[(K, W)], numPartitions: Int): RDDAPI[(K, (Option[V], W))] = RDDAPI(data.rightOuterJoin(other.toRDD, numPartitions))
+
+  override def rightOuterJoin[W](other: RDDAPI[(K, W)], partitioner: Partitioner): RDDAPI[(K, (Option[V], W))] = RDDAPI(data.rightOuterJoin(other.toRDD, partitioner))
+
+  override def fullOuterJoin[W](other: RDDAPI[(K, W)]): RDDAPI[(K, (Option[V], Option[W]))] = RDDAPI(data.fullOuterJoin(other.toRDD))
+
+  override def fullOuterJoin[W](other: RDDAPI[(K, W)], numPartitions: Int): RDDAPI[(K, (Option[V], Option[W]))] = RDDAPI(data.fullOuterJoin(other.toRDD, numPartitions))
+
+  override def fullOuterJoin[W](other: RDDAPI[(K, W)], partitioner: Partitioner): RDDAPI[(K, (Option[V], Option[W]))] = RDDAPI(data.fullOuterJoin(other.toRDD, partitioner))
+
 }
