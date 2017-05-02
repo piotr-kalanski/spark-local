@@ -333,7 +333,7 @@ object ExampleRDD1 {
 |---------|---------|
 |agg||
 |cogroup||
-|count||
+|count|![](images/API-supported-green.png)|
 |flatMapGroups||
 |keyAs||
 |keys||

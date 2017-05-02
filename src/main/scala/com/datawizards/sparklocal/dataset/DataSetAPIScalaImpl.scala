@@ -66,4 +66,6 @@ class DataSetAPIScalaImpl[T: ClassTag: TypeTag](iterable: Iterable[T]) extends D
 
   override def takeAsList(n: Int): util.List[T] = data.take(n)
 
+  override def groupByKey[K: TypeTag](func: (T) => K): KeyValueGroupedDataSetAPI[K, T] =
+    new KeyValueGroupedDataSetAPIScalaImpl(data.groupBy(func))
 }
