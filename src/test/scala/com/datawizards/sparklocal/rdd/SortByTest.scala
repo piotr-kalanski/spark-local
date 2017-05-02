@@ -16,7 +16,7 @@ class SortByTest extends SparkLocalBaseTest {
   }
 
   test("sortBy equal") {
-    assertRDDOperation(Seq((2,"b"),(3,"c"),(1,"a"))){
+    assertRDDOperationReturnsSameResult(Seq((2,"b"),(3,"c"),(1,"a"))){
       ds => ds.sortBy(x=>x._1)
     }
   }

@@ -16,7 +16,7 @@ class ZipWithIndexTest extends SparkLocalBaseTest {
   }
 
   test("Zip with index equal") {
-    assertRDDOperation(Seq("a","b","c")){
+    assertRDDOperationReturnsSameResult(Seq("a","b","c")){
       ds => ds.zipWithIndex()
     }
   }

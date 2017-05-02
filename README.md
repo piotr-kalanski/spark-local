@@ -1,10 +1,10 @@
 # spark-local
 
-API enabling switching between Spark execution engine and local fast implementation based on Scala collections.
+API enabling switching between Spark execution engine and local implementation based on Scala collections.
 
 [![Build Status](https://api.travis-ci.org/piotr-kalanski/spark-local.png?branch=development)](https://api.travis-ci.org/piotr-kalanski/spark-local.png?branch=development)
 [![codecov.io](http://codecov.io/github/piotr-kalanski/spark-local/coverage.svg?branch=development)](http://codecov.io/github/piotr-kalanski/spark-local/coverage.svg?branch=development)
-[<img src="https://img.shields.io/maven-central/v/com.github.piotr-kalanski/spark-local.svg?label=latest%20release"/>](http://search.maven.org/#search|ga|1|a%3A%22spark-local%22)
+[<img src="https://img.shields.io/maven-central/v/com.github.piotr-kalanski/spark-local_2.11.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22spark-local_2.11%22)
 [![License](http://img.shields.io/:license-Apache%202-red.svg)](http://www.apache.org/licenses/LICENSE-2.0.txt)
 
 # Table of contents
@@ -24,7 +24,7 @@ API enabling switching between Spark execution engine and local fast implementat
 Include dependency:
 
 ```scala
-"com.github.piotr-kalanski" %% "spark-local" % "0.1.0"
+"com.github.piotr-kalanski" % "spark-local_2.11" % "0.2.0"
 ```
 
 or
@@ -33,7 +33,7 @@ or
 <dependency>
     <groupId>com.github.piotr-kalanski</groupId>
     <artifactId>spark-local_2.11</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
@@ -123,70 +123,70 @@ object ExampleRDD1 {
 |Operation|Supported?|
 |---------|---------|
 |aggregate||
-|cache| <ul><li>- [x] </li></ul>|
+|cache|![](images/API-supported-green.png)|
 |cartesian||
-|checkpoint||
+|checkpoint|![](images/API-supported-green.png)|
 |coalesce||
-|collect| <ul><li>- [x] </li></ul>|
-|count| <ul><li>- [x] </li></ul>|
+|collect| ![](images/API-supported-green.png)|
+|count| ![](images/API-supported-green.png)|
 |countApprox||
 |countApproxDistinct||
 |countByValue||
 |countByValueApprox||
 |dependencies||
-|distinct||
-|filter| <ul><li>- [x] </li></ul>|
+|distinct|![](images/API-supported-green.png)|
+|filter| ![](images/API-supported-green.png)|
 |first||
-|flatMap| <ul><li>- [x] </li></ul>|
-|fold| <ul><li>- [x] </li></ul>|
-|foreach| <ul><li>- [x] </li></ul>|
-|foreachPartition| <ul><li>- [x] </li></ul>|
+|flatMap| ![](images/API-supported-green.png)|
+|fold| ![](images/API-supported-green.png)|
+|foreach| ![](images/API-supported-green.png)|
+|foreachPartition| ![](images/API-supported-green.png)|
 |getCheckpointFile||
 |getNumPartitions||
 |getStorageLevel||
 |glom||
 |groupBy||
 |id||
-|intersection| <ul><li>- [x] </li></ul>|
+|intersection| ![](images/API-supported-green.png)|
 |isCheckpointed||
-|isEmpty| <ul><li>- [x] </li></ul>|
+|isEmpty| ![](images/API-supported-green.png)|
 |iterator||
 |keyBy||
 |localCheckpoint||
-|map| <ul><li>- [x] </li></ul>|
-|mapPartitions| <ul><li>- [x] </li></ul>|
+|map| ![](images/API-supported-green.png)|
+|mapPartitions| ![](images/API-supported-green.png)|
 |mapPartitionsWithIndex||
-|max| <ul><li>- [x] </li></ul>|
-|min| <ul><li>- [x] </li></ul>|
+|max| ![](images/API-supported-green.png)|
+|min| ![](images/API-supported-green.png)|
 |name||
 |partitioner||
 |partitions||
-|persist| <ul><li>- [x] </li></ul>|
+|persist| ![](images/API-supported-green.png)|
 |pipe||
 |preferredLocations||
 |randomSplit||
-|reduce| <ul><li>- [x] </li></ul>|
+|reduce| ![](images/API-supported-green.png)|
 |repartition||
 |sample||
 |saveAsObjectFile||
 |saveAsTextFile||
 |setName||
-|sortBy| <ul><li>- [x] </li></ul>|
+|sortBy| ![](images/API-supported-green.png)|
 |subtract||
-|take| <ul><li>- [x] </li></ul>|
+|take| ![](images/API-supported-green.png)|
 |takeOrdered||
 |takeSample||
 |toDebugString||
 |toJavaRDD||
 |toLocalIterator||
-|top||
+|top|![](images/API-supported-green.png)|
 |treeAggregate||
 |treeReduce||
-|union| <ul><li>- [x] </li></ul>|
+|union| ![](images/API-supported-green.png)|
 |unpersist||
-|zip| <ul><li>- [x] </li></ul>|
+|zip| ![](images/API-supported-green.png)|
 |zipPartitions||
-|zipWithIndex| <ul><li>- [x] </li></ul>|
+|zipWithIndex| ![](images/API-supported-green.png)|
 |zipWithUniqueId||
 
 ### Pair RDD API
@@ -199,29 +199,29 @@ object ExampleRDD1 {
 |combineByKey||
 |combineByKeyWithClassTag||
 |countApproxDistinctByKey||
-|countByKey||
+|countByKey|![](images/API-supported-green.png)|
 |countByKeyApprox||
-|flatMapValues||
-|foldByKey||
-|fullOuterJoin||
-|groupByKey||
+|flatMapValues|![](images/API-supported-green.png)|
+|foldByKey|![](images/API-supported-green.png)|
+|fullOuterJoin|![](images/API-supported-green.png)|
+|groupByKey|![](images/API-supported-green.png)|
 |groupWith||
-|join||
-|keys||
-|leftOuterJoin||
+|join|![](images/API-supported-green.png)|
+|keys|![](images/API-supported-green.png)|
+|leftOuterJoin|![](images/API-supported-green.png)|
 |lookup||
-|mapValues||
+|mapValues|![](images/API-supported-green.png)|
 |partitionBy||
-|reduceByKey||
-|reduceByKeyLocally||
-|rightOuterJoin||
+|reduceByKey|![](images/API-supported-green.png)|
+|reduceByKeyLocally|![](images/API-supported-green.png)|
+|rightOuterJoin|![](images/API-supported-green.png)|
 |sampleByKey||
 |sampleByKeyExact||
 |saveAsHadoopDataset||
 |saveAsHadoopFile||
 |saveAsNewAPIHadoopDataset||
 |subtractByKey||
-|values||
+|values|![](images/API-supported-green.png)|
 
 ## Dataset API
 
@@ -229,18 +229,18 @@ object ExampleRDD1 {
 
 |Operation|Supported?|
 |---------|---------|
-|collect| <ul><li>- [x] </li></ul>|
-|collectAsList||
-|count| <ul><li>- [x] </li></ul>|
+|collect| ![](images/API-supported-green.png)|
+|collectAsList|![](images/API-supported-green.png)|
+|count| ![](images/API-supported-green.png)|
 |describe||
-|first| <ul><li>- [x] </li></ul>|
-|foreach| <ul><li>- [x] </li></ul>|
-|foreachPartition| <ul><li>- [x] </li></ul>|
-|head| <ul><li>- [x] </li></ul>|
-|reduce| <ul><li>- [x] </li></ul>|
+|first| ![](images/API-supported-green.png)|
+|foreach| ![](images/API-supported-green.png)|
+|foreachPartition| ![](images/API-supported-green.png)|
+|head| ![](images/API-supported-green.png)|
+|reduce| ![](images/API-supported-green.png)|
 |show||
-|take| <ul><li>- [x] </li></ul>|
-|takeAsList||
+|take| ![](images/API-supported-green.png)|
+|takeAsList|![](images/API-supported-green.png)|
 |toLocalIterator||
 
 ### Dataset API - Basic Dataset functions
@@ -248,8 +248,8 @@ object ExampleRDD1 {
 |Operation|Supported?|
 |---------|---------|
 |as||
-|cache| <ul><li>- [x] </li></ul>|
-|checkpoint| <ul><li>- [x] </li></ul>|
+|cache| ![](images/API-supported-green.png)|
+|checkpoint| ![](images/API-supported-green.png)|
 |columns||
 |createGlobalTempView||
 |createOrReplaceTempView||
@@ -259,14 +259,14 @@ object ExampleRDD1 {
 |inputFiles||
 |isLocal||
 |javaRDD||
-|persist| <ul><li>- [x] </li></ul>|
+|persist| ![](images/API-supported-green.png)|
 |printSchema||
 |rdd||
 |schema||
 |storageLevel||
 |toDF||
 |toJavaRDD||
-|unpersist||
+|unpersist|![](images/API-supported-green.png)|
 |write||
 |writeStream||
 
@@ -284,17 +284,17 @@ object ExampleRDD1 {
 |alias||
 |as||
 |coalesce||
-|distinct||
+|distinct|![](images/API-supported-green.png)|
 |dropDuplicates||
 |except||
-|filter| <ul><li>- [x] </li></ul>|
-|flatMap| <ul><li>- [x] </li></ul>|
-|groupByKey||
-|intersect||
+|filter| ![](images/API-supported-green.png)|
+|flatMap| ![](images/API-supported-green.png)|
+|groupByKey|![](images/API-supported-green.png)|
+|intersect|![](images/API-supported-green.png)|
 |joinWith||
 |limit||
-|map| <ul><li>- [x] </li></ul>|
-|mapPartitions| <ul><li>- [x] </li></ul>|
+|map| ![](images/API-supported-green.png)|
+|mapPartitions| ![](images/API-supported-green.png)|
 |orderBy||
 |randomSplit||
 |randomSplitAsList||
@@ -304,7 +304,7 @@ object ExampleRDD1 {
 |sort||
 |sortWithinPartitions||
 |transform||
-|union||
+|union|![](images/API-supported-green.png)|
 |where||
 
 ### Dataset API - Untyped transformations
@@ -326,6 +326,20 @@ object ExampleRDD1 {
 |stat||
 |withColumn||
 |withColumnRenamed||
+
+### KeyValueGroupedDataset API
+
+|Operation|Supported?|
+|---------|---------|
+|agg||
+|cogroup||
+|count|![](images/API-supported-green.png)|
+|flatMapGroups||
+|keyAs||
+|keys||
+|mapGroups||
+|mapValues|![](images/API-supported-green.png)|
+|reduceGroups|![](images/API-supported-green.png)|
 
 # Bugs
 

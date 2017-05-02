@@ -18,7 +18,7 @@ class DistinctTest extends SparkLocalBaseTest {
   test("Distinct equal") {
     def distinctOp:(DataSetAPI[Int] => DataSetAPI[Int]) = ds => ds.distinct()
 
-    assertDatasetOperationWithEqual(Seq(1,2,3), distinctOp) {
+    assertDatasetOperationReturnsSameResultWithEqual(Seq(1,2,3), distinctOp) {
       case(r1,r2) => r1.collect().sorted sameElements r2.collect().sorted
     }
   }

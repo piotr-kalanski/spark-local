@@ -12,7 +12,7 @@ class ToStringTest extends SparkLocalBaseTest {
   }
 
   test("toString equal") {
-    assertDatasetOperation(Seq(1,2,3)){
+    assertDatasetOperationReturnsSameResult(Seq(1,2,3)){
       ds => ds.toString
     }
   }

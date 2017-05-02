@@ -1,6 +1,7 @@
 package com.datawizards.sparklocal.dataset
 
 import com.datawizards.sparklocal.SparkLocalBaseTest
+import org.apache.spark.storage.StorageLevel
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -13,8 +14,20 @@ class PersistTest extends SparkLocalBaseTest {
   }
 
   test("Persist equal") {
-    assertDatasetOperation(Seq(1,2,3)){
+    assertDatasetOperationReturnsSameResult(Seq(1,2,3)){
       ds => ds.persist()
+    }
+  }
+
+  test("Persist(storageLevel) equal") {
+    assertDatasetOperationReturnsSameResult(Seq(1,2,3)){
+      ds => ds.persist(StorageLevel.MEMORY_ONLY)
+    }
+  }
+
+  test("Persist, unpersist equal") {
+    assertDatasetOperationReturnsSameResult(Seq(1,2,3)){
+      ds => ds.persist().unpersist()
     }
   }
 
