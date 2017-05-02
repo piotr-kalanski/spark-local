@@ -7,9 +7,17 @@ import org.scalatest.junit.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class UnionTest extends SparkLocalBaseTest {
 
-  test("Union result") {
+  test("Union result - Scala") {
     assertRDDOperationResult(
       RDDAPI(Seq(1,2,3)) union RDDAPI(Seq(4,5))
+    ) {
+      Array(1,2,3,4,5)
+    }
+  }
+
+  test("Union result - Spark") {
+    assertRDDOperationResultWithSorted(
+      RDDAPI(sc.parallelize(Seq(1,2,3))) union RDDAPI(sc.parallelize(Seq(4,5)))
     ) {
       Array(1,2,3,4,5)
     }

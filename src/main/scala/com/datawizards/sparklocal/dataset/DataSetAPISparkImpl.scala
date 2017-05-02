@@ -3,7 +3,7 @@ package com.datawizards.sparklocal.dataset
 import java.util
 
 import com.datawizards.sparklocal.rdd.RDDAPI
-import org.apache.spark.sql.Dataset
+import org.apache.spark.sql.{Dataset, Encoder}
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.storage.StorageLevel
 
@@ -61,4 +61,7 @@ class DataSetAPISparkImpl[T: ClassTag: TypeTag](val data: Dataset[T]) extends Da
   override def intersect(other: DataSetAPI[T]): DataSetAPI[T] = create(data.intersect(other.toDataset))
 
   override def takeAsList(n: Int): util.List[T] = data.takeAsList(n)
+
+  override def groupByKey[K: ClassTag: TypeTag](func: (T) => K): KeyValueGroupedDataSetAPI[K, T] =
+    new KeyValueGroupedDataSetAPISparkImpl(data.groupByKey(func)(ExpressionEncoder[K]()))
 }

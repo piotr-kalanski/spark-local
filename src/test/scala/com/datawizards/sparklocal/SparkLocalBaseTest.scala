@@ -20,10 +20,27 @@ trait SparkLocalBaseTest extends FunSuite {
   lazy val sc: SparkContext = spark.sparkContext
   lazy val sqlContext: SQLContext = spark.sqlContext
 
+  /**
+    * Verifies that Dataset has the same elements as expected result
+    *
+    * @param ds result Dataset
+    * @param expected expected result
+    */
   def assertDatasetOperationResult[T](ds: DataSetAPI[T])(expected: Array[T]): Unit = {
     assertResult(expected){
       ds.collect()
     }
+  }
+
+  /**
+    * Verifies that Dataset has the same elements after sorting as expected result
+    *
+    * @param ds result Dataset
+    * @param expected expected result
+    * @param ord ordering that should be used to sort result
+    */
+  def assertDatasetOperationResultWithSorted[T](ds: DataSetAPI[T])(expected: Array[T])(implicit ord: Ordering[T]): Unit = {
+    assert(ds.collect().sorted(ord) sameElements expected.sorted(ord))
   }
 
   /**
@@ -98,12 +115,12 @@ trait SparkLocalBaseTest extends FunSuite {
   /**
     * Verifies that RDD has the same elements after sorting as expected result
     *
-    * @param ds result RDD
+    * @param rdd result RDD
     * @param expected expected result
     * @param ord ordering that should be used to sort result
     */
-  def assertRDDOperationResultWithSorted[T](ds: RDDAPI[T])(expected: Array[T])(implicit ord: Ordering[T]): Unit = {
-    assert(ds.collect().sorted(ord) sameElements expected.sorted(ord))
+  def assertRDDOperationResultWithSorted[T](rdd: RDDAPI[T])(expected: Array[T])(implicit ord: Ordering[T]): Unit = {
+    assert(rdd.collect().sorted(ord) sameElements expected.sorted(ord))
   }
 
   /**

@@ -289,7 +289,7 @@ object ExampleRDD1 {
 |except||
 |filter| ![](images/API-supported-green.png)|
 |flatMap| ![](images/API-supported-green.png)|
-|groupByKey||
+|groupByKey|![](images/API-supported-green.png)|
 |intersect|![](images/API-supported-green.png)|
 |joinWith||
 |limit||
@@ -333,13 +333,13 @@ object ExampleRDD1 {
 |---------|---------|
 |agg||
 |cogroup||
-|count||
+|count|![](images/API-supported-green.png)|
 |flatMapGroups||
 |keyAs||
 |keys||
 |mapGroups||
-|mapValues||
-|reduceGroups||
+|mapValues|![](images/API-supported-green.png)|
+|reduceGroups|![](images/API-supported-green.png)|
 
 # Bugs
 
