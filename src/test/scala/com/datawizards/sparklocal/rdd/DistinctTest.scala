@@ -21,4 +21,10 @@ class DistinctTest extends SparkLocalBaseTest {
     }
   }
 
+  test("Distinct(numPartitions) equal") {
+    assertRDDOperationReturnsSameResultWithSorted(Seq(1,1,2,3,2,3,1)){
+      ds => ds.distinct(2)
+    }
+  }
+
 }

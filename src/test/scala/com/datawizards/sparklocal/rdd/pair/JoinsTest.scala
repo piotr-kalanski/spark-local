@@ -2,6 +2,7 @@ package com.datawizards.sparklocal.rdd.pair
 
 import com.datawizards.sparklocal.SparkLocalBaseTest
 import com.datawizards.sparklocal.rdd.RDDAPI
+import org.apache.spark.HashPartitioner
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -83,11 +84,23 @@ class JoinsTest extends SparkLocalBaseTest {
     assertRDDOperationReturnsSameResultWithSorted(left){
       rdd => rdd.join(rightRDD)
     }
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rdd.join(rightRDD,2)
+    }
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rdd.join(rightRDD,new HashPartitioner(2))
+    }
   }
 
   test("left join - equals") {
     assertRDDOperationReturnsSameResultWithSorted(left){
       rdd => rdd.leftOuterJoin(rightRDD)
+    }
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rdd.leftOuterJoin(rightRDD,2)
+    }
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rdd.leftOuterJoin(rightRDD,new HashPartitioner(2))
     }
   }
 
@@ -95,11 +108,23 @@ class JoinsTest extends SparkLocalBaseTest {
     assertRDDOperationReturnsSameResultWithSorted(left){
       rdd => rdd.rightOuterJoin(rightRDD)
     }
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rdd.rightOuterJoin(rightRDD,2)
+    }
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rdd.rightOuterJoin(rightRDD,new HashPartitioner(2))
+    }
   }
 
   test("full outer join - equals") {
     assertRDDOperationReturnsSameResultWithSorted(left){
       rdd => rdd.fullOuterJoin(rightRDD)
+    }
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rdd.fullOuterJoin(rightRDD,2)
+    }
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rdd.fullOuterJoin(rightRDD,new HashPartitioner(2))
     }
   }
 }

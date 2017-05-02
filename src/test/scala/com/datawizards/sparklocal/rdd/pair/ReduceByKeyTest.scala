@@ -19,6 +19,10 @@ class ReduceByKeyTest extends SparkLocalBaseTest {
     }
   }
 
+  test("reduceByKeyLocally result") {
+    assert(RDDAPI(data).reduceByKeyLocally(_ + _) == Map(("a",3),("b",5),("c",4)))
+  }
+
   test("reduceByKey(numPartitions) result") {
     assertRDDOperationResultWithSorted(
       RDDAPI(data).reduceByKey(_ + _, 2)
@@ -50,6 +54,12 @@ class ReduceByKeyTest extends SparkLocalBaseTest {
   test("reduceByKey(partitioner) equal") {
     assertRDDOperationReturnsSameResultWithSorted(data){
       ds => ds.reduceByKey(new HashPartitioner(2), _ + _)
+    }
+  }
+
+  test("reduceByKeyLocally equal") {
+    assertRDDOperationReturnsSameResult(data){
+      ds => ds.reduceByKeyLocally(_ + _)
     }
   }
 
