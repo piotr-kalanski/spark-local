@@ -45,7 +45,7 @@ trait DataSetAPI[T] {
   def rdd(): RDDAPI[T]
   def union(other: DataSetAPI[T]): DataSetAPI[T]
   def intersect(other: DataSetAPI[T]): DataSetAPI[T]
-  def groupByKey[K: TypeTag](func: (T) => K): KeyValueGroupedDataSetAPI[K, T]
+  def groupByKey[K: ClassTag: TypeTag](func: (T) => K): KeyValueGroupedDataSetAPI[K, T]
 
   override def toString: String = collect().toSeq.toString
 

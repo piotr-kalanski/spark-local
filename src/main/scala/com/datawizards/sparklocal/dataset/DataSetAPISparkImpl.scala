@@ -62,6 +62,6 @@ class DataSetAPISparkImpl[T: ClassTag: TypeTag](val data: Dataset[T]) extends Da
 
   override def takeAsList(n: Int): util.List[T] = data.takeAsList(n)
 
-  override def groupByKey[K: TypeTag](func: (T) => K): KeyValueGroupedDataSetAPI[K, T] =
+  override def groupByKey[K: ClassTag: TypeTag](func: (T) => K): KeyValueGroupedDataSetAPI[K, T] =
     new KeyValueGroupedDataSetAPISparkImpl(data.groupByKey(func)(ExpressionEncoder[K]()))
 }
