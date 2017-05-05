@@ -5,6 +5,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
 
+import scala.collection.Map
 import scala.reflect.ClassTag
 
 object RDDAPI {
@@ -63,6 +64,8 @@ trait RDDAPI[T] {
   def subtract(other: RDDAPI[T]): RDDAPI[T]
   def subtract(other: RDDAPI[T], numPartitions: Int): RDDAPI[T]
   def subtract(other: RDDAPI[T], partitioner: Partitioner)(implicit ord: Ordering[T] = null): RDDAPI[T]
+  def countByValue()(implicit kt: ClassTag[T], vt: ClassTag[Int], ord: Ordering[T] = null): Map[T, Long] =
+    RDDAPI.rddToPairRDDFunctions[T,Int](map(value => (value, 0))).countByKey()
 
   override def toString: String = collect().toSeq.toString
 
