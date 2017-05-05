@@ -47,6 +47,7 @@ trait RDDAPI[T] {
   def persist(): RDDAPI[T]
   def unpersist(blocking: Boolean = true): RDDAPI[T]
   def union(other: RDDAPI[T]): RDDAPI[T]
+  def ++(other: RDDAPI[T]): RDDAPI[T] = this.union(other)
   def zipWithIndex(): RDDAPI[(T, Long)]
   def min()(implicit ord: Ordering[T]): T
   def max()(implicit ord: Ordering[T]): T
