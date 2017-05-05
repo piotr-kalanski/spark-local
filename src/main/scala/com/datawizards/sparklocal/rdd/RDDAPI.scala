@@ -66,6 +66,7 @@ trait RDDAPI[T] {
   def subtract(other: RDDAPI[T], partitioner: Partitioner)(implicit ord: Ordering[T] = null): RDDAPI[T]
   def countByValue()(implicit kt: ClassTag[T], vt: ClassTag[Int], ord: Ordering[T] = null): Map[T, Long] =
     RDDAPI.rddToPairRDDFunctions[T,Int](map(value => (value, 0))).countByKey()
+  def keyBy[K](f: T => K): RDDAPI[(K, T)] = map(x => (f(x), x))
 
   override def toString: String = collect().toSeq.toString
 

@@ -106,7 +106,7 @@ trait SparkLocalBaseTest extends FunSuite {
     * @param rdd result RDD
     * @param expected expected result
     */
-  def assertRDDOperationResult[T](rdd: RDDAPI[T])(expected: Array[T]): Unit = {
+  def assertRDDOperationResult[T, Result](rdd: RDDAPI[T])(expected: Array[Result]): Unit = {
     assertResult(expected){
       rdd.collect()
     }
