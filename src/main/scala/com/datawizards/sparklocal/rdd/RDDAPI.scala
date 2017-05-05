@@ -60,6 +60,9 @@ trait RDDAPI[T] {
   def distinct(): RDDAPI[T]
   def distinct(numPartitions: Int)(implicit ord: Ordering[T] = null): RDDAPI[T]
   def top(num: Int)(implicit ord: Ordering[T]): Array[T]
+  def subtract(other: RDDAPI[T]): RDDAPI[T]
+  def subtract(other: RDDAPI[T], numPartitions: Int): RDDAPI[T]
+  def subtract(other: RDDAPI[T], partitioner: Partitioner)(implicit ord: Ordering[T] = null): RDDAPI[T]
 
   override def toString: String = collect().toSeq.toString
 

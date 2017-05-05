@@ -93,4 +93,19 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
 
   override def top(num: Int)(implicit ord: Ordering[T]): Array[T] = data.top(num)(ord)
 
+  override def subtract(other: RDDAPI[T]): RDDAPI[T] = other match {
+    case rddScala:RDDAPIScalaImpl[T] => create(data.subtract(parallelize(rddScala.data)))
+    case rddSpark:RDDAPISparkImpl[T] => RDDAPI(data.subtract(rddSpark.data))
+  }
+
+  override def subtract(other: RDDAPI[T], numPartitions: Int): RDDAPI[T] = other match {
+    case rddScala:RDDAPIScalaImpl[T] => create(data.subtract(parallelize(rddScala.data), numPartitions))
+    case rddSpark:RDDAPISparkImpl[T] => RDDAPI(data.subtract(rddSpark.data, numPartitions))
+  }
+
+  override def subtract(other: RDDAPI[T], partitioner: Partitioner)(implicit ord: Ordering[T]): RDDAPI[T] = other match {
+    case rddScala:RDDAPIScalaImpl[T] => create(data.subtract(parallelize(rddScala.data), partitioner))
+    case rddSpark:RDDAPISparkImpl[T] => RDDAPI(data.subtract(rddSpark.data, partitioner))
+  }
+
 }

@@ -1,6 +1,5 @@
 package com.datawizards.sparklocal.rdd
 
-import org.apache.spark.rdd.RDD
 import org.apache.spark.{Partition, Partitioner}
 import org.apache.spark.storage.StorageLevel
 
@@ -90,5 +89,20 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
 
   override def top(num: Int)(implicit ord: Ordering[T]): Array[T] =
     data.sorted(ord.reverse).take(num).toArray
+
+  override def subtract(other: RDDAPI[T]): RDDAPI[T] = other match {
+    case rddScala:RDDAPIScalaImpl[T] => create(data.diff(rddScala.data))
+    case rddSpark:RDDAPISparkImpl[T] => RDDAPI(parallelize(data).subtract(rddSpark.data))
+  }
+
+  override def subtract(other: RDDAPI[T], numPartitions: Int): RDDAPI[T] = other match {
+    case rddScala:RDDAPIScalaImpl[T] => create(data diff rddScala.data)
+    case rddSpark:RDDAPISparkImpl[T] => RDDAPI(parallelize(data).subtract(rddSpark.data, numPartitions))
+  }
+
+  override def subtract(other: RDDAPI[T], partitioner: Partitioner)(implicit ord: Ordering[T]): RDDAPI[T] = other match {
+    case rddScala:RDDAPIScalaImpl[T] => create(data diff rddScala.data)
+    case rddSpark:RDDAPISparkImpl[T] => RDDAPI(parallelize(data).subtract(rddSpark.data, partitioner)(ord))
+  }
 
 }
