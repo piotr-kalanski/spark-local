@@ -3,7 +3,7 @@ package com.datawizards.sparklocal.dataset
 import java.util
 
 import com.datawizards.sparklocal.rdd.RDDAPI
-import org.apache.spark.sql.{Dataset, Encoder}
+import org.apache.spark.sql.{Column, Dataset, Encoder}
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.storage.StorageLevel
 
@@ -87,4 +87,16 @@ class DataSetAPISparkImpl[T: ClassTag: TypeTag](val data: Dataset[T]) extends Da
 
   override def limit(n: Int): DataSetAPI[T] =
     create(data.limit(n))
+
+  override def repartition(numPartitions: Int): DataSetAPI[T] =
+    create(data.repartition(numPartitions))
+
+  override def repartition(partitionExprs: Column*): DataSetAPI[T] =
+    create(data.repartition(partitionExprs:_*))
+
+  override def repartition(numPartitions: Int, partitionExprs: Column*): DataSetAPI[T] =
+    create(data.repartition(numPartitions, partitionExprs:_*))
+
+  override def coalesce(numPartitions: Int): DataSetAPI[T] =
+    create(data.coalesce(numPartitions))
 }

@@ -3,6 +3,7 @@ package com.datawizards.sparklocal.dataset
 import java.util
 
 import com.datawizards.sparklocal.rdd.RDDAPI
+import org.apache.spark.sql.Column
 import org.apache.spark.storage.StorageLevel
 
 import scala.collection.JavaConversions._
@@ -91,4 +92,16 @@ class DataSetAPIScalaImpl[T: ClassTag: TypeTag](iterable: Iterable[T]) extends D
 
   override def limit(n: Int): DataSetAPI[T] =
     create(data.take(n))
+
+  override def repartition(numPartitions: Int): DataSetAPI[T] =
+    this
+
+  override def repartition(partitionExprs: Column*): DataSetAPI[T] =
+    this
+
+  override def repartition(numPartitions: Int, partitionExprs: Column*): DataSetAPI[T] =
+    this
+
+  override def coalesce(numPartitions: Int): DataSetAPI[T] =
+    this
 }

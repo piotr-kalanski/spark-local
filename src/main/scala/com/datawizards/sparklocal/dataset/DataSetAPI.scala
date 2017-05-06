@@ -2,7 +2,7 @@ package com.datawizards.sparklocal.dataset
 
 import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
-import org.apache.spark.sql.{Dataset, SparkSession}
+import org.apache.spark.sql.{Column, Dataset, SparkSession}
 import org.apache.spark.storage.StorageLevel
 
 import scala.reflect.ClassTag
@@ -47,6 +47,10 @@ trait DataSetAPI[T] {
   def intersect(other: DataSetAPI[T]): DataSetAPI[T]
   def groupByKey[K: ClassTag: TypeTag](func: (T) => K): KeyValueGroupedDataSetAPI[K, T]
   def limit(n: Int): DataSetAPI[T]
+  def repartition(numPartitions: Int): DataSetAPI[T]
+  def repartition(partitionExprs: Column*): DataSetAPI[T]
+  def repartition(numPartitions: Int, partitionExprs: Column*): DataSetAPI[T]
+  def coalesce(numPartitions: Int): DataSetAPI[T]
 
   override def toString: String = "DataSet(" + collect().mkString(",") + ")"
 
