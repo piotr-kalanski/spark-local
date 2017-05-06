@@ -7,9 +7,17 @@ import org.scalatest.junit.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class CartesianTest extends SparkLocalBaseTest {
 
-  test("Cartesian result") {
+  test("Cartesian result - Scala") {
     assertRDDOperationResult(
       RDDAPI(Seq(1,2)) cartesian RDDAPI(Seq("a","b"))
+    ) {
+      Array((1,"a"),(1,"b"),(2,"a"),(2,"b"))
+    }
+  }
+
+  test("Cartesian result - Spark") {
+    assertRDDOperationResult(
+      RDDAPI(sc.parallelize(Seq(1,2))) cartesian RDDAPI(sc.parallelize(Seq("a","b")))
     ) {
       Array((1,"a"),(1,"b"),(2,"a"),(2,"b"))
     }

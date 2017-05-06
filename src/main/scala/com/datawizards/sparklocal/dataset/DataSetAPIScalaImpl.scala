@@ -5,6 +5,7 @@ import java.util
 import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.sql.Column
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.util.random.{BernoulliCellSampler, BernoulliSampler, PoissonSampler}
 
 import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
@@ -104,4 +105,26 @@ class DataSetAPIScalaImpl[T: ClassTag: TypeTag](iterable: Iterable[T]) extends D
 
   override def coalesce(numPartitions: Int): DataSetAPI[T] =
     this
+
+  override def sample(withReplacement: Boolean, fraction: Double, seed: Long): DataSetAPI[T] = {
+    val sampler = if (withReplacement) new PoissonSampler[T](fraction) else new BernoulliSampler[T](fraction)
+    sampler.setSeed(seed)
+    create(sampler.sample(data.iterator).toIterable)
+  }
+
+  override def randomSplit(weights: Array[Double], seed: Long): Array[DataSetAPI[T]] = {
+    require(weights.forall(_ >= 0),
+      s"Weights must be nonnegative, but got ${weights.mkString("[", ",", "]")}")
+    require(weights.sum > 0,
+      s"Sum of weights must be positive, but got ${weights.mkString("[", ",", "]")}")
+
+    val sum = weights.sum
+    val normalizedCumWeights = weights.map(_ / sum).scanLeft(0.0d)(_ + _)
+    normalizedCumWeights.sliding(2).map { x =>
+      val sampler = new BernoulliCellSampler[T](x(0), x(1))
+      sampler.setSeed(seed)
+      create(sampler.sample(data.iterator).toIterable)
+    }.toArray
+  }
+
 }

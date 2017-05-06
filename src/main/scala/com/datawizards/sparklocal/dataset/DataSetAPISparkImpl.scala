@@ -99,4 +99,10 @@ class DataSetAPISparkImpl[T: ClassTag: TypeTag](val data: Dataset[T]) extends Da
 
   override def coalesce(numPartitions: Int): DataSetAPI[T] =
     create(data.coalesce(numPartitions))
+
+  override def sample(withReplacement: Boolean, fraction: Double, seed: Long): DataSetAPI[T] =
+    create(data.sample(withReplacement, fraction, seed))
+
+  override def randomSplit(weights: Array[Double], seed: Long): Array[DataSetAPI[T]] =
+    data.randomSplit(weights, seed).map(ds => create(ds))
 }

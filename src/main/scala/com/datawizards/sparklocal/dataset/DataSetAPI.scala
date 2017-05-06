@@ -51,6 +51,8 @@ trait DataSetAPI[T] {
   def repartition(partitionExprs: Column*): DataSetAPI[T]
   def repartition(numPartitions: Int, partitionExprs: Column*): DataSetAPI[T]
   def coalesce(numPartitions: Int): DataSetAPI[T]
+  def sample(withReplacement: Boolean, fraction: Double, seed: Long): DataSetAPI[T]
+  def randomSplit(weights: Array[Double], seed: Long = 0L): Array[DataSetAPI[T]]
 
   override def toString: String = "DataSet(" + collect().mkString(",") + ")"
 

@@ -18,6 +18,18 @@ class RandomSplitTest extends SparkLocalBaseTest {
     assert(sample2.map(x => (x,1)).reduceByKey(_ + _).collectAsMap().values.forall(_ == 1), "All sample elements only once")
   }
 
+  test("randomSplit result - negative weights") {
+    intercept[IllegalArgumentException]{
+      RDDAPI(data).randomSplit(Array(-1,-2))
+    }
+  }
+
+  test("randomSplit result - sum of weights is negative") {
+    intercept[IllegalArgumentException]{
+      RDDAPI(data).randomSplit(Array(1,-2))
+    }
+  }
+
   test("randomSplit result - Spark") {
     val Array(sample1, sample2) = RDDAPI(sc.parallelize(data)).randomSplit(Array(80,20))
     assert(sample1.count() > sample2.count(), "First sample size > second sample size")
