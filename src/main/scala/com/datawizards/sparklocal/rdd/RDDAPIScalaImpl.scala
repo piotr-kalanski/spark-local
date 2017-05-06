@@ -105,4 +105,14 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(parallelize(data).subtract(rddSpark.data, partitioner)(ord))
   }
 
+  override def cartesian[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)] = other match {
+    case rddScala:RDDAPIScalaImpl[U] => create(
+      for{
+        left <- data
+        right <- rddScala.data
+      } yield (left, right)
+    )
+    case rddSpark:RDDAPISparkImpl[U] => RDDAPI(parallelize(data).cartesian(rddSpark.data))
+  }
+
 }

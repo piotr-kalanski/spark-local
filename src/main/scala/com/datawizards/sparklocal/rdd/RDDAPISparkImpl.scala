@@ -108,4 +108,9 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(data.subtract(rddSpark.data, partitioner))
   }
 
+  override def cartesian[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)] = other match {
+    case rddScala:RDDAPIScalaImpl[U] => create(data.cartesian(parallelize(rddScala.data)))
+    case rddSpark:RDDAPISparkImpl[U] => RDDAPI(data.cartesian(rddSpark.data))
+  }
+
 }
