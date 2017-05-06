@@ -15,9 +15,11 @@ class PairRDDFunctionsAPIScalaImpl[K,V](rdd: RDDAPIScalaImpl[(K,V)])(implicit kt
       data.map { case (k, v) => (k, f(v)) }
     )
 
-  override def keys: RDDAPI[K] = rdd.map(_._1)
+  override def keys: RDDAPI[K] =
+    rdd.map(_._1)
 
-  override def values: RDDAPI[V] = rdd.map(_._2)
+  override def values: RDDAPI[V] =
+    rdd.map(_._2)
 
   override def flatMapValues[U](f: (V) => TraversableOnce[U]): RDDAPI[(K, U)] =
     rdd.flatMap { case (k,v) =>
@@ -274,4 +276,21 @@ class PairRDDFunctionsAPIScalaImpl[K,V](rdd: RDDAPIScalaImpl[(K,V)])(implicit kt
   override def subtractByKey[W: ClassTag](other: RDDAPI[(K, W)], numPartitions: Int): RDDAPI[(K, V)] = subtractByKey(other)
 
   override def subtractByKey[W: ClassTag](other: RDDAPI[(K, W)], p: Partitioner): RDDAPI[(K, V)] = subtractByKey(other)
+
+  override def aggregateByKey[U: ClassTag](zeroValue: U)(seqOp: (U, V) => U, combOp: (U, U) => U): RDDAPI[(K, U)] =
+    RDDAPI(
+      data
+        .groupBy(_._1)
+        .mapValues(
+          _.map(_._2)
+            .aggregate(zeroValue)(seqOp, combOp)
+        )
+    )
+
+  override def aggregateByKey[U: ClassTag](zeroValue: U, partitioner: Partitioner)(seqOp: (U, V) => U, combOp: (U, U) => U): RDDAPI[(K, U)] =
+    aggregateByKey(zeroValue)(seqOp, combOp)
+
+  override def aggregateByKey[U: ClassTag](zeroValue: U, numPartitions: Int)(seqOp: (U, V) => U, combOp: (U, U) => U): RDDAPI[(K, U)] =
+    aggregateByKey(zeroValue)(seqOp, combOp)
+
 }
