@@ -4,6 +4,7 @@ import org.apache.spark.{Partition, Partitioner}
 import org.apache.spark.rdd.{PartitionCoalescer, RDD}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.util.Utils
 
 import scala.collection.Map
 import scala.reflect.ClassTag
@@ -73,6 +74,7 @@ trait RDDAPI[T] {
   def groupBy[K](f: T => K, numPartitions: Int)(implicit kt: ClassTag[K]): RDDAPI[(K, Iterable[T])]
   def groupBy[K](f: T => K, p: Partitioner)(implicit kt: ClassTag[K], ord: Ordering[K] = null): RDDAPI[(K, Iterable[T])]
   def coalesce(numPartitions: Int, shuffle: Boolean = false, partitionCoalescer: Option[PartitionCoalescer] = Option.empty)(implicit ord: Ordering[T] = null): RDDAPI[T]
+  def sample(withReplacement: Boolean, fraction: Double, seed: Long = 0L): RDDAPI[T]
 
   override def toString: String = "RDD(" + collect().mkString(",") + ")"
 

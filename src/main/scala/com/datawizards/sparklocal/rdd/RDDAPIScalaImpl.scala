@@ -3,6 +3,7 @@ package com.datawizards.sparklocal.rdd
 import org.apache.spark.rdd.PartitionCoalescer
 import org.apache.spark.{Partition, Partitioner}
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.util.random.{BernoulliSampler, PoissonSampler}
 
 import scala.reflect.ClassTag
 
@@ -130,5 +131,11 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
 
   override def takeOrdered(num: Int)(implicit ord: Ordering[T]): Array[T] =
     data.sorted.take(num).toArray
+
+  override def sample(withReplacement: Boolean, fraction: Double, seed: Long): RDDAPI[T] = {
+    val sampler = if (withReplacement) new PoissonSampler[T](fraction) else new BernoulliSampler[T](fraction)
+    sampler.setSeed(seed)
+    RDDAPI(sampler.sample(data.iterator).toIterable)
+  }
 
 }
