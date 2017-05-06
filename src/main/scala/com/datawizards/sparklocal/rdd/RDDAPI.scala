@@ -68,6 +68,7 @@ trait RDDAPI[T] {
     RDDAPI.rddToPairRDDFunctions[T,Int](map(value => (value, 0))).countByKey()
   def keyBy[K](f: T => K): RDDAPI[(K, T)] = map(x => (f(x), x))
   def cartesian[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)]
+  def aggregate[U: ClassTag](zeroValue: U)(seqOp: (U, T) => U, combOp: (U, U) => U): U
 
   override def toString: String = collect().toSeq.toString
 

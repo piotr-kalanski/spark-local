@@ -115,4 +115,7 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
     case rddSpark:RDDAPISparkImpl[U] => RDDAPI(parallelize(data).cartesian(rddSpark.data))
   }
 
+  override def aggregate[U: ClassTag](zeroValue: U)(seqOp: (U, T) => U, combOp: (U, U) => U): U =
+    data.aggregate(zeroValue)(seqOp, combOp)
+
 }

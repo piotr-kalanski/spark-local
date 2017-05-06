@@ -113,4 +113,6 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
     case rddSpark:RDDAPISparkImpl[U] => RDDAPI(data.cartesian(rddSpark.data))
   }
 
+  override def aggregate[U: ClassTag](zeroValue: U)(seqOp: (U, T) => U, combOp: (U, U) => U): U =
+    data.aggregate(zeroValue)(seqOp, combOp)
 }
