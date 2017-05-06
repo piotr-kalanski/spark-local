@@ -157,4 +157,8 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
 
   override def takeSample(withReplacement: Boolean, num: Int, seed: Long): Array[T] =
     data.takeSample(withReplacement, num, seed)
+
+  override def randomSplit(weights: Array[Double], seed: Long): Array[RDDAPI[T]] =
+    data.randomSplit(weights, seed).map(rdd => RDDAPI(rdd))
+
 }

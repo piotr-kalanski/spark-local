@@ -76,6 +76,7 @@ trait RDDAPI[T] {
   def coalesce(numPartitions: Int, shuffle: Boolean = false, partitionCoalescer: Option[PartitionCoalescer] = Option.empty)(implicit ord: Ordering[T] = null): RDDAPI[T]
   def sample(withReplacement: Boolean, fraction: Double, seed: Long = 0L): RDDAPI[T]
   def takeSample(withReplacement: Boolean, num: Int, seed: Long = 0L): Array[T]
+  def randomSplit(weights: Array[Double], seed: Long = 0L): Array[RDDAPI[T]]
 
   override def toString: String = "RDD(" + collect().mkString(",") + ")"
 
