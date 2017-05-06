@@ -261,7 +261,7 @@ object ExampleRDD1 {
 |javaRDD||
 |persist| ![](images/API-supported-green.png)|
 |printSchema||
-|rdd||
+|rdd|![](images/API-supported-green.png)|
 |schema||
 |storageLevel||
 |toDF||
@@ -332,12 +332,12 @@ object ExampleRDD1 {
 |Operation|Supported?|
 |---------|---------|
 |agg||
-|cogroup||
+|cogroup|![](images/API-supported-green.png)|
 |count|![](images/API-supported-green.png)|
-|flatMapGroups||
+|flatMapGroups|![](images/API-supported-green.png)|
 |keyAs||
-|keys||
-|mapGroups||
+|keys|![](images/API-supported-green.png)|
+|mapGroups|![](images/API-supported-green.png)|
 |mapValues|![](images/API-supported-green.png)|
 |reduceGroups|![](images/API-supported-green.png)|
 
