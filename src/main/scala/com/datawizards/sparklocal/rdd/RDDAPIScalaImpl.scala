@@ -1,5 +1,6 @@
 package com.datawizards.sparklocal.rdd
 
+import org.apache.spark.rdd.PartitionCoalescer
 import org.apache.spark.{Partition, Partitioner}
 import org.apache.spark.storage.StorageLevel
 
@@ -124,5 +125,7 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
   override def groupBy[K](f: (T) => K, numPartitions: Int)(implicit kt: ClassTag[K]): RDDAPI[(K, Iterable[T])] = groupBy(f)
 
   override def groupBy[K](f: (T) => K, p: Partitioner)(implicit kt: ClassTag[K], ord: Ordering[K]): RDDAPI[(K, Iterable[T])] = groupBy(f)
+
+  override def coalesce(numPartitions: Int, shuffle: Boolean, partitionCoalescer: Option[PartitionCoalescer])(implicit ord: Ordering[T]): RDDAPI[T] = this
 
 }
