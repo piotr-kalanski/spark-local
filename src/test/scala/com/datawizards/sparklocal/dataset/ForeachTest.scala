@@ -21,4 +21,16 @@ class ForeachTest extends SparkLocalBaseTest {
     assert(buff1.toList == List(1,2,3))
   }
 
+  test("Foreach - Spark") {
+    var accum = sc.longAccumulator
+    DataSetAPI(Seq(1,2,3)).foreach(x => accum.add(x))
+    assert(accum.value == 6L)
+  }
+
+  test("Foreach partition - Spark") {
+    var accum = sc.longAccumulator
+    DataSetAPI(Seq(1,2,3)).foreachPartition(x => x.foreach(accum.add(_)))
+    assert(accum.value == 6L)
+  }
+
 }

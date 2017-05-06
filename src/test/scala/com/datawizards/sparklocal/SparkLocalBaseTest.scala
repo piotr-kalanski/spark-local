@@ -40,7 +40,9 @@ trait SparkLocalBaseTest extends FunSuite {
     * @param ord ordering that should be used to sort result
     */
   def assertDatasetOperationResultWithSorted[T](ds: DataSetAPI[T])(expected: Array[T])(implicit ord: Ordering[T]): Unit = {
-    assert(ds.collect().sorted(ord) sameElements expected.sorted(ord))
+    assertResult(expected.sorted(ord)) {
+      ds.collect().sorted(ord)
+    }
   }
 
   /**
@@ -96,7 +98,10 @@ trait SparkLocalBaseTest extends FunSuite {
     */
   def assertDatasetOperationReturnsSameResultWithSorted[T:ClassTag:TypeTag,Result](data: Seq[T])(op: DataSetAPI[T] => DataSetAPI[Result])(implicit ord: Ordering[Result]): Unit = {
     assertDatasetOperationReturnsSameResultWithEqual[T,DataSetAPI[Result]](data, op) {
-      case (d1,d2) => d1.collect().sorted(ord) sameElements d2.collect().sorted(ord)
+      case (d1,d2) =>
+        val d1c = d1.collect().sorted(ord)
+        val d2c = d2.collect().sorted(ord)
+        (d1c sameElements d2c) || {println(d1c.mkString(",")); println(d2c.mkString(",")); false}
     }
   }
 
