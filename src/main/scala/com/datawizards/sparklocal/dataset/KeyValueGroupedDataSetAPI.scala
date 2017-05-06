@@ -8,4 +8,5 @@ trait KeyValueGroupedDataSetAPI[K, V] {
   def mapGroups[U: ClassTag: TypeTag](f: (K, Iterator[V]) => U): DataSetAPI[U]
   def reduceGroups(f: (V, V) => V): DataSetAPI[(K, V)]
   def mapValues[W: ClassTag: TypeTag](func: V => W): KeyValueGroupedDataSetAPI[K, W]
+  def flatMapGroups[U: ClassTag: TypeTag](f: (K, Iterator[V]) => TraversableOnce[U]): DataSetAPI[U]
 }
