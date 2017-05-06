@@ -2,7 +2,7 @@ name := "spark-local"
 
 organization := "com.github.piotr-kalanski"
 
-version := "0.2.0"
+version := "0.3.0-SNAPSHOT"
 
 scalaVersion := "2.11.8"
 
@@ -31,8 +31,6 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.1" % "test",
   "junit" % "junit" % "4.10" % "test"
 )
-
-javaOptions ++= Seq("-Xms512M", "-Xmx2048M", "-XX:MaxPermSize=2048M")
 
 coverageExcludedPackages := "com.datawizards.sparklocal.examples.*"
 
