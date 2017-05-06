@@ -124,9 +124,9 @@ object ExampleRDD1 {
 |---------|---------|
 |aggregate||
 |cache|![](images/API-supported-green.png)|
-|cartesian||
+|cartesian|![](images/API-supported-green.png)|
 |checkpoint|![](images/API-supported-green.png)|
-|coalesce||
+|coalesce|![](images/API-supported-green.png)|
 |collect| ![](images/API-supported-green.png)|
 |count| ![](images/API-supported-green.png)|
 |countApprox||
@@ -136,7 +136,7 @@ object ExampleRDD1 {
 |dependencies||
 |distinct|![](images/API-supported-green.png)|
 |filter| ![](images/API-supported-green.png)|
-|first||
+|first|![](images/API-supported-green.png)|
 |flatMap| ![](images/API-supported-green.png)|
 |fold| ![](images/API-supported-green.png)|
 |foreach| ![](images/API-supported-green.png)|
@@ -145,13 +145,13 @@ object ExampleRDD1 {
 |getNumPartitions||
 |getStorageLevel||
 |glom||
-|groupBy||
+|groupBy|![](images/API-supported-green.png)|
 |id||
 |intersection| ![](images/API-supported-green.png)|
 |isCheckpointed||
 |isEmpty| ![](images/API-supported-green.png)|
 |iterator||
-|keyBy||
+|keyBy|![](images/API-supported-green.png)|
 |localCheckpoint||
 |map| ![](images/API-supported-green.png)|
 |mapPartitions| ![](images/API-supported-green.png)|
@@ -166,15 +166,15 @@ object ExampleRDD1 {
 |preferredLocations||
 |randomSplit||
 |reduce| ![](images/API-supported-green.png)|
-|repartition||
+|repartition|![](images/API-supported-green.png)|
 |sample||
 |saveAsObjectFile||
 |saveAsTextFile||
 |setName||
 |sortBy| ![](images/API-supported-green.png)|
-|subtract||
+|subtract|![](images/API-supported-green.png)|
 |take| ![](images/API-supported-green.png)|
-|takeOrdered||
+|takeOrdered|![](images/API-supported-green.png)|
 |takeSample||
 |toDebugString||
 |toJavaRDD||
@@ -183,7 +183,7 @@ object ExampleRDD1 {
 |treeAggregate||
 |treeReduce||
 |union| ![](images/API-supported-green.png)|
-|unpersist||
+|unpersist|![](images/API-supported-green.png)|
 |zip| ![](images/API-supported-green.png)|
 |zipPartitions||
 |zipWithIndex| ![](images/API-supported-green.png)|
@@ -193,9 +193,9 @@ object ExampleRDD1 {
 
 |Operation|Supported?|
 |---------|---------|
-|aggregateByKey||
-|cogroup||
-|collectAsMap||
+|aggregateByKey|![](images/API-supported-green.png)|
+|cogroup|![](images/API-supported-green.png)|
+|collectAsMap|![](images/API-supported-green.png)|
 |combineByKey||
 |combineByKeyWithClassTag||
 |countApproxDistinctByKey||
@@ -211,7 +211,7 @@ object ExampleRDD1 {
 |leftOuterJoin|![](images/API-supported-green.png)|
 |lookup||
 |mapValues|![](images/API-supported-green.png)|
-|partitionBy||
+|partitionBy|![](images/API-supported-green.png)|
 |reduceByKey|![](images/API-supported-green.png)|
 |reduceByKeyLocally|![](images/API-supported-green.png)|
 |rightOuterJoin|![](images/API-supported-green.png)|
@@ -220,7 +220,7 @@ object ExampleRDD1 {
 |saveAsHadoopDataset||
 |saveAsHadoopFile||
 |saveAsNewAPIHadoopDataset||
-|subtractByKey||
+|subtractByKey|![](images/API-supported-green.png)|
 |values|![](images/API-supported-green.png)|
 
 ## Dataset API

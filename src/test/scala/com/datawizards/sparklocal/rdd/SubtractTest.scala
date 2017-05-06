@@ -12,7 +12,7 @@ class SubtractTest extends SparkLocalBaseTest {
     assertRDDOperationResult(
       RDDAPI(Seq(1,2,3,4)) subtract RDDAPI(Seq(5,4,3))
     ) {
-      Array(3,4)
+      Array(1,2)
     }
   }
 
@@ -20,7 +20,7 @@ class SubtractTest extends SparkLocalBaseTest {
     assertRDDOperationResultWithSorted(
       RDDAPI(sc.parallelize(Seq(1,2,3,4))) subtract RDDAPI(sc.parallelize(Seq(5,4,3)))
     ) {
-      Array(3,4)
+      Array(1,2)
     }
   }
 
@@ -28,7 +28,7 @@ class SubtractTest extends SparkLocalBaseTest {
     assertRDDOperationResultWithSorted(
       RDDAPI(sc.parallelize(Seq(1,2,3,4))).subtract(RDDAPI(sc.parallelize(Seq(5,4,3))), 2)
     ) {
-      Array(3,4)
+      Array(1,2)
     }
   }
 
@@ -36,7 +36,7 @@ class SubtractTest extends SparkLocalBaseTest {
     assertRDDOperationResultWithSorted(
       RDDAPI(sc.parallelize(Seq(1,2,3,4))).subtract(RDDAPI(sc.parallelize(Seq(5,4,3))), new HashPartitioner(2))
     ) {
-      Array(3,4)
+      Array(1,2)
     }
   }
 

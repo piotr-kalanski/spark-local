@@ -1,7 +1,7 @@
 package com.datawizards.sparklocal.rdd
 
 import org.apache.spark.{Partition, Partitioner}
-import org.apache.spark.rdd.RDD
+import org.apache.spark.rdd.{PartitionCoalescer, RDD}
 import org.apache.spark.storage.StorageLevel
 
 import scala.reflect.ClassTag
@@ -108,4 +108,22 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(data.subtract(rddSpark.data, partitioner))
   }
 
+  override def cartesian[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)] = other match {
+    case rddScala:RDDAPIScalaImpl[U] => create(data.cartesian(parallelize(rddScala.data)))
+    case rddSpark:RDDAPISparkImpl[U] => RDDAPI(data.cartesian(rddSpark.data))
+  }
+
+  override def aggregate[U: ClassTag](zeroValue: U)(seqOp: (U, T) => U, combOp: (U, U) => U): U =
+    data.aggregate(zeroValue)(seqOp, combOp)
+
+  override def groupBy[K](f: (T) => K)(implicit kt: ClassTag[K]): RDDAPI[(K, Iterable[T])] = create(data.groupBy(f))
+
+  override def groupBy[K](f: (T) => K, numPartitions: Int)(implicit kt: ClassTag[K]): RDDAPI[(K, Iterable[T])] = create(data.groupBy(f, numPartitions))
+
+  override def groupBy[K](f: (T) => K, p: Partitioner)(implicit kt: ClassTag[K], ord: Ordering[K]): RDDAPI[(K, Iterable[T])] = create(data.groupBy(f, p))
+
+  override def coalesce(numPartitions: Int, shuffle: Boolean, partitionCoalescer: Option[PartitionCoalescer])(implicit ord: Ordering[T]): RDDAPI[T] =
+    create(data.coalesce(numPartitions, shuffle, partitionCoalescer))
+
+  override def takeOrdered(num: Int)(implicit ord: Ordering[T]): Array[T] = data.takeOrdered(num)
 }

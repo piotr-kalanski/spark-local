@@ -18,4 +18,10 @@ class UnpersistTest extends SparkLocalBaseTest {
     }
   }
 
+  test("Unpersist(true) equal") {
+    assertDatasetOperationReturnsSameResult(Seq(1,2,3)){
+      ds => ds.persist().unpersist(true)
+    }
+  }
+
 }

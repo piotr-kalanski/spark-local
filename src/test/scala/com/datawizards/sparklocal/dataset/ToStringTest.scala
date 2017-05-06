@@ -8,7 +8,7 @@ import org.scalatest.junit.JUnitRunner
 class ToStringTest extends SparkLocalBaseTest {
 
   test("toString result") {
-      assert(DataSetAPI(Seq(1,2,3)).toString == Array(1,2,3).toSeq.toString)
+      assert(DataSetAPI(Seq(1,2,3)).toString == "DataSet(1,2,3)")
   }
 
   test("toString equal") {

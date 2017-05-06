@@ -5,16 +5,16 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class CacheTest extends SparkLocalBaseTest {
+class CoalesceTest extends SparkLocalBaseTest {
 
-  test("Cache result") {
+  test("Coalesce result") {
       val rdd = RDDAPI(Seq(1,2,3))
-      assert(rdd.cache() == rdd)
+      assert(rdd.coalesce(2) == rdd)
   }
 
-  test("Cache equal") {
+  test("Coalesce equal") {
     assertRDDOperationReturnsSameResult(Seq(1,2,3)){
-      rdd => rdd.cache()
+      rdd => rdd.coalesce(2)
     }
   }
 

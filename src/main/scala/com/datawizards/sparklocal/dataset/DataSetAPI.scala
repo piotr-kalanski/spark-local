@@ -47,7 +47,7 @@ trait DataSetAPI[T] {
   def intersect(other: DataSetAPI[T]): DataSetAPI[T]
   def groupByKey[K: ClassTag: TypeTag](func: (T) => K): KeyValueGroupedDataSetAPI[K, T]
 
-  override def toString: String = collect().toSeq.toString
+  override def toString: String = "DataSet(" + collect().mkString(",") + ")"
 
   override def equals(obj: scala.Any): Boolean = obj match {
     case d:DataSetAPI[T] => this.collect().sameElements(d.collect())

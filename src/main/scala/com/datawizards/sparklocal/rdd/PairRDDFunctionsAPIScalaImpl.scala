@@ -15,9 +15,11 @@ class PairRDDFunctionsAPIScalaImpl[K,V](rdd: RDDAPIScalaImpl[(K,V)])(implicit kt
       data.map { case (k, v) => (k, f(v)) }
     )
 
-  override def keys: RDDAPI[K] = rdd.map(_._1)
+  override def keys: RDDAPI[K] =
+    rdd.map(_._1)
 
-  override def values: RDDAPI[V] = rdd.map(_._2)
+  override def values: RDDAPI[V] =
+    rdd.map(_._2)
 
   override def flatMapValues[U](f: (V) => TraversableOnce[U]): RDDAPI[(K, U)] =
     rdd.flatMap { case (k,v) =>
@@ -195,5 +197,103 @@ class PairRDDFunctionsAPIScalaImpl[K,V](rdd: RDDAPIScalaImpl[(K,V)])(implicit kt
     case _:RDDAPIScalaImpl[(K, W)] => fullOuterJoin(other)
     case rddSpark:RDDAPISparkImpl[(K, W)] => RDDAPI(parallelize(data).fullOuterJoin(rddSpark.data, partitioner))
   }
+
+  override def cogroup[W1: ClassTag, W2: ClassTag, W3: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], other3: RDDAPI[(K, W3)], partitioner: Partitioner): RDDAPI[(K, (Iterable[V], Iterable[W1], Iterable[W2], Iterable[W3]))] =
+    cogroup(other1, other2, other3)
+
+  override def cogroup[W: ClassTag](other: RDDAPI[(K, W)], partitioner: Partitioner): RDDAPI[(K, (Iterable[V], Iterable[W]))] =
+    cogroup(other)
+
+  override def cogroup[W1: ClassTag, W2: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], partitioner: Partitioner): RDDAPI[(K, (Iterable[V], Iterable[W1], Iterable[W2]))] =
+    cogroup(other1, other2)
+
+  override def cogroup[W1: ClassTag, W2: ClassTag, W3: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], other3: RDDAPI[(K, W3)]): RDDAPI[(K, (Iterable[V], Iterable[W1], Iterable[W2], Iterable[W3]))] = (other1, other2, other3) match {
+    case (rddScala1:RDDAPIScalaImpl[(K, W1)], rddScala2:RDDAPIScalaImpl[(K, W2)], rddScala3:RDDAPIScalaImpl[(K, W3)]) => RDDAPI({
+      val xs      = data.groupBy(_._1).mapValues(_.map(_._2))
+      val other1s      = rddScala1.data.groupBy(_._1).mapValues(_.map(_._2))
+      val other2s      = rddScala2.data.groupBy(_._1).mapValues(_.map(_._2))
+      val other3s      = rddScala3.data.groupBy(_._1).mapValues(_.map(_._2))
+      val allKeys = xs.keys ++ other1s.keys ++ other2s.keys ++ other3s.keys
+      allKeys.map { key =>
+        val xsWithKey = xs.getOrElse(key, Iterable.empty)
+        val other1WithKey = other1s.getOrElse(key, Iterable.empty)
+        val other2WithKey = other2s.getOrElse(key, Iterable.empty)
+        val other3WithKey = other3s.getOrElse(key, Iterable.empty)
+        key -> (xsWithKey, other1WithKey, other2WithKey, other3WithKey)
+      }
+    })
+    case _ => RDDAPI(rdd.toRDD.cogroup(other1.toRDD, other2.toRDD, other3.toRDD))
+  }
+
+  override def cogroup[W: ClassTag](other: RDDAPI[(K, W)]): RDDAPI[(K, (Iterable[V], Iterable[W]))] = other match {
+    case rddScala:RDDAPIScalaImpl[(K, W)] => RDDAPI({
+      val xs      = data.groupBy(_._1).mapValues(_.map(_._2))
+      val ys      = rddScala.data.groupBy(_._1).mapValues(_.map(_._2))
+      val allKeys = xs.keys ++ ys.keys
+      allKeys.map { key =>
+        val xsWithKey = xs.getOrElse(key, Iterable.empty)
+        val ysWithKey = ys.getOrElse(key, Iterable.empty)
+        key -> (xsWithKey, ysWithKey)
+      }
+    })
+    case rddSpark:RDDAPISparkImpl[(K, W)] => RDDAPI(parallelize(data).cogroup(rddSpark.data))
+  }
+
+  override def cogroup[W1: ClassTag, W2: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)]): RDDAPI[(K, (Iterable[V], Iterable[W1], Iterable[W2]))] = (other1, other2) match {
+    case (rddScala1:RDDAPIScalaImpl[(K, W1)], rddScala2:RDDAPIScalaImpl[(K, W2)]) => RDDAPI({
+      val xs      = data.groupBy(_._1).mapValues(_.map(_._2))
+      val other1s      = rddScala1.data.groupBy(_._1).mapValues(_.map(_._2))
+      val other2s      = rddScala2.data.groupBy(_._1).mapValues(_.map(_._2))
+      val allKeys = xs.keys ++ other1s.keys ++ other2s.keys
+      allKeys.map { key =>
+        val xsWithKey = xs.getOrElse(key, Iterable.empty)
+        val other1WithKey = other1s.getOrElse(key, Iterable.empty)
+        val other2WithKey = other2s.getOrElse(key, Iterable.empty)
+        key -> (xsWithKey, other1WithKey, other2WithKey)
+      }
+    })
+    case _ => RDDAPI(rdd.toRDD.cogroup(other1.toRDD, other2.toRDD))
+  }
+
+  override def cogroup[W: ClassTag](other: RDDAPI[(K, W)], numPartitions: Int): RDDAPI[(K, (Iterable[V], Iterable[W]))] =
+    cogroup(other)
+
+  override def cogroup[W1: ClassTag, W2: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], numPartitions: Int): RDDAPI[(K, (Iterable[V], Iterable[W1], Iterable[W2]))] =
+    cogroup(other1, other2)
+
+  override def cogroup[W1: ClassTag, W2: ClassTag, W3: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], other3: RDDAPI[(K, W3)], numPartitions: Int): RDDAPI[(K, (Iterable[V], Iterable[W1], Iterable[W2], Iterable[W3]))] =
+    cogroup(other1, other2, other3)
+
+  override def collectAsMap(): Map[K, V] = data.toMap
+
+  override def subtractByKey[W: ClassTag](other: RDDAPI[(K, W)]): RDDAPI[(K, V)] = other match {
+    case rddScala: RDDAPIScalaImpl[(K, W)] =>
+      val otherSet = rddScala.data.map{case (k,_) => k}.toSet
+      RDDAPI(data.filter{case (k,_) => !otherSet.contains(k)})
+    case rddSpark: RDDAPISparkImpl[(K, W)] => RDDAPI(parallelize(data).subtractByKey(rddSpark.data))
+  }
+
+  override def subtractByKey[W: ClassTag](other: RDDAPI[(K, W)], numPartitions: Int): RDDAPI[(K, V)] = subtractByKey(other)
+
+  override def subtractByKey[W: ClassTag](other: RDDAPI[(K, W)], p: Partitioner): RDDAPI[(K, V)] = subtractByKey(other)
+
+  override def aggregateByKey[U: ClassTag](zeroValue: U)(seqOp: (U, V) => U, combOp: (U, U) => U): RDDAPI[(K, U)] =
+    RDDAPI(
+      data
+        .groupBy(_._1)
+        .mapValues(
+          _.map(_._2)
+            .aggregate(zeroValue)(seqOp, combOp)
+        )
+    )
+
+  override def aggregateByKey[U: ClassTag](zeroValue: U, partitioner: Partitioner)(seqOp: (U, V) => U, combOp: (U, U) => U): RDDAPI[(K, U)] =
+    aggregateByKey(zeroValue)(seqOp, combOp)
+
+  override def aggregateByKey[U: ClassTag](zeroValue: U, numPartitions: Int)(seqOp: (U, V) => U, combOp: (U, U) => U): RDDAPI[(K, U)] =
+    aggregateByKey(zeroValue)(seqOp, combOp)
+
+  override def partitionBy(partitioner: Partitioner): RDDAPI[(K, V)] =
+    rdd
 
 }
