@@ -164,10 +164,10 @@ object ExampleRDD1 {
 |persist| ![](images/API-supported-green.png)|
 |pipe||
 |preferredLocations||
-|randomSplit||
+|randomSplit|![](images/API-supported-green.png)|
 |reduce| ![](images/API-supported-green.png)|
 |repartition|![](images/API-supported-green.png)|
-|sample||
+|sample|![](images/API-supported-green.png)|
 |saveAsObjectFile||
 |saveAsTextFile||
 |setName||
@@ -175,7 +175,7 @@ object ExampleRDD1 {
 |subtract|![](images/API-supported-green.png)|
 |take| ![](images/API-supported-green.png)|
 |takeOrdered|![](images/API-supported-green.png)|
-|takeSample||
+|takeSample|![](images/API-supported-green.png)|
 |toDebugString||
 |toJavaRDD||
 |toLocalIterator||
