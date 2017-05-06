@@ -141,4 +141,7 @@ class PairRDDFunctionsAPISparkImpl[K, V](rdd: RDDAPISparkImpl[(K,V)])(implicit k
   override def aggregateByKey[U: ClassTag](zeroValue: U, numPartitions: Int)(seqOp: (U, V) => U, combOp: (U, U) => U): RDDAPI[(K, U)] =
     RDDAPI(data.aggregateByKey(zeroValue, numPartitions)(seqOp, combOp))
 
+  override def partitionBy(partitioner: Partitioner): RDDAPI[(K, V)] =
+    RDDAPI(data.partitionBy(partitioner))
+
 }

@@ -293,4 +293,7 @@ class PairRDDFunctionsAPIScalaImpl[K,V](rdd: RDDAPIScalaImpl[(K,V)])(implicit kt
   override def aggregateByKey[U: ClassTag](zeroValue: U, numPartitions: Int)(seqOp: (U, V) => U, combOp: (U, U) => U): RDDAPI[(K, U)] =
     aggregateByKey(zeroValue)(seqOp, combOp)
 
+  override def partitionBy(partitioner: Partitioner): RDDAPI[(K, V)] =
+    rdd
+
 }
