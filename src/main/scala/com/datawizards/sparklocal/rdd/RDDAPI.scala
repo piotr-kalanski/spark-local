@@ -14,10 +14,9 @@ object RDDAPI {
 
   implicit def rddToPairRDDFunctions[K, V](rdd: RDDAPI[(K, V)])
     (implicit kt: ClassTag[K], vt: ClassTag[V], ord: Ordering[K] = null): PairRDDFunctionsAPI[K, V] = {
-    rdd match {
+     rdd match {
       case rddScala:RDDAPIScalaImpl[(K,V)] => new PairRDDFunctionsAPIScalaImpl(rddScala)(kt,vt,ord)
       case rddSpark:RDDAPISparkImpl[(K,V)] => new PairRDDFunctionsAPISparkImpl(rddSpark)(kt,vt,ord)
-      case _ => throw new Exception("Unknown type")
     }
   }
 
@@ -75,7 +74,7 @@ trait RDDAPI[T] {
   def groupBy[K](f: T => K, p: Partitioner)(implicit kt: ClassTag[K], ord: Ordering[K] = null): RDDAPI[(K, Iterable[T])]
   def coalesce(numPartitions: Int, shuffle: Boolean = false, partitionCoalescer: Option[PartitionCoalescer] = Option.empty)(implicit ord: Ordering[T] = null): RDDAPI[T]
 
-  override def toString: String = collect().toSeq.toString
+  override def toString: String = "RDD(" + collect().mkString(",") + ")"
 
   override def equals(obj: scala.Any): Boolean = obj match {
     case d:RDDAPI[T] => this.collect().sameElements(d.collect())

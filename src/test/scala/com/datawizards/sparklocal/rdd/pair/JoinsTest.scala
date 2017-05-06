@@ -80,7 +80,7 @@ class JoinsTest extends SparkLocalBaseTest {
     }
   }
 
-  test("join - equals") {
+  test("join - Scala, Spark - equals") {
     assertRDDOperationReturnsSameResultWithSorted(left){
       rdd => rdd.join(rightRDD)
     }
@@ -92,7 +92,7 @@ class JoinsTest extends SparkLocalBaseTest {
     }
   }
 
-  test("left join - equals") {
+  test("left join - Scala, Spark  - equals") {
     assertRDDOperationReturnsSameResultWithSorted(left){
       rdd => rdd.leftOuterJoin(rightRDD)
     }
@@ -104,7 +104,7 @@ class JoinsTest extends SparkLocalBaseTest {
     }
   }
 
-  test("right join - equals") {
+  test("right join - Scala, Spark  - equals") {
     assertRDDOperationReturnsSameResultWithSorted(left){
       rdd => rdd.rightOuterJoin(rightRDD)
     }
@@ -116,7 +116,7 @@ class JoinsTest extends SparkLocalBaseTest {
     }
   }
 
-  test("full outer join - equals") {
+  test("full outer join - Scala, Spark  - equals") {
     assertRDDOperationReturnsSameResultWithSorted(left){
       rdd => rdd.fullOuterJoin(rightRDD)
     }
@@ -125,6 +125,54 @@ class JoinsTest extends SparkLocalBaseTest {
     }
     assertRDDOperationReturnsSameResultWithSorted(left){
       rdd => rdd.fullOuterJoin(rightRDD,new HashPartitioner(2))
+    }
+  }
+
+  test("join - Spark, Scala - equals") {
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rightRDD.join(rdd)
+    }
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rightRDD.join(rdd,2)
+    }
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rightRDD.join(rdd,new HashPartitioner(2))
+    }
+  }
+
+  test("left join - Spark, Scala  - equals") {
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rightRDD.leftOuterJoin(rdd)
+    }
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rightRDD.leftOuterJoin(rdd,2)
+    }
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rightRDD.leftOuterJoin(rdd,new HashPartitioner(2))
+    }
+  }
+
+  test("right join - Spark, Scala  - equals") {
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rightRDD.rightOuterJoin(rdd)
+    }
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rightRDD.rightOuterJoin(rdd,2)
+    }
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rightRDD.rightOuterJoin(rdd,new HashPartitioner(2))
+    }
+  }
+
+  test("full outer join - Spark, Scala  - equals") {
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rightRDD.fullOuterJoin(rdd)
+    }
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rightRDD.fullOuterJoin(rdd,2)
+    }
+    assertRDDOperationReturnsSameResultWithSorted(left){
+      rdd => rightRDD.fullOuterJoin(rdd,new HashPartitioner(2))
     }
   }
 }
