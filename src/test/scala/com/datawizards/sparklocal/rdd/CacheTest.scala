@@ -8,13 +8,13 @@ import org.scalatest.junit.JUnitRunner
 class CacheTest extends SparkLocalBaseTest {
 
   test("Cache result") {
-      val ds = RDDAPI(Seq(1,2,3))
-      assert(ds.cache() == ds)
+      val rdd = RDDAPI(Seq(1,2,3))
+      assert(rdd.cache() == rdd)
   }
 
   test("Cache equal") {
     assertRDDOperationReturnsSameResult(Seq(1,2,3)){
-      ds => ds.cache()
+      rdd => rdd.cache()
     }
   }
 
