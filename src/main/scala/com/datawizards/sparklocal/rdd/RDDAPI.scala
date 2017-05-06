@@ -69,6 +69,9 @@ trait RDDAPI[T] {
   def keyBy[K](f: T => K): RDDAPI[(K, T)] = map(x => (f(x), x))
   def cartesian[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)]
   def aggregate[U: ClassTag](zeroValue: U)(seqOp: (U, T) => U, combOp: (U, U) => U): U
+  def groupBy[K](f: T => K)(implicit kt: ClassTag[K]): RDDAPI[(K, Iterable[T])]
+  def groupBy[K](f: T => K, numPartitions: Int)(implicit kt: ClassTag[K]): RDDAPI[(K, Iterable[T])]
+  def groupBy[K](f: T => K, p: Partitioner)(implicit kt: ClassTag[K], ord: Ordering[K] = null): RDDAPI[(K, Iterable[T])]
 
   override def toString: String = collect().toSeq.toString
 

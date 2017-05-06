@@ -115,4 +115,10 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
 
   override def aggregate[U: ClassTag](zeroValue: U)(seqOp: (U, T) => U, combOp: (U, U) => U): U =
     data.aggregate(zeroValue)(seqOp, combOp)
+
+  override def groupBy[K](f: (T) => K)(implicit kt: ClassTag[K]): RDDAPI[(K, Iterable[T])] = create(data.groupBy(f))
+
+  override def groupBy[K](f: (T) => K, numPartitions: Int)(implicit kt: ClassTag[K]): RDDAPI[(K, Iterable[T])] = create(data.groupBy(f, numPartitions))
+
+  override def groupBy[K](f: (T) => K, p: Partitioner)(implicit kt: ClassTag[K], ord: Ordering[K]): RDDAPI[(K, Iterable[T])] = create(data.groupBy(f, p))
 }
