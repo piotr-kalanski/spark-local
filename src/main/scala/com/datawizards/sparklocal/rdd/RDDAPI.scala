@@ -75,6 +75,7 @@ trait RDDAPI[T] {
   def groupBy[K](f: T => K, p: Partitioner)(implicit kt: ClassTag[K], ord: Ordering[K] = null): RDDAPI[(K, Iterable[T])]
   def coalesce(numPartitions: Int, shuffle: Boolean = false, partitionCoalescer: Option[PartitionCoalescer] = Option.empty)(implicit ord: Ordering[T] = null): RDDAPI[T]
   def sample(withReplacement: Boolean, fraction: Double, seed: Long = 0L): RDDAPI[T]
+  def takeSample(withReplacement: Boolean, num: Int, seed: Long = 0L): Array[T]
 
   override def toString: String = "RDD(" + collect().mkString(",") + ")"
 

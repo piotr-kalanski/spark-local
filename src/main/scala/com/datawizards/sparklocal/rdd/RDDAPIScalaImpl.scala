@@ -138,4 +138,7 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
     RDDAPI(sampler.sample(data.iterator).toIterable)
   }
 
+  override def takeSample(withReplacement: Boolean, num: Int, seed: Long): Array[T] =
+    sample(withReplacement, 2.0 * num/data.size, seed).take(num)
+
 }
