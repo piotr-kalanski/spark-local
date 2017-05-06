@@ -3,6 +3,7 @@ package com.datawizards.sparklocal.rdd
 import org.apache.spark.rdd.PartitionCoalescer
 import org.apache.spark.{Partition, Partitioner}
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.util.random.{BernoulliCellSampler, BernoulliSampler, PoissonSampler}
 
 import scala.reflect.ClassTag
 
@@ -130,5 +131,29 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
 
   override def takeOrdered(num: Int)(implicit ord: Ordering[T]): Array[T] =
     data.sorted.take(num).toArray
+
+  override def sample(withReplacement: Boolean, fraction: Double, seed: Long): RDDAPI[T] = {
+    val sampler = if (withReplacement) new PoissonSampler[T](fraction) else new BernoulliSampler[T](fraction)
+    sampler.setSeed(seed)
+    RDDAPI(sampler.sample(data.iterator).toIterable)
+  }
+
+  override def takeSample(withReplacement: Boolean, num: Int, seed: Long): Array[T] =
+    sample(withReplacement, 2.0 * num/data.size, seed).take(num)
+
+  override def randomSplit(weights: Array[Double], seed: Long): Array[RDDAPI[T]] = {
+    require(weights.forall(_ >= 0),
+      s"Weights must be nonnegative, but got ${weights.mkString("[", ",", "]")}")
+    require(weights.sum > 0,
+      s"Sum of weights must be positive, but got ${weights.mkString("[", ",", "]")}")
+
+    val sum = weights.sum
+    val normalizedCumWeights = weights.map(_ / sum).scanLeft(0.0d)(_ + _)
+    normalizedCumWeights.sliding(2).map { x =>
+      val sampler = new BernoulliCellSampler[T](x(0), x(1))
+      sampler.setSeed(seed)
+      RDDAPI(sampler.sample(data.iterator).toIterable)
+    }.toArray
+  }
 
 }
