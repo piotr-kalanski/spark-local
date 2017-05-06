@@ -91,4 +91,6 @@ class PairRDDFunctionsAPISparkImpl[K, V](rdd: RDDAPISparkImpl[(K,V)])(implicit k
 
   override def cogroup[W1: ClassTag, W2: ClassTag, W3: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], other3: RDDAPI[(K, W3)], numPartitions: Int): RDDAPI[(K, (Iterable[V], Iterable[W1], Iterable[W2], Iterable[W3]))] =
     RDDAPI(data.cogroup(other1.toRDD, other2.toRDD, other3.toRDD, numPartitions))
+
+  override def collectAsMap(): Map[K, V] = data.collectAsMap()
 }
