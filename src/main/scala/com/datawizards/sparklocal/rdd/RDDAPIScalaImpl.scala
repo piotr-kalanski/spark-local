@@ -128,4 +128,7 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
 
   override def coalesce(numPartitions: Int, shuffle: Boolean, partitionCoalescer: Option[PartitionCoalescer])(implicit ord: Ordering[T]): RDDAPI[T] = this
 
+  override def takeOrdered(num: Int)(implicit ord: Ordering[T]): Array[T] =
+    data.sorted.take(num).toArray
+
 }

@@ -37,6 +37,7 @@ trait RDDAPI[T] {
   def head(): T
   def head(n: Int): Array[T]
   def take(n: Int): Array[T] = head(n)
+  def takeOrdered(num: Int)(implicit ord: Ordering[T]): Array[T]
   def first(): T = head()
   def isEmpty: Boolean
   def zip[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)]

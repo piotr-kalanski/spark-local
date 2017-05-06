@@ -124,4 +124,6 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
 
   override def coalesce(numPartitions: Int, shuffle: Boolean, partitionCoalescer: Option[PartitionCoalescer])(implicit ord: Ordering[T]): RDDAPI[T] =
     create(data.coalesce(numPartitions, shuffle, partitionCoalescer))
+
+  override def takeOrdered(num: Int)(implicit ord: Ordering[T]): Array[T] = data.takeOrdered(num)
 }
