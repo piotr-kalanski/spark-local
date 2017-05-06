@@ -93,4 +93,14 @@ class PairRDDFunctionsAPISparkImpl[K, V](rdd: RDDAPISparkImpl[(K,V)])(implicit k
     RDDAPI(data.cogroup(other1.toRDD, other2.toRDD, other3.toRDD, numPartitions))
 
   override def collectAsMap(): Map[K, V] = data.collectAsMap()
+
+  override def subtractByKey[W: ClassTag](other: RDDAPI[(K, W)]): RDDAPI[(K, V)] =
+    RDDAPI(data.subtractByKey(other.toRDD))
+
+  override def subtractByKey[W: ClassTag](other: RDDAPI[(K, W)], numPartitions: Int): RDDAPI[(K, V)] =
+    RDDAPI(data.subtractByKey(other.toRDD, numPartitions))
+
+  override def subtractByKey[W: ClassTag](other: RDDAPI[(K, W)], p: Partitioner): RDDAPI[(K, V)] =
+    RDDAPI(data.subtractByKey(other.toRDD, p))
+
 }

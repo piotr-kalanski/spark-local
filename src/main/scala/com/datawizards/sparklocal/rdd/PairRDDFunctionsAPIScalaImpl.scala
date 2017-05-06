@@ -264,4 +264,14 @@ class PairRDDFunctionsAPIScalaImpl[K,V](rdd: RDDAPIScalaImpl[(K,V)])(implicit kt
 
   override def collectAsMap(): Map[K, V] = data.toMap
 
+  override def subtractByKey[W: ClassTag](other: RDDAPI[(K, W)]): RDDAPI[(K, V)] = other match {
+    case rddScala: RDDAPIScalaImpl[(K, W)] =>
+      val otherSet = rddScala.data.map{case (k,_) => k}.toSet
+      RDDAPI(data.filter{case (k,_) => !otherSet.contains(k)})
+    case rddSpark: RDDAPISparkImpl[(K, W)] => RDDAPI(parallelize(data).subtractByKey(rddSpark.data))
+  }
+
+  override def subtractByKey[W: ClassTag](other: RDDAPI[(K, W)], numPartitions: Int): RDDAPI[(K, V)] = subtractByKey(other)
+
+  override def subtractByKey[W: ClassTag](other: RDDAPI[(K, W)], p: Partitioner): RDDAPI[(K, V)] = subtractByKey(other)
 }
