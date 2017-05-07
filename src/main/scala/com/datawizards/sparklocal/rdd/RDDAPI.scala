@@ -1,23 +1,24 @@
 package com.datawizards.sparklocal.rdd
 
+import com.datawizards.sparklocal.dataset.DataSetAPI
 import org.apache.spark.{Partition, Partitioner}
 import org.apache.spark.rdd.{PartitionCoalescer, RDD}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
-import org.apache.spark.util.Utils
 
 import scala.collection.Map
 import scala.reflect.ClassTag
+import scala.reflect.runtime.universe.TypeTag
 
 object RDDAPI {
-  def apply[T: ClassTag](iterable: Iterable[T]) = new RDDAPIScalaImpl(iterable)
-  def apply[T: ClassTag](rdd: RDD[T]) = new RDDAPISparkImpl(rdd)
+  def apply[T: ClassTag: TypeTag](iterable: Iterable[T]) = new RDDAPIScalaImpl(iterable)
+  def apply[T: ClassTag: TypeTag](rdd: RDD[T]) = new RDDAPISparkImpl(rdd)
 
   implicit def rddToPairRDDFunctions[K, V](rdd: RDDAPI[(K, V)])
-    (implicit kt: ClassTag[K], vt: ClassTag[V], ord: Ordering[K] = null): PairRDDFunctionsAPI[K, V] = {
+    (implicit kct: ClassTag[K], vct: ClassTag[V], ktt: TypeTag[K], vtt: TypeTag[V], ord: Ordering[K] = null): PairRDDFunctionsAPI[K, V] = {
      rdd match {
-      case rddScala:RDDAPIScalaImpl[(K,V)] => new PairRDDFunctionsAPIScalaImpl(rddScala)(kt,vt,ord)
-      case rddSpark:RDDAPISparkImpl[(K,V)] => new PairRDDFunctionsAPISparkImpl(rddSpark)(kt,vt,ord)
+      case rddScala:RDDAPIScalaImpl[(K,V)] => new PairRDDFunctionsAPIScalaImpl(rddScala)(kct,vct,ktt,vtt,ord)
+      case rddSpark:RDDAPISparkImpl[(K,V)] => new PairRDDFunctionsAPISparkImpl(rddSpark)(kct,vct,ktt,vtt,ord)
     }
   }
 
@@ -29,8 +30,8 @@ trait RDDAPI[T] {
   private[rdd] def toRDD: RDD[T]
 
   def collect(): Array[T]
-  def map[That: ClassTag](map: T => That): RDDAPI[That]
-  def flatMap[U: ClassTag](func: (T) => TraversableOnce[U]): RDDAPI[U]
+  def map[That: ClassTag: TypeTag](map: T => That): RDDAPI[That]
+  def flatMap[U: ClassTag: TypeTag](func: (T) => TraversableOnce[U]): RDDAPI[U]
   def filter(p: T => Boolean): RDDAPI[T]
   def reduce(func: (T,T) => T): T
   def fold(zeroValue: T)(op: (T, T) => T): T
@@ -40,7 +41,7 @@ trait RDDAPI[T] {
   def takeOrdered(num: Int)(implicit ord: Ordering[T]): Array[T]
   def first(): T = head()
   def isEmpty: Boolean
-  def zip[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)]
+  def zip[U: ClassTag: TypeTag](other: RDDAPI[U]): RDDAPI[(T, U)]
   def foreach(f: (T) => Unit): Unit
   def foreachPartition(f: (Iterator[T]) => Unit): Unit
   def checkpoint(): RDDAPI[T]
@@ -54,7 +55,7 @@ trait RDDAPI[T] {
   def min()(implicit ord: Ordering[T]): T
   def max()(implicit ord: Ordering[T]): T
   def partitions: Array[Partition]
-  def sortBy[K](f: (T) => K, ascending: Boolean = true, numPartitions: Int = this.partitions.length)(implicit ord: Ordering[K], ctag: ClassTag[K]): RDDAPI[T]
+  def sortBy[K](f: (T) => K, ascending: Boolean = true, numPartitions: Int = this.partitions.length)(implicit ord: Ordering[K], ctag: ClassTag[K], tg: TypeTag[K]): RDDAPI[T]
   def intersection(other: RDDAPI[T]): RDDAPI[T]
   def intersection(other: RDDAPI[T], numPartitions: Int): RDDAPI[T]
   def intersection(other: RDDAPI[T], partitioner: Partitioner)(implicit ord: Ordering[T] = null): RDDAPI[T]
@@ -65,18 +66,20 @@ trait RDDAPI[T] {
   def subtract(other: RDDAPI[T]): RDDAPI[T]
   def subtract(other: RDDAPI[T], numPartitions: Int): RDDAPI[T]
   def subtract(other: RDDAPI[T], partitioner: Partitioner)(implicit ord: Ordering[T] = null): RDDAPI[T]
-  def countByValue()(implicit kt: ClassTag[T], vt: ClassTag[Int], ord: Ordering[T] = null): Map[T, Long] =
+  def countByValue()(implicit kct: ClassTag[T], ktt: TypeTag[T], vct: ClassTag[Int], vtt: TypeTag[Int], ord: Ordering[T] = null): Map[T, Long] =
     RDDAPI.rddToPairRDDFunctions[T,Int](map(value => (value, 0))).countByKey()
-  def keyBy[K](f: T => K): RDDAPI[(K, T)] = map(x => (f(x), x))
-  def cartesian[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)]
-  def aggregate[U: ClassTag](zeroValue: U)(seqOp: (U, T) => U, combOp: (U, U) => U): U
-  def groupBy[K](f: T => K)(implicit kt: ClassTag[K]): RDDAPI[(K, Iterable[T])]
-  def groupBy[K](f: T => K, numPartitions: Int)(implicit kt: ClassTag[K]): RDDAPI[(K, Iterable[T])]
-  def groupBy[K](f: T => K, p: Partitioner)(implicit kt: ClassTag[K], ord: Ordering[K] = null): RDDAPI[(K, Iterable[T])]
+  def keyBy[K](f: T => K)(implicit ct: ClassTag[K], tt: TypeTag[K], kvct: ClassTag[(K,T)], kvtt: TypeTag[(K,T)]): RDDAPI[(K, T)] =
+    map(x => (f(x), x))
+  def cartesian[U: ClassTag: TypeTag](other: RDDAPI[U]): RDDAPI[(T, U)]
+  def aggregate[U: ClassTag: TypeTag](zeroValue: U)(seqOp: (U, T) => U, combOp: (U, U) => U): U
+  def groupBy[K](f: T => K)(implicit kt: ClassTag[K], tg: TypeTag[K]): RDDAPI[(K, Iterable[T])]
+  def groupBy[K](f: T => K, numPartitions: Int)(implicit kt: ClassTag[K], tg: TypeTag[K]): RDDAPI[(K, Iterable[T])]
+  def groupBy[K](f: T => K, p: Partitioner)(implicit kt: ClassTag[K], tg: TypeTag[K], ord: Ordering[K] = null): RDDAPI[(K, Iterable[T])]
   def coalesce(numPartitions: Int, shuffle: Boolean = false, partitionCoalescer: Option[PartitionCoalescer] = Option.empty)(implicit ord: Ordering[T] = null): RDDAPI[T]
   def sample(withReplacement: Boolean, fraction: Double, seed: Long = 0L): RDDAPI[T]
   def takeSample(withReplacement: Boolean, num: Int, seed: Long = 0L): Array[T]
   def randomSplit(weights: Array[Double], seed: Long = 0L): Array[RDDAPI[T]]
+  def toDataSet: DataSetAPI[T]
 
   override def toString: String = "RDD(" + collect().mkString(",") + ")"
 

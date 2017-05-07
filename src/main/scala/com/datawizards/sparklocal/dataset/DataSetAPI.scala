@@ -53,6 +53,38 @@ trait DataSetAPI[T] {
   def coalesce(numPartitions: Int): DataSetAPI[T]
   def sample(withReplacement: Boolean, fraction: Double, seed: Long): DataSetAPI[T]
   def randomSplit(weights: Array[Double], seed: Long = 0L): Array[DataSetAPI[T]]
+  def join[K: ClassTag: TypeTag,W: ClassTag: TypeTag](other: DataSetAPI[W])(left: T=>K, right: W=>K)(implicit ct: ClassTag[T], tg: TypeTag[T]): DataSetAPI[(T, W)] = {
+    val leftRDD = this.map(x => (left(x), x)).rdd()
+    val rightRDD = other.map(x => (right(x), x)).rdd()
+    RDDAPI.rddToPairRDDFunctions(leftRDD)
+      .join(rightRDD)
+      .map(p => p._2)
+      .toDataSet
+  }
+  def leftOuterJoin[K: ClassTag: TypeTag,W: ClassTag: TypeTag](other: DataSetAPI[W])(left: T=>K, right: W=>K)(implicit ct: ClassTag[T], tg: TypeTag[T]): DataSetAPI[(T, Option[W])] = {
+    val leftRDD = this.map(x => (left(x), x)).rdd()
+    val rightRDD = other.map(x => (right(x), x)).rdd()
+    RDDAPI.rddToPairRDDFunctions(leftRDD)
+      .leftOuterJoin(rightRDD)
+      .map(p => p._2)
+      .toDataSet
+  }
+  def rightOuterJoin[K: ClassTag: TypeTag,W: ClassTag: TypeTag](other: DataSetAPI[W])(left: T=>K, right: W=>K)(implicit ct: ClassTag[T], tg: TypeTag[T]): DataSetAPI[(Option[T], W)] = {
+    val leftRDD = this.map(x => (left(x), x)).rdd()
+    val rightRDD = other.map(x => (right(x), x)).rdd()
+    RDDAPI.rddToPairRDDFunctions(leftRDD)
+      .rightOuterJoin(rightRDD)
+      .map(p => p._2)
+      .toDataSet
+  }
+  def fullOuterJoin[K: ClassTag: TypeTag,W: ClassTag: TypeTag](other: DataSetAPI[W])(left: T=>K, right: W=>K)(implicit ct: ClassTag[T], tg: TypeTag[T]): DataSetAPI[(Option[T], Option[W])] = {
+    val leftRDD = this.map(x => (left(x), x)).rdd()
+    val rightRDD = other.map(x => (right(x), x)).rdd()
+    RDDAPI.rddToPairRDDFunctions(leftRDD)
+      .fullOuterJoin(rightRDD)
+      .map(p => p._2)
+      .toDataSet
+  }
 
   override def toString: String = "DataSet(" + collect().mkString(",") + ")"
 
