@@ -292,8 +292,8 @@ object ExampleRDD1 {
 |groupByKey|![](images/API-supported-green.png)|
 |intersect|![](images/API-supported-green.png)|
 |joinWith||
-|limit||
-|map| ![](images/API-supported-green.png)|
+|limit|![](images/API-supported-green.png)|
+|map|![](images/API-supported-green.png)|
 |mapPartitions| ![](images/API-supported-green.png)|
 |orderBy||
 |randomSplit||
@@ -340,6 +340,14 @@ object ExampleRDD1 {
 |mapGroups|![](images/API-supported-green.png)|
 |mapValues|![](images/API-supported-green.png)|
 |reduceGroups|![](images/API-supported-green.png)|
+
+### Dataset - additional API
+|Operation|Supported?|
+|---------|---------|
+|join|![](images/API-supported-green.png)|
+|leftOuterJoin|![](images/API-supported-green.png)|
+|rightOuterJoin|![](images/API-supported-green.png)|
+|fullOuterJoin|![](images/API-supported-green.png)|
 
 # Bugs
 
