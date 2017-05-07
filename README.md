@@ -13,7 +13,7 @@ API enabling switching between Spark execution engine and local implementation b
 - [Getting started](#getting-started)
 - [Examples](#examples)
 - [Supported operations](#supported-operations)
-- [Supported Spark versions](#supported-spark-verions)
+- [Supported Spark versions](#supported-spark-versions)
 
 # Goals
 
