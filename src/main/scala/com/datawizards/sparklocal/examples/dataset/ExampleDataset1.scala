@@ -26,6 +26,7 @@ object ExampleDataset1 {
 
   def assertEquals[T](r1:T, r2:T): Unit = {
     println(r1)
+    println(r2)
     assert(r1 == r2)
   }
 

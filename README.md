@@ -13,6 +13,7 @@ API enabling switching between Spark execution engine and local implementation b
 - [Getting started](#getting-started)
 - [Examples](#examples)
 - [Supported operations](#supported-operations)
+- [Supported Spark versions](#supported-spark-verions)
 
 # Goals
 
@@ -24,7 +25,7 @@ API enabling switching between Spark execution engine and local implementation b
 Include dependency:
 
 ```scala
-"com.github.piotr-kalanski" % "spark-local_2.11" % "0.2.0"
+"com.github.piotr-kalanski" % "spark-local_2.11" % "0.3.0"
 ```
 
 or
@@ -33,13 +34,52 @@ or
 <dependency>
     <groupId>com.github.piotr-kalanski</groupId>
     <artifactId>spark-local_2.11</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 
 # Examples
 
-## Example - Dataset API
+## RDD API
+
+```scala
+import com.datawizards.sparklocal.rdd.RDDAPI
+import org.apache.spark.sql.SparkSession
+
+object ExampleRDD1 {
+
+  def main(args: Array[String]): Unit = {
+    val spark = SparkSession.builder().master("local").getOrCreate()
+
+    val data = Seq(1,2,3)
+    val rdd = spark.sparkContext.parallelize(data)
+
+    assertEquals(
+      calculateSum(RDDAPI(data)),
+      calculateSum(RDDAPI(rdd))
+    )
+
+    assertEquals(
+      calculateSumOfSquares(RDDAPI(data)),
+      calculateSumOfSquares(RDDAPI(rdd))
+    )
+
+  }
+
+  def assertEquals[T](r1:T, r2:T): Unit = {
+    println(r1)
+    assert(r1 == r2)
+  }
+
+  def calculateSum(ds: RDDAPI[Int]): Int = ds.reduce(_ + _)
+  def calculateSumOfSquares(ds: RDDAPI[Int]): Int = ds.map(x=>x*x).reduce(_ + _)
+
+}
+```
+
+## Dataset API
+
+### Simple example
 
 ```scala
 import com.datawizards.sparklocal.dataset.DataSetAPI
@@ -77,39 +117,35 @@ object ExampleDataset1 {
 }
 ```
 
-## Example - RDD API
+### Example report
 
 ```scala
-import com.datawizards.sparklocal.rdd.RDDAPI
-import org.apache.spark.sql.SparkSession
+case class Person(id: Int, name: String, gender: String)
+case class WorkExperience(personId: Int, year: Int, title: String)
+case class HRReport(year: Int, title: String, gender: String, count: Int)
 
-object ExampleRDD1 {
+object ExampleHRReport {
 
   def main(args: Array[String]): Unit = {
     val spark = SparkSession.builder().master("local").getOrCreate()
+    import spark.implicits._
 
-    val data = Seq(1,2,3)
-    val rdd = spark.sparkContext.parallelize(data)
+    val people = SampleData.people
+    val peopleDs = people.toDS()
+    val experience = SampleData.experience
+    val experienceDs = experience.toDS()
 
-    assertEquals(
-      calculateSum(RDDAPI(data)),
-      calculateSum(RDDAPI(rdd))
-    )
 
-    assertEquals(
-      calculateSumOfSquares(RDDAPI(data)),
-      calculateSumOfSquares(RDDAPI(rdd))
-    )
-
+    calculateReport(DataSetAPI(people), DataSetAPI(experience))
+    calculateReport(DataSetAPI(peopleDs), DataSetAPI(experienceDs))
   }
 
-  def assertEquals[T](r1:T, r2:T): Unit = {
-    println(r1)
-    assert(r1 == r2)
+  def calculateReport(people: DataSetAPI[Person], workExperience: DataSetAPI[WorkExperience]): DataSetAPI[HRReport] = {
+    workExperience
+      .join(people)(_.personId, _.id)
+      .groupByKey(wp => (wp._1.year, wp._1.title, wp._2.gender))
+      .mapGroups{case ((year, title, gender), vals) => HRReport(year, title, gender, vals.size)}
   }
-
-  def calculateSum(ds: RDDAPI[Int]): Int = ds.reduce(_ + _)
-  def calculateSumOfSquares(ds: RDDAPI[Int]): Int = ds.map(x=>x*x).reduce(_ + _)
 
 }
 ```
@@ -348,6 +384,14 @@ object ExampleRDD1 {
 |leftOuterJoin|![](images/API-supported-green.png)|
 |rightOuterJoin|![](images/API-supported-green.png)|
 |fullOuterJoin|![](images/API-supported-green.png)|
+
+# Supported Spark versions
+
+|spark-local|Spark version|
+|-----------|-------------|
+|0.3        |2.1.0        |
+|0.2        |2.1.0        |
+|0.1        |2.1.0        |
 
 # Bugs
 
