@@ -2,7 +2,7 @@ package com.datawizards.sparklocal.dataset
 
 import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
-import org.apache.spark.sql.{Dataset, SparkSession}
+import org.apache.spark.sql.{Column, Dataset, SparkSession}
 import org.apache.spark.storage.StorageLevel
 
 import scala.reflect.ClassTag
@@ -46,8 +46,47 @@ trait DataSetAPI[T] {
   def union(other: DataSetAPI[T]): DataSetAPI[T]
   def intersect(other: DataSetAPI[T]): DataSetAPI[T]
   def groupByKey[K: ClassTag: TypeTag](func: (T) => K): KeyValueGroupedDataSetAPI[K, T]
+  def limit(n: Int): DataSetAPI[T]
+  def repartition(numPartitions: Int): DataSetAPI[T]
+  def repartition(partitionExprs: Column*): DataSetAPI[T]
+  def repartition(numPartitions: Int, partitionExprs: Column*): DataSetAPI[T]
+  def coalesce(numPartitions: Int): DataSetAPI[T]
+  def sample(withReplacement: Boolean, fraction: Double, seed: Long): DataSetAPI[T]
+  def randomSplit(weights: Array[Double], seed: Long = 0L): Array[DataSetAPI[T]]
+  def join[K: ClassTag: TypeTag,W: ClassTag: TypeTag](other: DataSetAPI[W])(left: T=>K, right: W=>K)(implicit ct: ClassTag[T], tg: TypeTag[T]): DataSetAPI[(T, W)] = {
+    val leftRDD = this.map(x => (left(x), x)).rdd()
+    val rightRDD = other.map(x => (right(x), x)).rdd()
+    RDDAPI.rddToPairRDDFunctions(leftRDD)
+      .join(rightRDD)
+      .map(p => p._2)
+      .toDataSet
+  }
+  def leftOuterJoin[K: ClassTag: TypeTag,W: ClassTag: TypeTag](other: DataSetAPI[W])(left: T=>K, right: W=>K)(implicit ct: ClassTag[T], tg: TypeTag[T]): DataSetAPI[(T, Option[W])] = {
+    val leftRDD = this.map(x => (left(x), x)).rdd()
+    val rightRDD = other.map(x => (right(x), x)).rdd()
+    RDDAPI.rddToPairRDDFunctions(leftRDD)
+      .leftOuterJoin(rightRDD)
+      .map(p => p._2)
+      .toDataSet
+  }
+  def rightOuterJoin[K: ClassTag: TypeTag,W: ClassTag: TypeTag](other: DataSetAPI[W])(left: T=>K, right: W=>K)(implicit ct: ClassTag[T], tg: TypeTag[T]): DataSetAPI[(Option[T], W)] = {
+    val leftRDD = this.map(x => (left(x), x)).rdd()
+    val rightRDD = other.map(x => (right(x), x)).rdd()
+    RDDAPI.rddToPairRDDFunctions(leftRDD)
+      .rightOuterJoin(rightRDD)
+      .map(p => p._2)
+      .toDataSet
+  }
+  def fullOuterJoin[K: ClassTag: TypeTag,W: ClassTag: TypeTag](other: DataSetAPI[W])(left: T=>K, right: W=>K)(implicit ct: ClassTag[T], tg: TypeTag[T]): DataSetAPI[(Option[T], Option[W])] = {
+    val leftRDD = this.map(x => (left(x), x)).rdd()
+    val rightRDD = other.map(x => (right(x), x)).rdd()
+    RDDAPI.rddToPairRDDFunctions(leftRDD)
+      .fullOuterJoin(rightRDD)
+      .map(p => p._2)
+      .toDataSet
+  }
 
-  override def toString: String = collect().toSeq.toString
+  override def toString: String = "DataSet(" + collect().mkString(",") + ")"
 
   override def equals(obj: scala.Any): Boolean = obj match {
     case d:DataSetAPI[T] => this.collect().sameElements(d.collect())

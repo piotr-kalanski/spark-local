@@ -5,17 +5,11 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class CacheTest extends SparkLocalBaseTest {
+class ToStringTest extends SparkLocalBaseTest {
 
-  test("Cache result") {
+  test("ToString result") {
       val rdd = RDDAPI(Seq(1,2,3))
-      assert(rdd.cache() == rdd)
-  }
-
-  test("Cache equal") {
-    assertRDDOperationReturnsSameResult(Seq(1,2,3)){
-      rdd => rdd.cache()
-    }
+      assert(rdd.toString() == "RDD(1,2,3)")
   }
 
 }

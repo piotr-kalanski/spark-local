@@ -13,6 +13,7 @@ API enabling switching between Spark execution engine and local implementation b
 - [Getting started](#getting-started)
 - [Examples](#examples)
 - [Supported operations](#supported-operations)
+- [Supported Spark versions](#supported-spark-verions)
 
 # Goals
 
@@ -24,7 +25,7 @@ API enabling switching between Spark execution engine and local implementation b
 Include dependency:
 
 ```scala
-"com.github.piotr-kalanski" % "spark-local_2.11" % "0.2.0"
+"com.github.piotr-kalanski" % "spark-local_2.11" % "0.3.0"
 ```
 
 or
@@ -33,13 +34,52 @@ or
 <dependency>
     <groupId>com.github.piotr-kalanski</groupId>
     <artifactId>spark-local_2.11</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 
 # Examples
 
-## Example - Dataset API
+## RDD API
+
+```scala
+import com.datawizards.sparklocal.rdd.RDDAPI
+import org.apache.spark.sql.SparkSession
+
+object ExampleRDD1 {
+
+  def main(args: Array[String]): Unit = {
+    val spark = SparkSession.builder().master("local").getOrCreate()
+
+    val data = Seq(1,2,3)
+    val rdd = spark.sparkContext.parallelize(data)
+
+    assertEquals(
+      calculateSum(RDDAPI(data)),
+      calculateSum(RDDAPI(rdd))
+    )
+
+    assertEquals(
+      calculateSumOfSquares(RDDAPI(data)),
+      calculateSumOfSquares(RDDAPI(rdd))
+    )
+
+  }
+
+  def assertEquals[T](r1:T, r2:T): Unit = {
+    println(r1)
+    assert(r1 == r2)
+  }
+
+  def calculateSum(ds: RDDAPI[Int]): Int = ds.reduce(_ + _)
+  def calculateSumOfSquares(ds: RDDAPI[Int]): Int = ds.map(x=>x*x).reduce(_ + _)
+
+}
+```
+
+## Dataset API
+
+### Simple example
 
 ```scala
 import com.datawizards.sparklocal.dataset.DataSetAPI
@@ -77,39 +117,35 @@ object ExampleDataset1 {
 }
 ```
 
-## Example - RDD API
+### Example report
 
 ```scala
-import com.datawizards.sparklocal.rdd.RDDAPI
-import org.apache.spark.sql.SparkSession
+case class Person(id: Int, name: String, gender: String)
+case class WorkExperience(personId: Int, year: Int, title: String)
+case class HRReport(year: Int, title: String, gender: String, count: Int)
 
-object ExampleRDD1 {
+object ExampleHRReport {
 
   def main(args: Array[String]): Unit = {
     val spark = SparkSession.builder().master("local").getOrCreate()
+    import spark.implicits._
 
-    val data = Seq(1,2,3)
-    val rdd = spark.sparkContext.parallelize(data)
+    val people = SampleData.people
+    val peopleDs = people.toDS()
+    val experience = SampleData.experience
+    val experienceDs = experience.toDS()
 
-    assertEquals(
-      calculateSum(RDDAPI(data)),
-      calculateSum(RDDAPI(rdd))
-    )
 
-    assertEquals(
-      calculateSumOfSquares(RDDAPI(data)),
-      calculateSumOfSquares(RDDAPI(rdd))
-    )
-
+    calculateReport(DataSetAPI(people), DataSetAPI(experience))
+    calculateReport(DataSetAPI(peopleDs), DataSetAPI(experienceDs))
   }
 
-  def assertEquals[T](r1:T, r2:T): Unit = {
-    println(r1)
-    assert(r1 == r2)
+  def calculateReport(people: DataSetAPI[Person], workExperience: DataSetAPI[WorkExperience]): DataSetAPI[HRReport] = {
+    workExperience
+      .join(people)(_.personId, _.id)
+      .groupByKey(wp => (wp._1.year, wp._1.title, wp._2.gender))
+      .mapGroups{case ((year, title, gender), vals) => HRReport(year, title, gender, vals.size)}
   }
-
-  def calculateSum(ds: RDDAPI[Int]): Int = ds.reduce(_ + _)
-  def calculateSumOfSquares(ds: RDDAPI[Int]): Int = ds.map(x=>x*x).reduce(_ + _)
 
 }
 ```
@@ -124,9 +160,9 @@ object ExampleRDD1 {
 |---------|---------|
 |aggregate||
 |cache|![](images/API-supported-green.png)|
-|cartesian||
+|cartesian|![](images/API-supported-green.png)|
 |checkpoint|![](images/API-supported-green.png)|
-|coalesce||
+|coalesce|![](images/API-supported-green.png)|
 |collect| ![](images/API-supported-green.png)|
 |count| ![](images/API-supported-green.png)|
 |countApprox||
@@ -136,7 +172,7 @@ object ExampleRDD1 {
 |dependencies||
 |distinct|![](images/API-supported-green.png)|
 |filter| ![](images/API-supported-green.png)|
-|first||
+|first|![](images/API-supported-green.png)|
 |flatMap| ![](images/API-supported-green.png)|
 |fold| ![](images/API-supported-green.png)|
 |foreach| ![](images/API-supported-green.png)|
@@ -145,13 +181,13 @@ object ExampleRDD1 {
 |getNumPartitions||
 |getStorageLevel||
 |glom||
-|groupBy||
+|groupBy|![](images/API-supported-green.png)|
 |id||
 |intersection| ![](images/API-supported-green.png)|
 |isCheckpointed||
 |isEmpty| ![](images/API-supported-green.png)|
 |iterator||
-|keyBy||
+|keyBy|![](images/API-supported-green.png)|
 |localCheckpoint||
 |map| ![](images/API-supported-green.png)|
 |mapPartitions| ![](images/API-supported-green.png)|
@@ -164,18 +200,18 @@ object ExampleRDD1 {
 |persist| ![](images/API-supported-green.png)|
 |pipe||
 |preferredLocations||
-|randomSplit||
+|randomSplit|![](images/API-supported-green.png)|
 |reduce| ![](images/API-supported-green.png)|
-|repartition||
-|sample||
+|repartition|![](images/API-supported-green.png)|
+|sample|![](images/API-supported-green.png)|
 |saveAsObjectFile||
 |saveAsTextFile||
 |setName||
 |sortBy| ![](images/API-supported-green.png)|
-|subtract||
+|subtract|![](images/API-supported-green.png)|
 |take| ![](images/API-supported-green.png)|
-|takeOrdered||
-|takeSample||
+|takeOrdered|![](images/API-supported-green.png)|
+|takeSample|![](images/API-supported-green.png)|
 |toDebugString||
 |toJavaRDD||
 |toLocalIterator||
@@ -183,7 +219,7 @@ object ExampleRDD1 {
 |treeAggregate||
 |treeReduce||
 |union| ![](images/API-supported-green.png)|
-|unpersist||
+|unpersist|![](images/API-supported-green.png)|
 |zip| ![](images/API-supported-green.png)|
 |zipPartitions||
 |zipWithIndex| ![](images/API-supported-green.png)|
@@ -193,9 +229,9 @@ object ExampleRDD1 {
 
 |Operation|Supported?|
 |---------|---------|
-|aggregateByKey||
-|cogroup||
-|collectAsMap||
+|aggregateByKey|![](images/API-supported-green.png)|
+|cogroup|![](images/API-supported-green.png)|
+|collectAsMap|![](images/API-supported-green.png)|
 |combineByKey||
 |combineByKeyWithClassTag||
 |countApproxDistinctByKey||
@@ -211,7 +247,7 @@ object ExampleRDD1 {
 |leftOuterJoin|![](images/API-supported-green.png)|
 |lookup||
 |mapValues|![](images/API-supported-green.png)|
-|partitionBy||
+|partitionBy|![](images/API-supported-green.png)|
 |reduceByKey|![](images/API-supported-green.png)|
 |reduceByKeyLocally|![](images/API-supported-green.png)|
 |rightOuterJoin|![](images/API-supported-green.png)|
@@ -220,7 +256,7 @@ object ExampleRDD1 {
 |saveAsHadoopDataset||
 |saveAsHadoopFile||
 |saveAsNewAPIHadoopDataset||
-|subtractByKey||
+|subtractByKey|![](images/API-supported-green.png)|
 |values|![](images/API-supported-green.png)|
 
 ## Dataset API
@@ -261,7 +297,7 @@ object ExampleRDD1 {
 |javaRDD||
 |persist| ![](images/API-supported-green.png)|
 |printSchema||
-|rdd||
+|rdd|![](images/API-supported-green.png)|
 |schema||
 |storageLevel||
 |toDF||
@@ -292,8 +328,8 @@ object ExampleRDD1 {
 |groupByKey|![](images/API-supported-green.png)|
 |intersect|![](images/API-supported-green.png)|
 |joinWith||
-|limit||
-|map| ![](images/API-supported-green.png)|
+|limit|![](images/API-supported-green.png)|
+|map|![](images/API-supported-green.png)|
 |mapPartitions| ![](images/API-supported-green.png)|
 |orderBy||
 |randomSplit||
@@ -332,14 +368,30 @@ object ExampleRDD1 {
 |Operation|Supported?|
 |---------|---------|
 |agg||
-|cogroup||
+|cogroup|![](images/API-supported-green.png)|
 |count|![](images/API-supported-green.png)|
-|flatMapGroups||
+|flatMapGroups|![](images/API-supported-green.png)|
 |keyAs||
-|keys||
-|mapGroups||
+|keys|![](images/API-supported-green.png)|
+|mapGroups|![](images/API-supported-green.png)|
 |mapValues|![](images/API-supported-green.png)|
 |reduceGroups|![](images/API-supported-green.png)|
+
+### Dataset - additional API
+|Operation|Supported?|
+|---------|---------|
+|join|![](images/API-supported-green.png)|
+|leftOuterJoin|![](images/API-supported-green.png)|
+|rightOuterJoin|![](images/API-supported-green.png)|
+|fullOuterJoin|![](images/API-supported-green.png)|
+
+# Supported Spark versions
+
+|spark-local|Spark version|
+|-----------|-------------|
+|0.3        |2.1.0        |
+|0.2        |2.1.0        |
+|0.1        |2.1.0        |
 
 # Bugs
 
