@@ -5,7 +5,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class JoinsTest extends SparkLocalBaseTest {
+class JoinsRDDAPITest extends SparkLocalBaseTest {
 
   val left = Seq(
     (1,2000,10),
