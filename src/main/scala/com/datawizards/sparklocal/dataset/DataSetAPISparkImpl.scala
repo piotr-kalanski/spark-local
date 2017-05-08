@@ -2,12 +2,14 @@ package com.datawizards.sparklocal.dataset
 
 import java.util
 
+import com.datawizards.sparklocal.dataset.expressions.Expressions
 import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.sql.{Column, Dataset, Encoder}
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.storage.StorageLevel
 
 import scala.reflect.ClassTag
+import scala.reflect.runtime.universe
 import scala.reflect.runtime.universe.TypeTag
 
 class DataSetAPISparkImpl[T: ClassTag: TypeTag](val data: Dataset[T]) extends DataSetAPI[T] {
@@ -105,4 +107,17 @@ class DataSetAPISparkImpl[T: ClassTag: TypeTag](val data: Dataset[T]) extends Da
 
   override def randomSplit(weights: Array[Double], seed: Long): Array[DataSetAPI[T]] =
     data.randomSplit(weights, seed).map(ds => create(ds))
+
+  override def join[U: ClassTag : TypeTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression): DataSetAPI[(T, U)] =
+    create(data.joinWith(other.toDataset, condition.toSparkColumn, "inner"))
+
+  override def leftOuterJoin[U: ClassTag : TypeTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression): DataSetAPI[(T, U)] =
+    create(data.joinWith(other.toDataset, condition.toSparkColumn, "left_outer"))
+
+  override def rightOuterJoin[U: ClassTag : TypeTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression): DataSetAPI[(T, U)] =
+    create(data.joinWith(other.toDataset, condition.toSparkColumn, "right_outer"))
+
+  override def fullOuterJoin[U: ClassTag : TypeTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression): DataSetAPI[(T, U)] =
+    create(data.joinWith(other.toDataset, condition.toSparkColumn, "outer"))
+
 }

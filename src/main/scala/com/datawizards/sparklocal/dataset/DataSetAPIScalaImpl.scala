@@ -2,12 +2,14 @@ package com.datawizards.sparklocal.dataset
 
 import java.util
 
-import com.datawizards.sparklocal.rdd.RDDAPI
+import com.datawizards.sparklocal.dataset.expressions.Expressions
+import com.datawizards.sparklocal.rdd.{RDDAPI, RDDAPIScalaImpl, RDDAPISparkImpl}
 import org.apache.spark.sql.Column
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.util.random.{BernoulliCellSampler, BernoulliSampler, PoissonSampler}
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ListBuffer
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe.TypeTag
 
@@ -125,6 +127,98 @@ class DataSetAPIScalaImpl[T: ClassTag: TypeTag](iterable: Iterable[T]) extends D
       sampler.setSeed(seed)
       create(sampler.sample(data.iterator).toIterable)
     }.toArray
+  }
+
+  override def join[U: ClassTag : TypeTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression): DataSetAPI[(T, U)] = other match {
+    case dsScala:DataSetAPIScalaImpl[U] => create(
+      for {
+        left <- data
+        right <- dsScala.data
+        if condition.eval(left, right)
+      } yield (left, right)
+    )
+    case dsSpark:DataSetAPISparkImpl[U] => DataSetAPI(this.toDataset.joinWith(dsSpark.data, condition.toSparkColumn, "inner"))
+  }
+
+  override def leftOuterJoin[U: ClassTag : TypeTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression): DataSetAPI[(T, U)] =other match {
+    case dsScala:DataSetAPIScalaImpl[U] =>
+      val b = new ListBuffer[(T,U)]
+
+      val empty: U = null.asInstanceOf[U]
+
+      for (left <- data) {
+        var rightExists = false
+        for (right <- dsScala.data) {
+          if (condition.eval(left, right)) {
+            b += ((left, right))
+            rightExists = true
+          }
+        }
+        if(!rightExists) {
+          b += ((left, empty))
+        }
+      }
+
+      create(b)
+    case dsSpark:DataSetAPISparkImpl[U] => DataSetAPI(this.toDataset.joinWith(dsSpark.data, condition.toSparkColumn, "left_outer"))
+  }
+
+  override def rightOuterJoin[U: ClassTag : TypeTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression): DataSetAPI[(T, U)] = other match {
+    case dsScala:DataSetAPIScalaImpl[U] =>
+      val b = new ListBuffer[(T,U)]
+
+      val empty: T = null.asInstanceOf[T]
+
+      for (right <- dsScala.data) {
+        var leftExists = false
+        for (left <- data) {
+          if (condition.eval(left, right)) {
+            b += ((left, right))
+            leftExists = true
+          }
+        }
+        if(!leftExists) {
+          b += (empty -> right)
+        }
+      }
+
+      create(b)
+    case dsSpark:DataSetAPISparkImpl[U] => DataSetAPI(this.toDataset.joinWith(dsSpark.data, condition.toSparkColumn, "right_outer"))
+  }
+
+  override def fullOuterJoin[U: ClassTag : TypeTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression): DataSetAPI[(T, U)] = other match {
+    case dsScala:DataSetAPIScalaImpl[U] =>
+      val b = new ListBuffer[(T,U)]
+
+      val emptyT: T = null.asInstanceOf[T]
+      val emptyU: U = null.asInstanceOf[U]
+
+      for (left <- data) {
+        var rightExists = false
+        for (right <- dsScala.data) {
+          if (condition.eval(left, right)) {
+            b += ((left, right))
+            rightExists = true
+          }
+        }
+        if(!rightExists) {
+          b += ((left, emptyU))
+        }
+      }
+      for (right <- dsScala.data) {
+        var leftExists = false
+        for (left <- data) {
+          if (condition.eval(left, right)) {
+            leftExists = true
+          }
+        }
+        if(!leftExists) {
+          b += ((emptyT, right))
+        }
+      }
+
+      create(b)
+    case dsSpark:DataSetAPISparkImpl[U] => DataSetAPI(this.toDataset.joinWith(dsSpark.data, condition.toSparkColumn, "outer"))
   }
 
 }

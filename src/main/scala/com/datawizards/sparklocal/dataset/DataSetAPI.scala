@@ -1,6 +1,6 @@
 package com.datawizards.sparklocal.dataset
 
-import com.datawizards.sparklocal.dataset.expr.Expressions._
+import com.datawizards.sparklocal.dataset.expressions.Expressions._
 import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.sql.{Column, Dataset, SparkSession}
@@ -86,8 +86,12 @@ trait DataSetAPI[T] {
       .map(p => p._2)
       .toDataSet
   }
-  //TODO - uncomment
-  //def joinWith[U](DataSetAPI: Dataset[U], condition: BooleanExpression, joinType: String): DataSetAPI[(T, U)]
+  def field(name: String): Field = new Field(name)
+  def apply(name: String): Field = field(name)
+  def join[U: ClassTag: TypeTag](other: DataSetAPI[U], condition: BooleanExpression): DataSetAPI[(T, U)]
+  def leftOuterJoin[U: ClassTag: TypeTag](other: DataSetAPI[U], condition: BooleanExpression): DataSetAPI[(T, U)]
+  def rightOuterJoin[U: ClassTag: TypeTag](other: DataSetAPI[U], condition: BooleanExpression): DataSetAPI[(T, U)]
+  def fullOuterJoin[U: ClassTag: TypeTag](other: DataSetAPI[U], condition: BooleanExpression): DataSetAPI[(T, U)]
 
   override def toString: String = "DataSet(" + collect().mkString(",") + ")"
 
