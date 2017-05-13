@@ -11,7 +11,7 @@ import org.json4s.DefaultFormats
 
 import scala.reflect.ClassTag
 
-class WriterScalaImpl[T <: AnyRef] extends Writer[T] {
+class WriterScalaImpl[T] extends Writer[T] {
 
   override def write(ds: DataSetAPI[T]): WriterExecutor[T] = new WriterExecutor[T](ds) {
 
@@ -36,10 +36,12 @@ class WriterScalaImpl[T <: AnyRef] extends Writer[T] {
       val pw = new PrintWriter(dataStore.path)
 
       for(e <- ds) {
-        pw.write(Serialization.write[T](e)(formats))
+        e match {
+          case a:AnyRef => pw.write(Serialization.write(a)(formats))
+          case _ => throw new Exception("Not supported type for JSON serialization!")
+        }
         pw.write("\n")
       }
-        //Serialization.write[T, PrintWriter](e, pw)
 
       pw.close()
     }

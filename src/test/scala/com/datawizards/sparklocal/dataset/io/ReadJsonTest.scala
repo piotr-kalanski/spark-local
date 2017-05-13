@@ -12,7 +12,7 @@ class ReadJsonTest extends SparkLocalBaseTest {
   private val peopleJson = JsonDataStore(getClass.getResource("/people.json").getPath)
 
   test("Read JSON - result") {
-    assertDatasetOperationResult() {
+    assertDatasetOperationResult(ReaderScalaImpl.read[PersonBigInt](peopleJson)) {
       Array(
         PersonBigInt("p1", 10),
         PersonBigInt("p2", 20),
