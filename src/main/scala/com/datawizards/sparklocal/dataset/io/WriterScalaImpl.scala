@@ -1,9 +1,13 @@
 package com.datawizards.sparklocal.dataset.io
 
+import java.io.PrintWriter
+
 import com.datawizards.class2csv._
+import org.json4s.jackson.Serialization
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore._
 import org.apache.spark.sql.SaveMode
+import org.json4s.DefaultFormats
 
 import scala.reflect.ClassTag
 
@@ -26,8 +30,21 @@ class WriterScalaImpl[T] extends Writer[T] {
         quote = dataStore.quote
       )
 
-    override def apply(dataStore: JsonDataStore, saveMode: SaveMode): Unit =
-      ???
+    override def apply(dataStore: JsonDataStore, saveMode: SaveMode): Unit = {
+      implicit val formats = DefaultFormats
+
+      val pw = new PrintWriter(dataStore.path)
+
+      for(e <- ds) {
+        e match {
+          case a:AnyRef => pw.write(Serialization.write(a)(formats))
+          case _ => throw new Exception("Not supported type for JSON serialization!")
+        }
+        pw.write("\n")
+      }
+
+      pw.close()
+    }
 
     override def apply(dataStore: ParquetDataStore, saveMode: SaveMode): Unit =
       ???

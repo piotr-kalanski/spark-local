@@ -1,6 +1,7 @@
 package com.datawizards.sparklocal.dataset.io
 
 import com.datawizards.class2csv
+import com.databricks.spark.avro._
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore._
 import org.apache.spark.sql.SaveMode
@@ -38,13 +39,29 @@ class WriterSparkImpl[T] extends Writer[T] {
     }
 
     override def apply(dataStore: JsonDataStore, saveMode: SaveMode): Unit =
-      ???
+      ds
+        .toDataset
+        .repartition(1)
+        .write
+        .mode(saveMode)
+        .json(dataStore.path)
 
     override def apply(dataStore: ParquetDataStore, saveMode: SaveMode): Unit =
-      ???
+      ds
+        .toDataset
+        .repartition(1)
+        .write
+        .mode(saveMode)
+        .parquet(dataStore.path)
 
     override def apply(dataStore: AvroDataStore, saveMode: SaveMode): Unit =
-      ???
+      ds
+        .toDataset
+        .repartition(1)
+        .write
+        .mode(saveMode)
+        .avro(dataStore.path)
+
   }
 
 }

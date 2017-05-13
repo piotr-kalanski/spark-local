@@ -2,6 +2,7 @@ package com.datawizards.sparklocal
 
 object TestModel {
   case class Person(name: String, age: Int)
+  case class PersonBigInt(name: String, age: BigInt)
   case class Book(title: String, year: Int, personName: String)
 
   implicit val peopleOrdering = new Ordering[Person]() {
