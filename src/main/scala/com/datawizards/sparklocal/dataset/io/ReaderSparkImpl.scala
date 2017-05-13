@@ -33,11 +33,10 @@ object ReaderSparkImpl extends Reader {
       DataSetAPI(df.as[T](ExpressionEncoder[T]()))
     }
 
-    override def apply[L <: HList](dataStore: datastore.JsonDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L]): DataSetAPI[T] =
+    override def apply[L <: HList](dataStore: datastore.JsonDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T]): DataSetAPI[T] =
       DataSetAPI(
         spark
           .read
-          //TODO - options
           .json(dataStore.path)
           .as[T](ExpressionEncoder[T]())
       )

@@ -393,7 +393,7 @@ Library provides dedicated API for input/output operations with implementation f
 
 ## CSV
 
-### Read CSV
+### Read CSV file
 
 ```scala
 val reader: Reader = ReaderScalaImpl // Scala implementation
@@ -407,6 +407,26 @@ reader.read[Person](
         columns = Seq("name","age")
     )
 )
+```
+
+### Write to CSV file
+
+```scala
+ds.write(CSVDataStore(file), SaveMode.Overwrite)
+```
+
+## JSON
+
+### Read JSON file
+
+```scala
+reader.read[Person](JsonDataStore("people.json"))
+```
+
+### Write to JSON file
+
+```scala
+ds.write(JsonDataStore("people.json"), SaveMode.Overwrite)
 ```
 
 # Supported Spark versions

@@ -9,6 +9,8 @@ import scala.reflect.runtime.universe.TypeTag
 import com.datawizards.csv2class._
 import shapeless.Generic.Aux
 import shapeless.HList
+import org.json4s._
+import org.json4s.native.JsonMethods._
 
 object ReaderScalaImpl extends Reader {
 
@@ -26,8 +28,17 @@ object ReaderScalaImpl extends Reader {
       DataSetAPI(parsed._1)
     }
 
-    override def apply[L <: HList](dataStore: datastore.JsonDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L]): DataSetAPI[T] =
-      ???
+    override def apply[L <: HList](dataStore: datastore.JsonDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T]): DataSetAPI[T] = {
+      implicit val formats = DefaultFormats
+
+      DataSetAPI(
+        scala.io.Source
+          .fromFile(dataStore.path)
+          .getLines()
+          .map(line => parse(line).extract[T])
+          .toIterable
+      )
+    }
 
     override def apply[L <: HList](dataStore: datastore.ParquetDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L]): DataSetAPI[T] =
       ???

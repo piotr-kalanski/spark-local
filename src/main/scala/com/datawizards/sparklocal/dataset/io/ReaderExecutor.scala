@@ -20,8 +20,7 @@ trait ReaderExecutor[T] {
   def apply[L <: HList](dataStore: JsonDataStore)(
     implicit
     ct: ClassTag[T],
-    tt: TypeTag[T],
-    gen: Generic.Aux[T, L]
+    tt: TypeTag[T]
   ): DataSetAPI[T]
 
   def apply[L <: HList](dataStore: ParquetDataStore)(
