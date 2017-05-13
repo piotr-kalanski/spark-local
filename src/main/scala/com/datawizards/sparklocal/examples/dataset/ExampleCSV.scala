@@ -12,7 +12,7 @@ object ExampleCSV extends App {
   assert(countByGender(ReaderScalaImpl, file) == countByGender(ReaderSparkImpl, file))
 
   def countByGender(reader: Reader, path: String): Map[String, Long] = {
-    val ds = reader.read(CSVDataStore[Person](path))
+    val ds = reader.read[Person](CSVDataStore(path))
     ds
       .groupByKey(_.gender)
       .count()

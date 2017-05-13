@@ -3,8 +3,8 @@ package com.datawizards.sparklocal.dataset
 import java.util
 
 import com.datawizards.sparklocal.dataset.expressions.Expressions
-import com.datawizards.sparklocal.dataset.io.{Writer, WriterScalaImpl}
-import com.datawizards.sparklocal.rdd.{RDDAPI, RDDAPIScalaImpl, RDDAPISparkImpl}
+import com.datawizards.sparklocal.dataset.io.{WriterExecutor, WriterScalaImpl}
+import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.sql.Column
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.util.random.{BernoulliCellSampler, BernoulliSampler, PoissonSampler}
@@ -15,9 +15,7 @@ import scala.reflect.ClassTag
 import scala.reflect.runtime.universe.TypeTag
 
 class DataSetAPIScalaImpl[T: ClassTag: TypeTag](iterable: Iterable[T]) extends DataSetAPI[T] {
-  private val data: Seq[T] = iterable.toSeq
-
-  override protected val writer: Writer = WriterScalaImpl
+  private[dataset] val data: Seq[T] = iterable.toSeq
 
   private def create[U: ClassTag: TypeTag](it: Iterable[U]) = new DataSetAPIScalaImpl(it)
 
@@ -223,5 +221,7 @@ class DataSetAPIScalaImpl[T: ClassTag: TypeTag](iterable: Iterable[T]) extends D
       create(b)
     case dsSpark:DataSetAPISparkImpl[U] => DataSetAPI(this.toDataset.joinWith(dsSpark.data, condition.toSparkColumn, "outer"))
   }
+
+  override def write: WriterExecutor[T] = new WriterScalaImpl[T].write(this)
 
 }

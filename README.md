@@ -5,6 +5,7 @@ API enabling switching between Spark execution engine and local implementation b
 [![Build Status](https://api.travis-ci.org/piotr-kalanski/spark-local.png?branch=development)](https://api.travis-ci.org/piotr-kalanski/spark-local.png?branch=development)
 [![codecov.io](http://codecov.io/github/piotr-kalanski/spark-local/coverage.svg?branch=development)](http://codecov.io/github/piotr-kalanski/spark-local/coverage.svg?branch=development)
 [<img src="https://img.shields.io/maven-central/v/com.github.piotr-kalanski/spark-local_2.11.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22spark-local_2.11%22)
+[![Stories in Ready](https://badge.waffle.io/piotr-kalanski/spark-local.png?label=Ready)](https://waffle.io/piotr-kalanski/spark-local)
 [![License](http://img.shields.io/:license-Apache%202-red.svg)](http://www.apache.org/licenses/LICENSE-2.0.txt)
 
 # Table of contents
@@ -398,8 +399,8 @@ Library provides dedicated API for input/output operations with implementation f
 val reader: Reader = ReaderScalaImpl // Scala implementation
 //val reader: Reader = ReaderSparkImpl // Spark implementation
 
-reader.read(
-    CSVDataStore[Person](
+reader.read[Person](
+    CSVDataStore(
         path = "people.csv",
         delimiter = ';',
         header = false,

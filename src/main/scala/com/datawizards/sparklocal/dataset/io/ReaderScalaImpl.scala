@@ -11,8 +11,9 @@ import shapeless.Generic.Aux
 import shapeless.HList
 
 object ReaderScalaImpl extends Reader {
-  override def read[T]: ReaderScalaImpl.ReaderExecutor[T] = new ReaderExecutor[T] {
-    override def apply[L <: HList](dataStore: datastore.CSVDataStore[T])(implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L], fromRow: csv2class.FromRow[L]): DataSetAPI[T] = {
+
+  override def read[T]: ReaderExecutor[T] = new ReaderExecutor[T] {
+    override def apply[L <: HList](dataStore: datastore.CSVDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L], fromRow: csv2class.FromRow[L]): DataSetAPI[T] = {
       val parsed = parseCSV[T](
         path = dataStore.path,
         delimiter = dataStore.delimiter,
@@ -25,13 +26,13 @@ object ReaderScalaImpl extends Reader {
       DataSetAPI(parsed._1)
     }
 
-    override def apply[L <: HList](dataStore: datastore.JsonDataStore[T])(implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L]): DataSetAPI[T] =
+    override def apply[L <: HList](dataStore: datastore.JsonDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L]): DataSetAPI[T] =
       ???
 
-    override def apply[L <: HList](dataStore: datastore.ParquetDataStore[T])(implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L]): DataSetAPI[T] =
+    override def apply[L <: HList](dataStore: datastore.ParquetDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L]): DataSetAPI[T] =
       ???
 
-    override def apply[L <: HList](dataStore: datastore.AvroDataStore[T])(implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L]): DataSetAPI[T] =
+    override def apply[L <: HList](dataStore: datastore.AvroDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L]): DataSetAPI[T] =
       ???
   }
 

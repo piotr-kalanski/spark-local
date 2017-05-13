@@ -3,7 +3,7 @@ package com.datawizards.sparklocal.dataset
 import java.util
 
 import com.datawizards.sparklocal.dataset.expressions.Expressions
-import com.datawizards.sparklocal.dataset.io.{Writer, WriterSparkImpl}
+import com.datawizards.sparklocal.dataset.io.{Writer, WriterExecutor, WriterSparkImpl}
 import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.sql.{Column, Dataset}
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
@@ -15,8 +15,6 @@ import scala.reflect.runtime.universe.TypeTag
 class DataSetAPISparkImpl[T: ClassTag: TypeTag](val data: Dataset[T]) extends DataSetAPI[T] {
 
   private def create[U: ClassTag: TypeTag](ds: Dataset[U]) = new DataSetAPISparkImpl(ds)
-
-  override protected val writer: Writer = WriterSparkImpl
 
   override private[dataset] def toDataset = data
 
@@ -121,5 +119,7 @@ class DataSetAPISparkImpl[T: ClassTag: TypeTag](val data: Dataset[T]) extends Da
 
   override def fullOuterJoin[U: ClassTag : TypeTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression): DataSetAPI[(T, U)] =
     create(data.joinWith(other.toDataset, condition.toSparkColumn, "outer"))
+
+  override def write: WriterExecutor[T] = new WriterSparkImpl[T].write(this)
 
 }

@@ -7,10 +7,10 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ReadCSVTests extends SparkLocalBaseTest {
+class ReadCSVTest extends SparkLocalBaseTest {
 
-  private val peopleCSV = CSVDataStore[Person](getClass.getResource("/people.csv").getPath)
-  private val people2CSV = CSVDataStore[Person](
+  private val peopleCSV = CSVDataStore(getClass.getResource("/people.csv").getPath)
+  private val people2CSV = CSVDataStore(
     path = getClass.getResource("/people2.csv").getPath,
     delimiter = ';',
     header = false,
@@ -18,7 +18,7 @@ class ReadCSVTests extends SparkLocalBaseTest {
   )
 
   test("Read CSV - result") {
-    assertDatasetOperationResult(ReaderScalaImpl.read(peopleCSV)) {
+    assertDatasetOperationResult(ReaderScalaImpl.read[Person](peopleCSV)) {
       Array(
         Person("p1", 10),
         Person("p2", 20),
@@ -29,7 +29,7 @@ class ReadCSVTests extends SparkLocalBaseTest {
   }
 
   test("Read CSV with custom options - result") {
-    assertDatasetOperationResult(ReaderScalaImpl.read(people2CSV)) {
+    assertDatasetOperationResult(ReaderScalaImpl.read[Person](people2CSV)) {
       Array(
         Person("p1", 10),
         Person("p2", 20),
@@ -42,13 +42,13 @@ class ReadCSVTests extends SparkLocalBaseTest {
   test("Read CSV - equals") {
     //access lazy val spark just to init SparkContext
     spark
-    assert(ReaderScalaImpl.read(peopleCSV) == ReaderSparkImpl.read(peopleCSV))
+    assert(ReaderScalaImpl.read[Person](peopleCSV) == ReaderSparkImpl.read[Person](peopleCSV))
   }
 
   test("Read CSV with custom options - equals") {
     //access lazy val spark just to init SparkContext
     spark
-    assert(ReaderScalaImpl.read(people2CSV) == ReaderSparkImpl.read(people2CSV))
+    assert(ReaderScalaImpl.read[Person](people2CSV) == ReaderSparkImpl.read[Person](people2CSV))
   }
 
 }
