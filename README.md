@@ -13,6 +13,7 @@ API enabling switching between Spark execution engine and local implementation b
 - [Getting started](#getting-started)
 - [Examples](#examples)
 - [Supported operations](#supported-operations)
+- [IO operations](#io-operations)
 - [Supported Spark versions](#supported-spark-versions)
 
 # Goals
@@ -385,10 +386,33 @@ object ExampleHRReport {
 |rightOuterJoin|![](images/API-supported-green.png)|
 |fullOuterJoin|![](images/API-supported-green.png)|
 
+# IO operations
+
+Library provides dedicated API for input/output operations with implementation for Spark and Scala collections.
+
+## CSV
+
+### Read CSV
+
+```scala
+val reader: Reader = ReaderScalaImpl // Scala implementation
+//val reader: Reader = ReaderSparkImpl // Spark implementation
+
+reader.read(
+    CSVDataStore[Person](
+        path = "people.csv",
+        delimiter = ';',
+        header = false,
+        columns = Seq("name","age")
+    )
+)
+```
+
 # Supported Spark versions
 
 |spark-local|Spark version|
 |-----------|-------------|
+|0.4        |2.1.0        |
 |0.3        |2.1.0        |
 |0.2        |2.1.0        |
 |0.1        |2.1.0        |

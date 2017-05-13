@@ -3,6 +3,7 @@ package com.datawizards.sparklocal.dataset
 import java.util
 
 import com.datawizards.sparklocal.dataset.expressions.Expressions
+import com.datawizards.sparklocal.dataset.io.{Writer, WriterScalaImpl}
 import com.datawizards.sparklocal.rdd.{RDDAPI, RDDAPIScalaImpl, RDDAPISparkImpl}
 import org.apache.spark.sql.Column
 import org.apache.spark.storage.StorageLevel
@@ -15,6 +16,8 @@ import scala.reflect.runtime.universe.TypeTag
 
 class DataSetAPIScalaImpl[T: ClassTag: TypeTag](iterable: Iterable[T]) extends DataSetAPI[T] {
   private val data: Seq[T] = iterable.toSeq
+
+  override protected val writer: Writer = WriterScalaImpl
 
   private def create[U: ClassTag: TypeTag](it: Iterable[U]) = new DataSetAPIScalaImpl(it)
 

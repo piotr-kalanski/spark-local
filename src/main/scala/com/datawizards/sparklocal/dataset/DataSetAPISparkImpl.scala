@@ -3,18 +3,20 @@ package com.datawizards.sparklocal.dataset
 import java.util
 
 import com.datawizards.sparklocal.dataset.expressions.Expressions
+import com.datawizards.sparklocal.dataset.io.{Writer, WriterSparkImpl}
 import com.datawizards.sparklocal.rdd.RDDAPI
-import org.apache.spark.sql.{Column, Dataset, Encoder}
+import org.apache.spark.sql.{Column, Dataset}
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.storage.StorageLevel
 
 import scala.reflect.ClassTag
-import scala.reflect.runtime.universe
 import scala.reflect.runtime.universe.TypeTag
 
 class DataSetAPISparkImpl[T: ClassTag: TypeTag](val data: Dataset[T]) extends DataSetAPI[T] {
 
   private def create[U: ClassTag: TypeTag](ds: Dataset[U]) = new DataSetAPISparkImpl(ds)
+
+  override protected val writer: Writer = WriterSparkImpl
 
   override private[dataset] def toDataset = data
 

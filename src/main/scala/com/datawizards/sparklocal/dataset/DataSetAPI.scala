@@ -1,6 +1,8 @@
 package com.datawizards.sparklocal.dataset
 
 import com.datawizards.sparklocal.dataset.expressions.Expressions._
+import com.datawizards.sparklocal.dataset.io.Writer
+import com.datawizards.sparklocal.datastore.DataStore
 import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.sql.{Column, Dataset, SparkSession}
@@ -15,6 +17,7 @@ object DataSetAPI {
 }
 
 trait DataSetAPI[T] {
+  protected val writer: Writer
   protected lazy val spark: SparkSession = SparkSession.builder().getOrCreate()
   protected def createDataset[That: TypeTag](d: Seq[That]): Dataset[That] = {
     implicit val encoder = ExpressionEncoder[That]()
@@ -92,6 +95,7 @@ trait DataSetAPI[T] {
   def leftOuterJoin[U: ClassTag: TypeTag](other: DataSetAPI[U], condition: BooleanExpression): DataSetAPI[(T, U)]
   def rightOuterJoin[U: ClassTag: TypeTag](other: DataSetAPI[U], condition: BooleanExpression): DataSetAPI[(T, U)]
   def fullOuterJoin[U: ClassTag: TypeTag](other: DataSetAPI[U], condition: BooleanExpression): DataSetAPI[(T, U)]
+  def write(dataStore: DataStore[T]): Unit = writer.writeGeneric(this, dataStore)
 
   override def toString: String = "DataSet(" + collect().mkString(",") + ")"
 
