@@ -1,0 +1,50 @@
+package com.datawizards.sparklocal.dataset.io
+
+import com.datawizards.class2csv
+import com.datawizards.sparklocal.dataset.DataSetAPI
+import com.datawizards.sparklocal.datastore._
+import org.apache.spark.sql.SaveMode
+
+import scala.reflect.ClassTag
+
+class WriterSparkImpl[T] extends Writer[T] {
+
+  override def write(ds: DataSetAPI[T]): WriterExecutor[T] = new WriterExecutor[T](ds) {
+
+    override def apply(dataStore: StdoutStore, saveMode: SaveMode): Unit =
+      ds
+        .toDataset
+        .show()
+
+    override def apply(dataStore: CSVDataStore, saveMode: SaveMode)
+                      (implicit ct: ClassTag[T], enc: class2csv.CsvEncoder[T]): Unit = {
+
+      var df = ds.toDataset.toDF
+      if(dataStore.columns.nonEmpty) {
+        df = df.toDF(dataStore.columns: _*)
+      }
+
+      df
+        .repartition(1)
+        .write
+        .format("org.apache.spark.sql.execution.datasources.csv.CSVFileFormat")
+        .option("header", dataStore.header.toString)
+        .option("delimiter", dataStore.delimiter.toString)
+        .option("quote", dataStore.quote.toString)
+        .option("escape", dataStore.escape.toString)
+        //.option("charset", dataStore.charset)
+        .mode(saveMode)
+        .csv(dataStore.path)
+    }
+
+    override def apply(dataStore: JsonDataStore, saveMode: SaveMode): Unit =
+      ???
+
+    override def apply(dataStore: ParquetDataStore, saveMode: SaveMode): Unit =
+      ???
+
+    override def apply(dataStore: AvroDataStore, saveMode: SaveMode): Unit =
+      ???
+  }
+
+}

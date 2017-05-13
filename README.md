@@ -5,6 +5,7 @@ API enabling switching between Spark execution engine and local implementation b
 [![Build Status](https://api.travis-ci.org/piotr-kalanski/spark-local.png?branch=development)](https://api.travis-ci.org/piotr-kalanski/spark-local.png?branch=development)
 [![codecov.io](http://codecov.io/github/piotr-kalanski/spark-local/coverage.svg?branch=development)](http://codecov.io/github/piotr-kalanski/spark-local/coverage.svg?branch=development)
 [<img src="https://img.shields.io/maven-central/v/com.github.piotr-kalanski/spark-local_2.11.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22spark-local_2.11%22)
+[![Stories in Ready](https://badge.waffle.io/piotr-kalanski/spark-local.png?label=Ready)](https://waffle.io/piotr-kalanski/spark-local)
 [![License](http://img.shields.io/:license-Apache%202-red.svg)](http://www.apache.org/licenses/LICENSE-2.0.txt)
 
 # Table of contents
@@ -13,6 +14,7 @@ API enabling switching between Spark execution engine and local implementation b
 - [Getting started](#getting-started)
 - [Examples](#examples)
 - [Supported operations](#supported-operations)
+- [IO operations](#io-operations)
 - [Supported Spark versions](#supported-spark-versions)
 
 # Goals
@@ -385,10 +387,33 @@ object ExampleHRReport {
 |rightOuterJoin|![](images/API-supported-green.png)|
 |fullOuterJoin|![](images/API-supported-green.png)|
 
+# IO operations
+
+Library provides dedicated API for input/output operations with implementation for Spark and Scala collections.
+
+## CSV
+
+### Read CSV
+
+```scala
+val reader: Reader = ReaderScalaImpl // Scala implementation
+//val reader: Reader = ReaderSparkImpl // Spark implementation
+
+reader.read[Person](
+    CSVDataStore(
+        path = "people.csv",
+        delimiter = ';',
+        header = false,
+        columns = Seq("name","age")
+    )
+)
+```
+
 # Supported Spark versions
 
 |spark-local|Spark version|
 |-----------|-------------|
+|0.4        |2.1.0        |
 |0.3        |2.1.0        |
 |0.2        |2.1.0        |
 |0.1        |2.1.0        |
