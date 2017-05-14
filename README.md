@@ -429,6 +429,23 @@ reader.read[Person](JsonDataStore("people.json"))
 ds.write(JsonDataStore("people.json"), SaveMode.Overwrite)
 ```
 
+## Avro
+
+Current implementation produces different binary files for Spark and Scala.
+Spark by default compress files with snappy and spark-local implementation is based on: https://github.com/sksamuel/avro4s, which saves data without compression.
+
+### Read Avro file
+
+```scala
+reader.read[Person](AvroDataStore("people.avro"))
+```
+
+### Write to Avro file
+
+```scala
+ds.write(AvroDataStore("people.avro"), SaveMode.Overwrite)
+```
+
 # Supported Spark versions
 
 |spark-local|Spark version|

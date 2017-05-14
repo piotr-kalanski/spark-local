@@ -3,6 +3,7 @@ package com.datawizards.sparklocal.dataset.io
 import com.datawizards.csv2class.FromRow
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore.{AvroDataStore, CSVDataStore, JsonDataStore, ParquetDataStore}
+import com.sksamuel.avro4s.{FromRecord, SchemaFor}
 import shapeless.{Generic, HList}
 
 import scala.reflect.ClassTag
@@ -34,6 +35,8 @@ trait ReaderExecutor[T] {
     implicit
     ct: ClassTag[T],
     tt: TypeTag[T],
-    gen: Generic.Aux[T, L]
+    s: SchemaFor[T],
+    r: FromRecord[T]
   ): DataSetAPI[T]
+
 }

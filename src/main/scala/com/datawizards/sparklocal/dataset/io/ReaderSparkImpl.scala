@@ -8,6 +8,7 @@ import scala.reflect.ClassTag
 import scala.reflect.runtime.universe.TypeTag
 import com.databricks.spark.avro._
 import com.datawizards.csv2class
+import com.sksamuel.avro4s.{FromRecord, SchemaFor}
 import shapeless.Generic.Aux
 import shapeless.HList
 
@@ -50,11 +51,10 @@ object ReaderSparkImpl extends Reader {
           .as[T](ExpressionEncoder[T]())
       )
 
-    override def apply[L <: HList](dataStore: datastore.AvroDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L]): DataSetAPI[T] =
+    override def apply[L <: HList](dataStore: datastore.AvroDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], r: FromRecord[T]): DataSetAPI[T] =
       DataSetAPI(
         spark
           .read
-          //TODO - options
           .avro(dataStore.path)
           .as[T](ExpressionEncoder[T]())
       )
