@@ -1,0 +1,60 @@
+package com.datawizards.sparklocal.session
+
+import com.datawizards.sparklocal.SparkLocalBaseTest
+import com.datawizards.sparklocal.TestModel.{Person, PersonBigInt}
+import com.datawizards.sparklocal.datastore.{CSVDataStore, JsonDataStore}
+import com.datawizards.sparklocal.session.ExecutionEngine.ExecutionEngine
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
+@RunWith(classOf[JUnitRunner])
+class ReadFileTest extends SparkLocalBaseTest {
+
+  test("read CSV") {
+    testReadCSV(ExecutionEngine.ScalaEager)
+    testReadCSV(ExecutionEngine.Spark)
+  }
+
+  test("read JSON") {
+    testReadJson(ExecutionEngine.ScalaEager)
+    testReadJson(ExecutionEngine.Spark)
+  }
+
+
+  private def testReadCSV(engine: ExecutionEngine): Unit = {
+    val peopleCSV = CSVDataStore(getClass.getResource("/people.csv").getPath)
+
+    val session = SparkSessionAPI
+      .builder(engine)
+      .master("local")
+      .getOrCreate()
+
+    assertDatasetOperationResult(session.read[Person](peopleCSV)) {
+      Array(
+        Person("p1", 10),
+        Person("p2", 20),
+        Person("p3", 30),
+        Person("p,4", 40)
+      )
+    }
+  }
+
+  private def testReadJson(engine: ExecutionEngine): Unit = {
+    val peopleJson = JsonDataStore(getClass.getResource("/people.json").getPath)
+
+    val session = SparkSessionAPI
+      .builder(engine)
+      .master("local")
+      .getOrCreate()
+
+    assertDatasetOperationResult(session.read[PersonBigInt](peopleJson)) {
+      Array(
+        PersonBigInt("p1", 10),
+        PersonBigInt("p2", 20),
+        PersonBigInt("p3", 30),
+        PersonBigInt("p,4", 40)
+      )
+    }
+  }
+
+}

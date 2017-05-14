@@ -20,10 +20,11 @@ object ReaderSparkImpl extends Reader {
       var df = spark
         .read
         .option("header", dataStore.header.toString)
-        .option("inferSchema", value = true)
         .option("delimiter", dataStore.delimiter.toString)
         .option("quote", dataStore.quote.toString)
         .option("escape", dataStore.escape.toString)
+        .option("parserLib", "univocity")
+        .schema(ExpressionEncoder[T]().schema)
         //.option("charset", dataStore.charset)
         .csv(dataStore.path)
 
@@ -38,6 +39,7 @@ object ReaderSparkImpl extends Reader {
       DataSetAPI(
         spark
           .read
+          .schema(ExpressionEncoder[T]().schema)
           .json(dataStore.path)
           .as[T](ExpressionEncoder[T]())
       )
@@ -46,7 +48,7 @@ object ReaderSparkImpl extends Reader {
       DataSetAPI(
         spark
           .read
-          //TODO - options
+          .schema(ExpressionEncoder[T]().schema)
           .parquet(dataStore.path)
           .as[T](ExpressionEncoder[T]())
       )
@@ -55,6 +57,7 @@ object ReaderSparkImpl extends Reader {
       DataSetAPI(
         spark
           .read
+          .schema(ExpressionEncoder[T]().schema)
           .avro(dataStore.path)
           .as[T](ExpressionEncoder[T]())
       )

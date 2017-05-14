@@ -42,6 +42,8 @@ or
 
 # Examples
 
+##
+
 ## RDD API
 
 ```scala

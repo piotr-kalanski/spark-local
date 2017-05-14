@@ -106,6 +106,19 @@ trait SparkLocalBaseTest extends FunSuite {
   }
 
   /**
+    * Assert two Datasets are equal.
+    *
+    * Checks that Datasets contains the same elements after sorting
+    *
+    * @param ord ordering for sorting result
+    */
+  def assertDatasetEquals[T](ds1: DataSetAPI[T], ds2: DataSetAPI[T])(implicit ord: Ordering[T]): Unit = {
+    val d1c = ds1.collect().sorted(ord)
+    val d2c = ds2.collect().sorted(ord)
+    assert((d1c sameElements d2c) || {println(d1c.mkString(",")); println(d2c.mkString(",")); false})
+  }
+
+  /**
     * Verifies that RDD has the same elements as expected result
     *
     * @param rdd result RDD
@@ -183,6 +196,19 @@ trait SparkLocalBaseTest extends FunSuite {
     assertRDDOperationReturnsSameResultWithEqual[T,RDDAPI[Result]](data, op) {
       case (d1,d2) => d1.collect().sorted(ord) sameElements d2.collect().sorted(ord)
     }
+  }
+
+  /**
+    * Assert two RDD are equal.
+    *
+    * Checks that RDD contains the same elements after sorting
+    *
+    * @param ord ordering for sorting result
+    */
+  def assertRDDEquals[T](rdd1: RDDAPI[T], rdd2: RDDAPI[T])(implicit ord: Ordering[T]): Unit = {
+    val d1c = rdd1.collect().sorted(ord)
+    val d2c = rdd2.collect().sorted(ord)
+    assert((d1c sameElements d2c) || {println(d1c.mkString(",")); println(d2c.mkString(",")); false})
   }
 
 }
