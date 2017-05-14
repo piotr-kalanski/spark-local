@@ -1,6 +1,6 @@
 package com.datawizards.sparklocal.dataset.io
 
-import java.io.PrintWriter
+import java.io.{File, PrintWriter}
 
 import com.datawizards.class2csv._
 import org.json4s.jackson.Serialization
@@ -8,6 +8,7 @@ import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore._
 import org.apache.spark.sql.SaveMode
 import org.json4s.DefaultFormats
+import com.sksamuel.avro4s.{AvroOutputStream, ToRecord, SchemaFor}
 
 import scala.reflect.ClassTag
 
@@ -49,8 +50,14 @@ class WriterScalaImpl[T] extends Writer[T] {
     override def apply(dataStore: ParquetDataStore, saveMode: SaveMode): Unit =
       ???
 
-    override def apply(dataStore: AvroDataStore, saveMode: SaveMode): Unit =
-      ???
+    override def apply(dataStore: AvroDataStore, saveMode: SaveMode)
+                      (implicit s: SchemaFor[T], r: ToRecord[T]): Unit = {
+      val os = AvroOutputStream.data[T](new File(dataStore.path))
+      os.write(ds.collect())
+      os.flush()
+      os.close()
+    }
+
   }
 
 }

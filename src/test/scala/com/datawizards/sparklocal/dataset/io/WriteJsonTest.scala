@@ -14,7 +14,7 @@ import org.scalatest.junit.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class WriteJsonTest extends SparkLocalBaseTest {
 
-  test("Default Json file") {
+  test("Write Json file") {
     val file = "target/foo.json"
     val ds = DataSetAPI(Seq(
       Person("first",10),
@@ -31,7 +31,7 @@ class WriteJsonTest extends SparkLocalBaseTest {
     }
   }
 
-  test("Default JSON file - equals") {
+  test("Write JSON file - equals") {
     import spark.implicits._
 
     val file1 = "target/foo1.json"

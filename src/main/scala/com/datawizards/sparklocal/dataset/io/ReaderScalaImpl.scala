@@ -1,5 +1,7 @@
 package com.datawizards.sparklocal.dataset.io
 
+import java.io.File
+
 import com.datawizards.csv2class
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore
@@ -11,6 +13,7 @@ import shapeless.Generic.Aux
 import shapeless.HList
 import org.json4s._
 import org.json4s.native.JsonMethods._
+import com.sksamuel.avro4s.{AvroInputStream, FromRecord, SchemaFor}
 
 object ReaderScalaImpl extends Reader {
 
@@ -43,8 +46,13 @@ object ReaderScalaImpl extends Reader {
     override def apply[L <: HList](dataStore: datastore.ParquetDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L]): DataSetAPI[T] =
       ???
 
-    override def apply[L <: HList](dataStore: datastore.AvroDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L]): DataSetAPI[T] =
-      ???
+    override def apply[L <: HList](dataStore: datastore.AvroDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], r: FromRecord[T]): DataSetAPI[T] = {
+      val is = AvroInputStream.data[T](new File(dataStore.path))
+      val data = is.iterator.toSet
+      is.close()
+      DataSetAPI(data)
+    }
+
   }
 
 }
