@@ -42,7 +42,31 @@ or
 
 # Examples
 
-##
+## Creating Session
+
+Entry point for library is session object which is similar to SparkSession object from Apache Spark.
+
+Process of creating Session is also similar to Apache Spark.
+
+When creating Session object you can choose between different execution engines. Currently supported:
+
+- Spark - wrapper on Spark, which can be used at production data volumes
+- ScalaEager - implementation based on Scala collection with eager transformation, which makes it fast for unit testing
+
+```scala
+import com.datawizards.sparklocal.session.ExecutionEngine.ExecutionEngine
+import com.datawizards.sparklocal.session.{ExecutionEngine, SparkSessionAPI}
+
+// just change this value to start using different execution engine
+val engine = ExecutionEngine.ScalaEager
+
+val session = SparkSessionAPI
+      .builder(engine)
+      .master("local")
+      .getOrCreate()
+
+val ds = session.read[Person](CSVDataStore(file))
+```
 
 ## RDD API
 
