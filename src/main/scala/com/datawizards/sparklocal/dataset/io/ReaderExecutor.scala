@@ -3,7 +3,7 @@ package com.datawizards.sparklocal.dataset.io
 import com.datawizards.csv2class.FromRow
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore.{AvroDataStore, CSVDataStore, JsonDataStore, ParquetDataStore}
-import com.sksamuel.avro4s.{FromRecord, SchemaFor}
+import com.sksamuel.avro4s.{FromRecord, SchemaFor, ToRecord}
 import shapeless.{Generic, HList}
 
 import scala.reflect.ClassTag
@@ -28,7 +28,9 @@ trait ReaderExecutor[T] {
     implicit
     ct: ClassTag[T],
     tt: TypeTag[T],
-    gen: Generic.Aux[T, L]
+    s: SchemaFor[T],
+    fromR: FromRecord[T],
+    toR: ToRecord[T]
   ): DataSetAPI[T]
 
   def apply[L <: HList](dataStore: AvroDataStore)(

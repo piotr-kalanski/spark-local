@@ -8,7 +8,10 @@ import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore._
 import org.apache.spark.sql.SaveMode
 import org.json4s.DefaultFormats
-import com.sksamuel.avro4s.{AvroOutputStream, ToRecord, SchemaFor}
+import com.sksamuel.avro4s._
+import org.apache.avro.generic.GenericRecord
+import org.apache.hadoop.fs.Path
+import org.apache.parquet.avro.AvroParquetWriter
 
 import scala.reflect.ClassTag
 
@@ -47,8 +50,20 @@ class WriterScalaImpl[T] extends Writer[T] {
       pw.close()
     }
 
-    override def apply(dataStore: ParquetDataStore, saveMode: SaveMode): Unit =
-      ???
+    override def apply(dataStore: ParquetDataStore, saveMode: SaveMode)
+                      (implicit s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T]): Unit = {
+      val file = new File(dataStore.path)
+      //TODO - delete only in overwrite mode!
+      file.delete()
+      val writer = AvroParquetWriter
+          .builder[GenericRecord](new Path(dataStore.path))
+          .withSchema(s())
+          .build()
+      val format = RecordFormat[T]
+      for(e <- ds)
+        writer.write(format.to(e))
+      writer.close()
+    }
 
     override def apply(dataStore: AvroDataStore, saveMode: SaveMode)
                       (implicit s: SchemaFor[T], r: ToRecord[T]): Unit = {

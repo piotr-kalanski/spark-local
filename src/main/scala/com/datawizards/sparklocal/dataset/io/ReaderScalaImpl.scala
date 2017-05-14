@@ -13,7 +13,11 @@ import shapeless.Generic.Aux
 import shapeless.HList
 import org.json4s._
 import org.json4s.native.JsonMethods._
-import com.sksamuel.avro4s.{AvroInputStream, FromRecord, SchemaFor}
+import com.sksamuel.avro4s._
+import org.apache.avro.generic.GenericRecord
+import org.apache.hadoop.fs.Path
+import org.apache.parquet.avro.AvroParquetReader
+import org.apache.parquet.hadoop.ParquetReader
 
 object ReaderScalaImpl extends Reader {
 
@@ -43,8 +47,12 @@ object ReaderScalaImpl extends Reader {
       )
     }
 
-    override def apply[L <: HList](dataStore: datastore.ParquetDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L]): DataSetAPI[T] =
-      ???
+    override def apply[L <: HList](dataStore: datastore.ParquetDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T]): DataSetAPI[T] = {
+      val reader = AvroParquetReader.builder[GenericRecord](new Path(dataStore.path)).build()
+      val format = RecordFormat[T]
+      val iterator = Iterator.continually(reader.read).takeWhile(_ != null).map(format.from)
+      DataSetAPI(iterator.toStream)
+    }
 
     override def apply[L <: HList](dataStore: datastore.AvroDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], r: FromRecord[T]): DataSetAPI[T] = {
       val is = AvroInputStream.data[T](new File(dataStore.path))

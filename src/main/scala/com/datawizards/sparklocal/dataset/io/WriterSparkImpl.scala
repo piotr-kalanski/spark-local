@@ -4,7 +4,7 @@ import com.datawizards.class2csv
 import com.databricks.spark.avro._
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore._
-import com.sksamuel.avro4s.{SchemaFor, ToRecord}
+import com.sksamuel.avro4s.{FromRecord, SchemaFor, ToRecord}
 import org.apache.spark.sql.SaveMode
 
 import scala.reflect.ClassTag
@@ -47,7 +47,8 @@ class WriterSparkImpl[T] extends Writer[T] {
         .mode(saveMode)
         .json(dataStore.path)
 
-    override def apply(dataStore: ParquetDataStore, saveMode: SaveMode): Unit =
+    override def apply(dataStore: ParquetDataStore, saveMode: SaveMode)
+                      (implicit s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T]): Unit =
       ds
         .toDataset
         .repartition(1)
