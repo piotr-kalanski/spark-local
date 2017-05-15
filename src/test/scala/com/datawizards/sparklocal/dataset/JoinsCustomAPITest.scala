@@ -1,6 +1,7 @@
 package com.datawizards.sparklocal.dataset
 
 import com.datawizards.sparklocal.SparkLocalBaseTest
+import com.datawizards.sparklocal.dataset.expressions.Expressions.Literal
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import com.datawizards.sparklocal.TestModel._
@@ -107,6 +108,12 @@ class JoinsCustomAPITest extends SparkLocalBaseTest {
   test("full outer join - Spark, Scala  - equals") {
     assertDatasetOperationReturnsSameResultWithSorted(people){
       ds => booksDs.fullOuterJoin(ds, booksDs("personName") === ds("name"))
+    }
+  }
+
+  test("join with complex expression - Scala, Spark - equals") {
+    assertDatasetOperationReturnsSameResultWithSorted(people) {
+      ds => ds.join(booksDs, (ds("name") === booksDs("personName")) || !(ds("name") === new Literal("p2")) && (booksDs("personName") === new Literal("p1")))
     }
   }
 

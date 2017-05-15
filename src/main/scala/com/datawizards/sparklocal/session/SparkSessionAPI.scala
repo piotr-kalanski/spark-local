@@ -111,7 +111,7 @@ object SparkSessionAPIScalaImpl extends SparkSessionAPI {
 
 }
 
-class SparkSessionAPISparkImpl(spark: SparkSession) extends SparkSessionAPI {
+class SparkSessionAPISparkImpl(private [session] val spark: SparkSession) extends SparkSessionAPI {
 
   override def createRDD[T: ClassTag: TypeTag](data: Seq[T]): RDDAPI[T] =
     RDDAPI(spark.sparkContext.parallelize(data))
