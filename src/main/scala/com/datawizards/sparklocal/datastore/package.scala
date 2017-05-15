@@ -7,7 +7,7 @@ package object datastore {
     val path: String
   }
 
-  case class StdoutStore()
+  case class Stdout(rows:Int = 20)
 
   case class CSVDataStore(
     path: String,

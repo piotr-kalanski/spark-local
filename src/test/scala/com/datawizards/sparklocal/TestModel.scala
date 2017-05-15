@@ -4,6 +4,14 @@ object TestModel {
   case class Person(name: String, age: Int)
   case class PersonBigInt(name: String, age: BigInt)
   case class Book(title: String, year: Int, personName: String)
+  case class LargeClass(strVal   : String,
+                        intVal   : Int,
+                        longVal  : Long,
+                        doubleVal: Double,
+                        floatVal : Float,
+                        shortVal : Short,
+                        flag     : Boolean,
+                        byteVal  : Byte)
 
   implicit val peopleOrdering = new Ordering[Person]() {
     override def compare(x: Person, y: Person): Int =

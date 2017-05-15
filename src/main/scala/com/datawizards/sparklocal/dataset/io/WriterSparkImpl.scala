@@ -13,11 +13,6 @@ class WriterSparkImpl[T] extends Writer[T] {
 
   override def write(ds: DataSetAPI[T]): WriterExecutor[T] = new WriterExecutor[T](ds) {
 
-    override def apply(dataStore: StdoutStore, saveMode: SaveMode): Unit =
-      ds
-        .toDataset
-        .show()
-
     override def apply(dataStore: CSVDataStore, saveMode: SaveMode)
                       (implicit ct: ClassTag[T], enc: class2csv.CsvEncoder[T]): Unit = {
 

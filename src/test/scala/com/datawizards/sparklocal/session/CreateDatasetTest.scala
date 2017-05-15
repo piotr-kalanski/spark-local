@@ -2,6 +2,7 @@ package com.datawizards.sparklocal.session
 
 import com.datawizards.sparklocal.SparkLocalBaseTest
 import com.datawizards.sparklocal.dataset.DataSetAPI
+import com.datawizards.sparklocal.rdd.RDDAPI
 import com.datawizards.sparklocal.session.ExecutionEngine.ExecutionEngine
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -17,10 +18,23 @@ class CreateDatasetTest extends SparkLocalBaseTest {
     }
   }
 
+  test("Create DataSet(RDD) - result") {
+    assertDatasetOperationResult(createDatasetRDD(ExecutionEngine.ScalaEager)) {
+      data
+    }
+  }
+
   test("Create DataSet - equals") {
     assertDatasetEquals(
       createDataset(ExecutionEngine.ScalaEager),
       createDataset(ExecutionEngine.Spark)
+    )
+  }
+
+  test("Create DataSet(RDD) - equals") {
+    assertDatasetEquals(
+      createDatasetRDD(ExecutionEngine.ScalaEager),
+      createDatasetRDD(ExecutionEngine.Spark)
     )
   }
 
@@ -30,5 +44,12 @@ class CreateDatasetTest extends SparkLocalBaseTest {
       .master("local")
       .getOrCreate()
       .createDataset(data)
+
+  private def createDatasetRDD(engine: ExecutionEngine): DataSetAPI[Int] =
+    SparkSessionAPI
+      .builder(engine)
+      .master("local")
+      .getOrCreate()
+      .createDataset(RDDAPI(data))
 
 }
