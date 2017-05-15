@@ -31,6 +31,7 @@ libraryDependencies ++= Seq(
   "com.databricks" %% "spark-avro" % "3.2.0",
   "com.github.piotr-kalanski" %% "csv2class" % "0.2.0",
   "org.json4s" %% "json4s-native" % "3.5.2",
+  "org.apache.parquet" % "parquet-avro" % "1.9.0",
   "com.sksamuel.avro4s" %% "avro4s-core" % "1.6.4",
   "org.scalatest" %% "scalatest" % "3.0.1" % "test",
   "junit" % "junit" % "4.10" % "test"

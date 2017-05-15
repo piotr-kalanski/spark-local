@@ -51,7 +51,7 @@ Process of creating Session is also similar to Apache Spark.
 When creating Session object you can choose between different execution engines. Currently supported:
 
 - Spark - wrapper on Spark, which can be used at production data volumes
-- ScalaEager - implementation based on Scala collection with eager transformation, which makes it fast for unit testing
+- ScalaEager - implementation based on Scala collection with eager transformations, which makes it fast for unit testing
 
 ```scala
 import com.datawizards.sparklocal.session.ExecutionEngine.ExecutionEngine
