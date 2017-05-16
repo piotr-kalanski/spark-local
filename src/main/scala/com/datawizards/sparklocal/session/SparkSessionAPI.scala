@@ -3,8 +3,10 @@ package com.datawizards.sparklocal.session
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.dataset.io.{ReaderExecutor, ReaderScalaImpl, ReaderSparkImpl}
 import com.datawizards.sparklocal.rdd.RDDAPI
+import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
+
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe.TypeTag
 
@@ -47,6 +49,12 @@ trait SparkSessionAPI {
     * Returns a [[ReaderExecutor]] that can be used to read non-streaming data in as a DataSet
     */
   def read[T]: ReaderExecutor[T]
+
+  /**
+    * Read a text file from HDFS, a local file system (available on all nodes), or any
+    * Hadoop-supported file system URI, and return it as an RDD of Strings.
+    */
+  def textFile(path: String, minPartitions: Int = 2): RDDAPI[String]
 
   //TODO - accumulator
   /*
@@ -109,6 +117,8 @@ object SparkSessionAPIScalaImpl extends SparkSessionAPI {
   override def read[T]: ReaderExecutor[T] =
     ReaderScalaImpl.read[T]
 
+  override def textFile(path: String, minPartitions: Int=2): RDDAPI[String] =
+    RDDAPI(scala.io.Source.fromFile(path).getLines().toIterable)
 }
 
 class SparkSessionAPISparkImpl(private [session] val spark: SparkSession) extends SparkSessionAPI {
@@ -124,4 +134,6 @@ class SparkSessionAPISparkImpl(private [session] val spark: SparkSession) extend
   override def read[T]: ReaderExecutor[T] =
     ReaderSparkImpl.read[T]
 
+  override def textFile(path: String, minPartitions: Int=2): RDDAPI[String] =
+    RDDAPI(spark.sparkContext.textFile(path, minPartitions))
 }
