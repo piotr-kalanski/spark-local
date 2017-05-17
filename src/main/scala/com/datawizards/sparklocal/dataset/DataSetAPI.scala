@@ -1,8 +1,7 @@
 package com.datawizards.sparklocal.dataset
 
-import com.datawizards.class2csv.CsvEncoder
 import com.datawizards.sparklocal.dataset.expressions.Expressions._
-import com.datawizards.sparklocal.dataset.io.{Writer, WriterExecutor}
+import com.datawizards.sparklocal.dataset.io.WriterExecutor
 import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.sql.{Column, Dataset, SparkSession}
@@ -95,58 +94,7 @@ trait DataSetAPI[T] {
   def rightOuterJoin[U: ClassTag: TypeTag](other: DataSetAPI[U], condition: BooleanExpression): DataSetAPI[(T, U)]
   def fullOuterJoin[U: ClassTag: TypeTag](other: DataSetAPI[U], condition: BooleanExpression): DataSetAPI[(T, U)]
   def write: WriterExecutor[T]
-  def show(rows: Int=20)
-          (implicit ct: ClassTag[T], enc: CsvEncoder[T]): String = {
-    val sep = "|"
-    val fields = ct.runtimeClass.getDeclaredFields.map(_.getName)
-    val encodedRows = take(rows).map(r => enc.encode(r))
-    val buffer = new StringBuilder
-
-    def calculateColumnsLengths(): Map[Int, Int] = {
-      encodedRows
-        .flatMap(r => r.zipWithIndex.map(p => (p._2, p._1.length))) // column number -> column length
-        .union(fields.zipWithIndex.map(p => (p._2, p._1.length)))
-        .groupBy(_._1)
-        .mapValues(vals => vals.maxBy(_._2)._2)
-    }
-
-    def calculateHorizontalSeparator(columnsLengths: Map[Int, Int]): String =
-      "+" + columnsLengths.toSeq.sorted.map(_._2).map(v => "-" * v).mkString("+") + "+\n"
-
-    def generateHeader(columnsLengths: Map[Int,Int], horizontalSeparator: String): Unit = {
-      buffer ++= horizontalSeparator
-      var i = 0
-      buffer ++= sep
-      for(f <- fields) {
-        buffer ++= f.toString.padTo(columnsLengths(i), " ").mkString("")
-        buffer ++= sep
-        i += 1
-      }
-      buffer ++= "\n"
-      buffer ++= horizontalSeparator
-    }
-
-    def generateRows(columnsLengths: Map[Int,Int], horizontalSeparator: String): Unit = {
-      for(r <- encodedRows) {
-        buffer ++= sep
-        for((f,i) <- r.zipWithIndex) {
-          buffer ++= f.padTo(columnsLengths(i), " ").mkString("")
-          buffer ++= sep
-        }
-        buffer ++= "\n"
-      }
-      buffer ++= horizontalSeparator
-    }
-
-    val columnsLengths: Map[Int,Int] = calculateColumnsLengths()
-    val hSeparator = calculateHorizontalSeparator(columnsLengths)
-    generateHeader(columnsLengths, hSeparator)
-    generateRows(columnsLengths, hSeparator)
-
-    val result = buffer.toString
-    println(result)
-    result
-  }
+  def show: WriterExecutor[T] = write
 
   override def toString: String = "DataSet(" + collect().mkString(",") + ")"
 

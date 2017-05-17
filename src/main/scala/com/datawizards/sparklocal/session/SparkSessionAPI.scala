@@ -32,7 +32,7 @@ trait SparkSessionAPI {
   /**
     * Create new RDD based on Scala collection
     */
-  def createRDD[T: ClassTag: TypeTag](data: Seq[T]): RDDAPI[T]
+  def createRDD[T: ClassTag](data: Seq[T]): RDDAPI[T]
 
   /**
     * Create new DataSet based on Scala collection
@@ -108,7 +108,7 @@ trait SparkSessionAPI {
 
 object SparkSessionAPIScalaImpl extends SparkSessionAPI {
 
-  override def createRDD[T: ClassTag: TypeTag](data: Seq[T]): RDDAPI[T] =
+  override def createRDD[T: ClassTag](data: Seq[T]): RDDAPI[T] =
     RDDAPI(data)
 
   override def createDataset[T: ClassTag: TypeTag](data: Seq[T]): DataSetAPI[T] =
@@ -123,7 +123,7 @@ object SparkSessionAPIScalaImpl extends SparkSessionAPI {
 
 class SparkSessionAPISparkImpl(private [session] val spark: SparkSession) extends SparkSessionAPI {
 
-  override def createRDD[T: ClassTag: TypeTag](data: Seq[T]): RDDAPI[T] =
+  override def createRDD[T: ClassTag](data: Seq[T]): RDDAPI[T] =
     RDDAPI(spark.sparkContext.parallelize(data))
 
   override def createDataset[T: ClassTag: TypeTag](data: Seq[T]): DataSetAPI[T] = {

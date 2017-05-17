@@ -9,7 +9,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class WriteParquetTest extends SparkLocalBaseTest {
+class WriteReadParquetTest extends SparkLocalBaseTest {
 
   test("Writing and reading parquet file produces the same result - Scala") {
     val file = "target/foo_scala.parquet"

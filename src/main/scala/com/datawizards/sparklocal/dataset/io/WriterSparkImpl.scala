@@ -59,6 +59,14 @@ class WriterSparkImpl[T] extends Writer[T] {
         .write
         .mode(saveMode)
         .avro(dataStore.path)
+
+    override def apply(dataStore: HiveDataStore, saveMode: SaveMode)
+                      (implicit s: SchemaFor[T], r: ToRecord[T]): Unit =
+      ds
+        .toDataset
+        .write
+        .mode(saveMode)
+        .saveAsTable(dataStore.fullTableName)
   }
 
 }
