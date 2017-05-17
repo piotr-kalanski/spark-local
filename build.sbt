@@ -28,6 +28,7 @@ developers := List(
 
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-sql" % "2.1.0",
+  "org.apache.spark" %% "spark-hive" % "2.1.0",
   "com.databricks" %% "spark-avro" % "3.2.0",
   "com.github.piotr-kalanski" %% "csv2class" % "0.2.0",
   "org.json4s" %% "json4s-native" % "3.5.2",

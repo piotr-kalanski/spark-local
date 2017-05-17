@@ -6,6 +6,12 @@ package object datastore {
   trait FileDataStore extends DataStore {
     val path: String
   }
+  trait DBDataStore extends DataStore {
+    val database: String
+    val table: String
+
+    def fullTableName: String = database + "." + table
+  }
 
   case class Stdout(rows:Int = 20)
 
@@ -21,4 +27,10 @@ package object datastore {
   case class ParquetDataStore(path: String) extends FileDataStore
   case class AvroDataStore(path: String) extends FileDataStore
 
+  case class HiveDataStore(database: String, table: String) extends DBDataStore {
+    def localDirectoryPath: String = hiveWarehouseDirectoryPath + database + "/" + table
+    def localFilePath: String = localDirectoryPath + "/data.avro"
+
+    private def hiveWarehouseDirectoryPath = "spark-warehouse/"
+  }
 }

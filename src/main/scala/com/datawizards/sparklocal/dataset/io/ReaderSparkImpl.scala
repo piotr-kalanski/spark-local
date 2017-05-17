@@ -35,7 +35,7 @@ object ReaderSparkImpl extends Reader {
       DataSetAPI(df.as[T](ExpressionEncoder[T]()))
     }
 
-    override def apply[L <: HList](dataStore: datastore.JsonDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T]): DataSetAPI[T] =
+    override def apply(dataStore: datastore.JsonDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T]): DataSetAPI[T] =
       DataSetAPI(
         spark
           .read
@@ -44,7 +44,7 @@ object ReaderSparkImpl extends Reader {
           .as[T](ExpressionEncoder[T]())
       )
 
-    override def apply[L <: HList](dataStore: datastore.ParquetDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T]): DataSetAPI[T] =
+    override def apply(dataStore: datastore.ParquetDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T]): DataSetAPI[T] =
       DataSetAPI(
         spark
           .read
@@ -53,13 +53,22 @@ object ReaderSparkImpl extends Reader {
           .as[T](ExpressionEncoder[T]())
       )
 
-    override def apply[L <: HList](dataStore: datastore.AvroDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], r: FromRecord[T]): DataSetAPI[T] =
+    override def apply(dataStore: datastore.AvroDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], r: FromRecord[T]): DataSetAPI[T] =
       DataSetAPI(
         spark
           .read
           .schema(ExpressionEncoder[T]().schema)
           .avro(dataStore.path)
           .as[T](ExpressionEncoder[T]())
+      )
+
+    override def apply(dataStore: datastore.HiveDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], r: FromRecord[T]): DataSetAPI[T] =
+      DataSetAPI(
+        spark
+        .read
+//        .schema(ExpressionEncoder[T]().schema)
+        .table(dataStore.fullTableName)
+        .as[T](ExpressionEncoder[T]())
       )
   }
 

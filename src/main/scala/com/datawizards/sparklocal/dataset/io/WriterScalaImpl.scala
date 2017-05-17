@@ -70,6 +70,13 @@ class WriterScalaImpl[T] extends Writer[T] {
       os.close()
     }
 
+    override def apply(dataStore: HiveDataStore, saveMode: SaveMode)
+                      (implicit s: SchemaFor[T], r: ToRecord[T]): Unit = {
+      val file = new File(dataStore.localDirectoryPath)
+      file.mkdirs()
+      apply(AvroDataStore(dataStore.localFilePath), saveMode)
+    }
+
   }
 
 }

@@ -16,10 +16,68 @@ abstract class WriterExecutor[T](ds: DataSetAPI[T]) {
            (implicit s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T]): Unit
   def apply(dataStore: AvroDataStore, saveMode: SaveMode)
            (implicit s: SchemaFor[T], r: ToRecord[T]): Unit
+  def apply(dataStore: HiveDataStore, saveMode: SaveMode)
+           (implicit s: SchemaFor[T], r: ToRecord[T]): Unit
+  def apply()(implicit ct: ClassTag[T], enc: CsvEncoder[T]): String =
+    apply(Stdout())
+  def apply(rows:Int)(implicit ct: ClassTag[T], enc: CsvEncoder[T]): String =
+    apply(Stdout(rows))
   def apply(dataStore: Stdout, saveMode: SaveMode)
            (implicit ct: ClassTag[T], enc: CsvEncoder[T]): String =
     apply(dataStore)
   def apply(dataStore: Stdout)
-           (implicit ct: ClassTag[T], enc: CsvEncoder[T]): String =
-    ds.show(dataStore.rows)
+           (implicit ct: ClassTag[T], enc: CsvEncoder[T]): String = {
+    val sep = "|"
+    val encodedRows = ds.take(dataStore.rows).map(r => enc.encode(r))
+    val classFields = ct.runtimeClass.getDeclaredFields.map(_.getName)
+    val fields:Array[String] =
+      if(classFields.nonEmpty) classFields
+      else encodedRows.head.zipWithIndex.map(p => "_" + (p._2+1).toString).toArray
+    val buffer = new StringBuilder
+
+    def calculateColumnsLengths(): Map[Int, Int] = {
+      encodedRows
+        .flatMap(r => r.zipWithIndex.map(p => (p._2, p._1.length))) // column number -> column length
+        .union(fields.zipWithIndex.map(p => (p._2, p._1.length)))
+        .groupBy(_._1)
+        .mapValues(vals => vals.maxBy(_._2)._2)
+    }
+
+    def calculateHorizontalSeparator(columnsLengths: Map[Int, Int]): String =
+      "+" + columnsLengths.toSeq.sorted.map(_._2).map(v => "-" * v).mkString("+") + "+\n"
+
+    def generateHeader(columnsLengths: Map[Int,Int], horizontalSeparator: String): Unit = {
+      buffer ++= horizontalSeparator
+      var i = 0
+      buffer ++= sep
+      for(f <- fields) {
+        buffer ++= f.toString.padTo(columnsLengths(i), " ").mkString("")
+        buffer ++= sep
+        i += 1
+      }
+      buffer ++= "\n"
+      buffer ++= horizontalSeparator
+    }
+
+    def generateRows(columnsLengths: Map[Int,Int], horizontalSeparator: String): Unit = {
+      for(r <- encodedRows) {
+        buffer ++= sep
+        for((f,i) <- r.zipWithIndex) {
+          buffer ++= f.padTo(columnsLengths(i), " ").mkString("")
+          buffer ++= sep
+        }
+        buffer ++= "\n"
+      }
+      buffer ++= horizontalSeparator
+    }
+
+    val columnsLengths: Map[Int,Int] = calculateColumnsLengths()
+    val hSeparator = calculateHorizontalSeparator(columnsLengths)
+    generateHeader(columnsLengths, hSeparator)
+    generateRows(columnsLengths, hSeparator)
+
+    val result = buffer.toString
+    println(result)
+    result
+  }
 }
