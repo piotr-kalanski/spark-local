@@ -3,7 +3,7 @@ package com.datawizards.sparklocal.rdd
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import org.apache.spark.{Partition, Partitioner}
 import org.apache.spark.rdd.{PartitionCoalescer, RDD}
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{Encoder, SparkSession}
 import org.apache.spark.storage.StorageLevel
 
 import scala.collection.Map
@@ -79,7 +79,7 @@ trait RDDAPI[T] {
   def sample(withReplacement: Boolean, fraction: Double, seed: Long = 0L): RDDAPI[T]
   def takeSample(withReplacement: Boolean, num: Int, seed: Long = 0L): Array[T]
   def randomSplit(weights: Array[Double], seed: Long = 0L): Array[RDDAPI[T]]
-  def toDataSet(implicit tt: TypeTag[T]): DataSetAPI[T]
+  def toDataSet(implicit enc: Encoder[T]): DataSetAPI[T]
 
   override def toString: String = "RDD(" + collect().mkString(",") + ")"
 

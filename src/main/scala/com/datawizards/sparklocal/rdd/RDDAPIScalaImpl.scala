@@ -2,6 +2,7 @@ package com.datawizards.sparklocal.rdd
 
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import org.apache.spark.rdd.PartitionCoalescer
+import org.apache.spark.sql.Encoder
 import org.apache.spark.{Partition, Partitioner}
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.util.random.{BernoulliCellSampler, BernoulliSampler, PoissonSampler}
@@ -160,7 +161,7 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
     }.toArray
   }
 
-  override def toDataSet(implicit tt: TypeTag[T]): DataSetAPI[T] =
+  override def toDataSet(implicit enc: Encoder[T]): DataSetAPI[T] =
     DataSetAPI(data)
 
 }

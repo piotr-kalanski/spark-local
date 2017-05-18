@@ -417,6 +417,13 @@ object ExampleHRReport {
 
 Library provides dedicated API for input/output operations with implementation for Spark and Scala collections.
 
+Supported formats:
+- CSV
+- JSON
+- Parquet
+- Avro
+- Hive
+
 ## CSV
 
 ### Read CSV file
@@ -470,6 +477,34 @@ reader.read[Person](AvroDataStore("people.avro"))
 
 ```scala
 ds.write(AvroDataStore("people.avro"), SaveMode.Overwrite)
+```
+
+## Parquet
+
+### Read Parquet file
+
+```scala
+reader.read[Person](ParquetDataStore("people.parquet"))
+```
+
+### Write to Parquet file
+
+```scala
+ds.write(ParquetDataStore("people.parquet"), SaveMode.Overwrite)
+```
+
+## Hive
+
+### Read Hive table
+
+```scala
+reader.read[Person](HiveDataStore("db", "table"))
+```
+
+### Write to Hive table
+
+```scala
+ds.write(HiveDataStore("db", "table"), SaveMode.Overwrite)
 ```
 
 # Supported Spark versions

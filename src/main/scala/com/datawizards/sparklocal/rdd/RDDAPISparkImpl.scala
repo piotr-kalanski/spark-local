@@ -3,6 +3,7 @@ package com.datawizards.sparklocal.rdd
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import org.apache.spark.{Partition, Partitioner}
 import org.apache.spark.rdd.{PartitionCoalescer, RDD}
+import org.apache.spark.sql.Encoder
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.storage.StorageLevel
 
@@ -164,9 +165,7 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
   override def randomSplit(weights: Array[Double], seed: Long): Array[RDDAPI[T]] =
     data.randomSplit(weights, seed).map(rdd => RDDAPI(rdd))
 
-  override def toDataSet(implicit tt: TypeTag[T]): DataSetAPI[T] = {
-    implicit val encoder = ExpressionEncoder[T]()
+  override def toDataSet(implicit enc: Encoder[T]): DataSetAPI[T] =
     DataSetAPI(spark.createDataset(data))
-  }
 
 }

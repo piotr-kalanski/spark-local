@@ -1,6 +1,7 @@
 package com.datawizards.sparklocal.dataset
 
 import com.datawizards.sparklocal.SparkLocalBaseTest
+import com.datawizards.sparklocal.implicits._
 import com.datawizards.sparklocal.dataset.expressions.Expressions.Literal
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner

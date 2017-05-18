@@ -3,6 +3,7 @@ package com.datawizards.sparklocal.session
 import com.datawizards.sparklocal.SparkLocalBaseTest
 import com.datawizards.sparklocal.TestModel.{Person, PersonBigInt}
 import com.datawizards.sparklocal.datastore.{CSVDataStore, JsonDataStore}
+import com.datawizards.sparklocal.implicits._
 import com.datawizards.sparklocal.session.ExecutionEngine.ExecutionEngine
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner

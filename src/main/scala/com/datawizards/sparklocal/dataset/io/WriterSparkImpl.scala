@@ -5,7 +5,7 @@ import com.databricks.spark.avro._
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore._
 import com.sksamuel.avro4s.{FromRecord, SchemaFor, ToRecord}
-import org.apache.spark.sql.SaveMode
+import org.apache.spark.sql.{Encoder, SaveMode}
 
 import scala.reflect.ClassTag
 
@@ -14,7 +14,7 @@ class WriterSparkImpl[T] extends Writer[T] {
   override def write(ds: DataSetAPI[T]): WriterExecutor[T] = new WriterExecutor[T](ds) {
 
     override def apply(dataStore: CSVDataStore, saveMode: SaveMode)
-                      (implicit ct: ClassTag[T], enc: class2csv.CsvEncoder[T]): Unit = {
+                      (implicit ct: ClassTag[T], csvEncoder: class2csv.CsvEncoder[T], encoder: Encoder[T]): Unit = {
 
       var df = ds.toDataset.toDF
       if(dataStore.columns.nonEmpty) {
@@ -34,7 +34,8 @@ class WriterSparkImpl[T] extends Writer[T] {
         .csv(dataStore.path)
     }
 
-    override def apply(dataStore: JsonDataStore, saveMode: SaveMode): Unit =
+    override def apply(dataStore: JsonDataStore, saveMode: SaveMode)
+                      (implicit encoder: Encoder[T]): Unit =
       ds
         .toDataset
         .repartition(1)
@@ -43,7 +44,7 @@ class WriterSparkImpl[T] extends Writer[T] {
         .json(dataStore.path)
 
     override def apply(dataStore: ParquetDataStore, saveMode: SaveMode)
-                      (implicit s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T]): Unit =
+                      (implicit s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], encoder: Encoder[T]): Unit =
       ds
         .toDataset
         .repartition(1)
@@ -52,7 +53,7 @@ class WriterSparkImpl[T] extends Writer[T] {
         .parquet(dataStore.path)
 
     override def apply(dataStore: AvroDataStore, saveMode: SaveMode)
-                      (implicit s: SchemaFor[T], r: ToRecord[T]): Unit =
+                      (implicit s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit =
       ds
         .toDataset
         .repartition(1)
@@ -61,7 +62,7 @@ class WriterSparkImpl[T] extends Writer[T] {
         .avro(dataStore.path)
 
     override def apply(dataStore: HiveDataStore, saveMode: SaveMode)
-                      (implicit s: SchemaFor[T], r: ToRecord[T]): Unit =
+                      (implicit s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit =
       ds
         .toDataset
         .write

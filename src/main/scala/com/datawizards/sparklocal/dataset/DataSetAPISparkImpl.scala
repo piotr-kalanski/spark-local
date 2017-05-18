@@ -3,23 +3,21 @@ package com.datawizards.sparklocal.dataset
 import java.util
 
 import com.datawizards.sparklocal.dataset.expressions.Expressions
-import com.datawizards.sparklocal.dataset.io.{Writer, WriterExecutor, WriterSparkImpl}
+import com.datawizards.sparklocal.dataset.io.{WriterExecutor, WriterSparkImpl}
 import com.datawizards.sparklocal.rdd.RDDAPI
-import org.apache.spark.sql.{Column, Dataset}
-import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
+import org.apache.spark.sql.{Column, Dataset, Encoder}
 import org.apache.spark.storage.StorageLevel
 
 import scala.reflect.ClassTag
-import scala.reflect.runtime.universe.TypeTag
 
-class DataSetAPISparkImpl[T: ClassTag: TypeTag](val data: Dataset[T]) extends DataSetAPI[T] {
+class DataSetAPISparkImpl[T: ClassTag](val data: Dataset[T]) extends DataSetAPI[T] {
 
-  private def create[U: ClassTag: TypeTag](ds: Dataset[U]) = new DataSetAPISparkImpl(ds)
+  private def create[U: ClassTag](ds: Dataset[U]) = new DataSetAPISparkImpl(ds)
 
-  override private[dataset] def toDataset = data
+  override private[dataset] def toDataset(implicit enc: Encoder[T]) = data
 
-  override def map[That: ClassTag: TypeTag](map: T => That): DataSetAPI[That] =
-    create(data.map(map)(ExpressionEncoder[That]()))
+  override def map[That: ClassTag](map: T => That)(implicit enc: Encoder[That]): DataSetAPI[That] =
+    create(data.map(map))
 
   override def collect(): Array[T] =
     data.collect()
@@ -66,8 +64,8 @@ class DataSetAPISparkImpl[T: ClassTag: TypeTag](val data: Dataset[T]) extends Da
   override def unpersist(blocking: Boolean): DataSetAPI[T] =
     create(data.unpersist(blocking))
 
-  override def flatMap[U: ClassTag: TypeTag](func: (T) => TraversableOnce[U]): DataSetAPI[U] =
-    create(data.flatMap(func)(ExpressionEncoder[U]()))
+  override def flatMap[U: ClassTag](func: (T) => TraversableOnce[U])(implicit enc: Encoder[U]=null): DataSetAPI[U] =
+    create(data.flatMap(func))
 
   override def distinct(): DataSetAPI[T] =
     create(data.distinct)
@@ -75,17 +73,17 @@ class DataSetAPISparkImpl[T: ClassTag: TypeTag](val data: Dataset[T]) extends Da
   override def rdd(): RDDAPI[T] =
     RDDAPI(data.rdd)
 
-  override def union(other: DataSetAPI[T]): DataSetAPI[T] =
+  override def union(other: DataSetAPI[T])(implicit enc: Encoder[T]): DataSetAPI[T] =
     create(data.union(other.toDataset))
 
-  override def intersect(other: DataSetAPI[T]): DataSetAPI[T] =
+  override def intersect(other: DataSetAPI[T])(implicit enc: Encoder[T]): DataSetAPI[T] =
     create(data.intersect(other.toDataset))
 
   override def takeAsList(n: Int): util.List[T] =
     data.takeAsList(n)
 
-  override def groupByKey[K: ClassTag: TypeTag](func: (T) => K): KeyValueGroupedDataSetAPI[K, T] =
-    new KeyValueGroupedDataSetAPISparkImpl(data.groupByKey(func)(ExpressionEncoder[K]()))
+  override def groupByKey[K: ClassTag](func: (T) => K)(implicit enc: Encoder[K]=null): KeyValueGroupedDataSetAPI[K, T] =
+    new KeyValueGroupedDataSetAPISparkImpl(data.groupByKey(func))
 
   override def limit(n: Int): DataSetAPI[T] =
     create(data.limit(n))
@@ -108,16 +106,20 @@ class DataSetAPISparkImpl[T: ClassTag: TypeTag](val data: Dataset[T]) extends Da
   override def randomSplit(weights: Array[Double], seed: Long): Array[DataSetAPI[T]] =
     data.randomSplit(weights, seed).map(ds => create(ds))
 
-  override def join[U: ClassTag : TypeTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression): DataSetAPI[(T, U)] =
+  override def join[U: ClassTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression)
+                                (implicit encT: Encoder[T], encU: Encoder[U], encTU: Encoder[(T,U)]): DataSetAPI[(T, U)] =
     create(data.joinWith(other.toDataset, condition.toSparkColumn, "inner"))
 
-  override def leftOuterJoin[U: ClassTag : TypeTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression): DataSetAPI[(T, U)] =
+  override def leftOuterJoin[U: ClassTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression)
+                                         (implicit encT: Encoder[T], encU: Encoder[U], encTU: Encoder[(T,U)]): DataSetAPI[(T, U)] =
     create(data.joinWith(other.toDataset, condition.toSparkColumn, "left_outer"))
 
-  override def rightOuterJoin[U: ClassTag : TypeTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression): DataSetAPI[(T, U)] =
+  override def rightOuterJoin[U: ClassTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression)
+                                          (implicit encT: Encoder[T], encU: Encoder[U], encTU: Encoder[(T,U)]): DataSetAPI[(T, U)] =
     create(data.joinWith(other.toDataset, condition.toSparkColumn, "right_outer"))
 
-  override def fullOuterJoin[U: ClassTag : TypeTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression): DataSetAPI[(T, U)] =
+  override def fullOuterJoin[U: ClassTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression)
+                                         (implicit encT: Encoder[T], encU: Encoder[U], encTU: Encoder[(T,U)]): DataSetAPI[(T, U)] =
     create(data.joinWith(other.toDataset, condition.toSparkColumn, "outer"))
 
   override def write: WriterExecutor[T] = new WriterSparkImpl[T].write(this)

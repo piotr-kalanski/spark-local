@@ -1,19 +1,30 @@
 package com.datawizards.sparklocal.dataset
 
-import org.apache.spark.sql.{KeyValueGroupedDataset, SparkSession}
+import org.apache.spark.sql.{Encoder, KeyValueGroupedDataset, SparkSession}
 
 import scala.reflect.ClassTag
-import scala.reflect.runtime.universe.TypeTag
 
 trait KeyValueGroupedDataSetAPI[K, V] {
   protected lazy val spark: SparkSession = SparkSession.builder().getOrCreate()
-  private[dataset] def toKeyValueGroupedDataSet: KeyValueGroupedDataset[K, V]
+  private[dataset] def toKeyValueGroupedDataSet(implicit encK: Encoder[K], encT: Encoder[V], encKT: Encoder[(K, V)]): KeyValueGroupedDataset[K, V]
 
   def count(): DataSetAPI[(K, Long)]
-  def mapGroups[U: ClassTag: TypeTag](f: (K, Iterator[V]) => U): DataSetAPI[U]
+  def mapGroups[U: ClassTag](f: (K, Iterator[V]) => U)
+                            (implicit enc: Encoder[U]=null): DataSetAPI[U]
   def reduceGroups(f: (V, V) => V): DataSetAPI[(K, V)]
-  def mapValues[W: ClassTag: TypeTag](func: V => W): KeyValueGroupedDataSetAPI[K, W]
-  def flatMapGroups[U: ClassTag: TypeTag](f: (K, Iterator[V]) => TraversableOnce[U]): DataSetAPI[U]
+  def mapValues[W: ClassTag](func: V => W)
+                            (implicit enc: Encoder[W]=null): KeyValueGroupedDataSetAPI[K, W]
+  def flatMapGroups[U: ClassTag](f: (K, Iterator[V]) => TraversableOnce[U])
+                                (implicit enc: Encoder[U]=null): DataSetAPI[U]
   def keys: DataSetAPI[K]
-  def cogroup[U: ClassTag: TypeTag, R: ClassTag: TypeTag](other: KeyValueGroupedDataSetAPI[K, U])(f: (K, Iterator[V], Iterator[U]) => TraversableOnce[R]): DataSetAPI[R]
+  def cogroup[U: ClassTag, R: ClassTag](other: KeyValueGroupedDataSetAPI[K, U])
+                                       (f: (K, Iterator[V], Iterator[U]) => TraversableOnce[R])
+                                       (implicit
+                                          encK: Encoder[K]=null,
+                                          encV: Encoder[V]=null,
+                                          encU: Encoder[U]=null,
+                                          encR: Encoder[R]=null,
+                                          encKV: Encoder[(K,V)]=null,
+                                          encKU: Encoder[(K,U)]=null
+                                       ): DataSetAPI[R]
 }

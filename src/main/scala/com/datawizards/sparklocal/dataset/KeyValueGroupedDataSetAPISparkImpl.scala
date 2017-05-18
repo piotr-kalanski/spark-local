@@ -1,36 +1,45 @@
 package com.datawizards.sparklocal.dataset
 
-import org.apache.spark.sql.KeyValueGroupedDataset
-import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
+import org.apache.spark.sql.{Encoder, KeyValueGroupedDataset}
 
 import scala.reflect.ClassTag
-import scala.reflect.runtime.universe.TypeTag
 
-class KeyValueGroupedDataSetAPISparkImpl[K: ClassTag: TypeTag, T: ClassTag: TypeTag](private[dataset] val data: KeyValueGroupedDataset[K, T]) extends KeyValueGroupedDataSetAPI[K, T] {
-  private def create[U: ClassTag: TypeTag](data: KeyValueGroupedDataset[K,U]) = new KeyValueGroupedDataSetAPISparkImpl(data)
+class KeyValueGroupedDataSetAPISparkImpl[K: ClassTag, T: ClassTag](private[dataset] val data: KeyValueGroupedDataset[K, T]) extends KeyValueGroupedDataSetAPI[K, T] {
+  private def create[U: ClassTag](data: KeyValueGroupedDataset[K,U]) = new KeyValueGroupedDataSetAPISparkImpl(data)
 
-  override private[dataset] def toKeyValueGroupedDataSet = data
+  override private[dataset] def toKeyValueGroupedDataSet(implicit encK: Encoder[K], encT: Encoder[T], encKT: Encoder[(K, T)]) = data
 
   override def count(): DataSetAPI[(K, Long)] =
     DataSetAPI(data.count())
 
-  override def mapValues[W: ClassTag: TypeTag](func: (T) => W): KeyValueGroupedDataSetAPI[K, W] =
-    create(data.mapValues(func)(ExpressionEncoder[W]()))
+  override def mapValues[W: ClassTag](func: (T) => W)
+                                     (implicit enc: Encoder[W]=null): KeyValueGroupedDataSetAPI[K, W] =
+    create(data.mapValues(func))
 
-  override def mapGroups[U: ClassTag: TypeTag](f: (K, Iterator[T]) => U): DataSetAPI[U] =
-    DataSetAPI(data.mapGroups(f)(ExpressionEncoder[U]()))
+  override def mapGroups[U: ClassTag](f: (K, Iterator[T]) => U)
+                                     (implicit enc: Encoder[U]=null): DataSetAPI[U] =
+    DataSetAPI(data.mapGroups(f))
 
   override def reduceGroups(f: (T, T) => T): DataSetAPI[(K, T)] =
     DataSetAPI(data.reduceGroups(f))
 
-  override def flatMapGroups[U: ClassTag: TypeTag](f: (K, Iterator[T]) => TraversableOnce[U]): DataSetAPI[U] =
-    DataSetAPI(data.flatMapGroups(f)(ExpressionEncoder[U]()))
+  override def flatMapGroups[U: ClassTag](f: (K, Iterator[T]) => TraversableOnce[U])
+                                         (implicit enc: Encoder[U]=null): DataSetAPI[U] =
+    DataSetAPI(data.flatMapGroups(f))
 
   override def keys: DataSetAPI[K] =
     DataSetAPI(data.keys)
 
-  override def cogroup[U: ClassTag : TypeTag, R: ClassTag : TypeTag](other: KeyValueGroupedDataSetAPI[K, U])(f: (K, Iterator[T], Iterator[U]) => TraversableOnce[R]): DataSetAPI[R] = {
-    implicit val encoder = ExpressionEncoder[R]()
+  override def cogroup[U: ClassTag, R: ClassTag](other: KeyValueGroupedDataSetAPI[K, U])
+                                                (f: (K, Iterator[T], Iterator[U]) => TraversableOnce[R])
+                                                (implicit
+                                                 encK: Encoder[K]=null,
+                                                 encT: Encoder[T]=null,
+                                                 encU: Encoder[U]=null,
+                                                 encR: Encoder[R]=null,
+                                                 encKT: Encoder[(K,T)]=null,
+                                                 encKU: Encoder[(K,U)]=null
+                                                ): DataSetAPI[R] = {
     DataSetAPI(data.cogroup(other.toKeyValueGroupedDataSet)(f))
   }
 

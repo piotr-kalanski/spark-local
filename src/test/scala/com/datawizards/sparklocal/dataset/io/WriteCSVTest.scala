@@ -5,6 +5,7 @@ import java.io.File
 import com.datawizards.sparklocal.SparkLocalBaseTest
 import com.datawizards.sparklocal.TestModel.Person
 import com.datawizards.sparklocal.datastore.CSVDataStore
+import com.datawizards.sparklocal.implicits._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import com.datawizards.class2csv._

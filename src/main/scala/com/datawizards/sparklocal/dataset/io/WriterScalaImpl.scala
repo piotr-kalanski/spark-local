@@ -6,7 +6,7 @@ import com.datawizards.class2csv._
 import org.json4s.jackson.Serialization
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore._
-import org.apache.spark.sql.SaveMode
+import org.apache.spark.sql.{Encoder, SaveMode}
 import org.json4s.DefaultFormats
 import com.sksamuel.avro4s._
 import org.apache.avro.generic.GenericRecord
@@ -20,7 +20,7 @@ class WriterScalaImpl[T] extends Writer[T] {
   override def write(ds: DataSetAPI[T]): WriterExecutor[T] = new WriterExecutor[T](ds) {
 
     override def apply(dataStore: CSVDataStore, saveMode: SaveMode)
-                      (implicit ct: ClassTag[T], enc: CsvEncoder[T]): Unit =
+                      (implicit ct: ClassTag[T], csvEncoder: CsvEncoder[T], encoder: Encoder[T]): Unit =
       writeCSV(
         data = ds.collect(),
         path = dataStore.path,
@@ -31,7 +31,8 @@ class WriterScalaImpl[T] extends Writer[T] {
         quote = dataStore.quote
       )
 
-    override def apply(dataStore: JsonDataStore, saveMode: SaveMode): Unit = {
+    override def apply(dataStore: JsonDataStore, saveMode: SaveMode)
+                      (implicit encoder: Encoder[T]): Unit = {
       implicit val formats = DefaultFormats
 
       val pw = new PrintWriter(dataStore.path)
@@ -48,7 +49,7 @@ class WriterScalaImpl[T] extends Writer[T] {
     }
 
     override def apply(dataStore: ParquetDataStore, saveMode: SaveMode)
-                      (implicit s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T]): Unit = {
+                      (implicit s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], encoder: Encoder[T]): Unit = {
       val file = new File(dataStore.path)
       //TODO - delete only in overwrite mode!
       file.delete()
@@ -63,7 +64,7 @@ class WriterScalaImpl[T] extends Writer[T] {
     }
 
     override def apply(dataStore: AvroDataStore, saveMode: SaveMode)
-                      (implicit s: SchemaFor[T], r: ToRecord[T]): Unit = {
+                      (implicit s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit = {
       val os = AvroOutputStream.data[T](new File(dataStore.path))
       os.write(ds.collect())
       os.flush()
@@ -71,7 +72,7 @@ class WriterScalaImpl[T] extends Writer[T] {
     }
 
     override def apply(dataStore: HiveDataStore, saveMode: SaveMode)
-                      (implicit s: SchemaFor[T], r: ToRecord[T]): Unit = {
+                      (implicit s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit = {
       val file = new File(dataStore.localDirectoryPath)
       file.mkdirs()
       apply(AvroDataStore(dataStore.localFilePath), saveMode)

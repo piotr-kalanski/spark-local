@@ -4,6 +4,7 @@ import com.datawizards.sparklocal.SparkLocalBaseTest
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.rdd.RDDAPI
 import com.datawizards.sparklocal.session.ExecutionEngine.ExecutionEngine
+import com.datawizards.sparklocal.implicits._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
