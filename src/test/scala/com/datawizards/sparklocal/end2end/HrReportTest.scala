@@ -4,7 +4,6 @@ import com.datawizards.sparklocal.SparkLocalBaseTest
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore.{CSVDataStore, JsonDataStore}
 import com.datawizards.sparklocal.examples.dataset.Model.{HRReport, Person, WorkExperience}
-import com.datawizards.sparklocal.session.ExecutionEngine.ExecutionEngine
 import com.datawizards.sparklocal.session.{ExecutionEngine, SparkSessionAPI}
 import com.datawizards.sparklocal.implicits._
 import org.junit.runner.RunWith
@@ -27,13 +26,12 @@ class HrReportTest extends SparkLocalBaseTest {
     )
   }
 
-  def calculateHRReport(engine: ExecutionEngine): DataSetAPI[HRReport] = {
+  def calculateHRReport[Session <: SparkSessionAPI](engine: ExecutionEngine[Session]): DataSetAPI[HRReport] = {
+
     val session = SparkSessionAPI
       .builder(engine)
       .master("local")
       .getOrCreate()
-
-    import session.implicits._
 
     val people = session.read[Person](JsonDataStore(this.getClass.getResource("/hr_people.json").getPath))
     val workExperience = session.read[WorkExperience](CSVDataStore(this.getClass.getResource("/hr_work_experience.csv").getPath))

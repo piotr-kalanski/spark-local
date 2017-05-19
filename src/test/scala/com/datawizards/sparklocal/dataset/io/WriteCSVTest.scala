@@ -28,8 +28,8 @@ class WriteCSVTest extends SparkLocalBaseTest {
         |first,10
         |second,11""".stripMargin
 
-    assertResult(expected) {
-      readFileContent(file)
+    assertResult(expected.replace("\r", "").replace("\n", "")) {
+      readFileContent(file).replace("\r", "").replace("\n", "")
     }
   }
 
@@ -46,8 +46,8 @@ class WriteCSVTest extends SparkLocalBaseTest {
         |first;10
         |second;11""".stripMargin
 
-    assertResult(expected) {
-      readFileContent(file)
+    assertResult(expected.replace("\r", "").replace("\n", "")) {
+      readFileContent(file).replace("\r", "").replace("\n", "")
     }
   }
 
@@ -63,8 +63,8 @@ class WriteCSVTest extends SparkLocalBaseTest {
       """first,10
         |second,11""".stripMargin
 
-    assertResult(expected) {
-      readFileContent(file)
+    assertResult(expected.replace("\r", "").replace("\n", "")) {
+      readFileContent(file).replace("\r", "").replace("\n", "")
     }
   }
 
@@ -81,8 +81,8 @@ class WriteCSVTest extends SparkLocalBaseTest {
         |"first, first",10
         |"second, second",11""".stripMargin
 
-    assertResult(expected) {
-      readFileContent(file)
+    assertResult(expected.replace("\r", "").replace("\n", "")) {
+      readFileContent(file).replace("\r", "").replace("\n", "")
     }
   }
 
@@ -103,8 +103,8 @@ class WriteCSVTest extends SparkLocalBaseTest {
         |p3;30
         |"p;4";40""".stripMargin
 
-    assertResult(expected) {
-      readFileContent(file)
+    assertResult(expected.replace("\r", "").replace("\n", "")) {
+      readFileContent(file).replace("\r", "").replace("\n", "")
     }
   }
 
@@ -123,7 +123,7 @@ class WriteCSVTest extends SparkLocalBaseTest {
     ds1.write(CSVDataStore(file1), SaveMode.Overwrite)
     ds2.write(CSVDataStore(file2), SaveMode.Overwrite)
 
-    assert(readFileContent(file1) == readCSVFileContentFromDirectory(file2))
+    assert(readFileContent(file1).replace("\r", "").replace("\n", "") == readCSVFileContentFromDirectory(file2).replace("\r", "").replace("\n", ""))
   }
 
   test("CSV file with custom header and separator - equals") {

@@ -10,7 +10,6 @@ object SimpleExampleScala extends App {
     .master("local")
     .getOrCreate()
 
-  //TODO - caly czas tworzy TypeTag !!!
   import session.implicits._
 
   val data = session.createDataset(Seq((1,"a"), (2,"b")))

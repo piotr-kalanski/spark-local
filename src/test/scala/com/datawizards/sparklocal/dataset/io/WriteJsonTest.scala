@@ -26,8 +26,8 @@ class WriteJsonTest extends SparkLocalBaseTest {
       """{"name":"first","age":10}
         |{"name":"second","age":11}""".stripMargin
 
-    assertResult(expected) {
-      readFileContent(file)
+    assertResult(expected.replace("\r", "").replace("\n", "")) {
+      readFileContent(file).replace("\r", "").replace("\n", "")
     }
   }
 

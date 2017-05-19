@@ -1,20 +1,28 @@
 package com.datawizards.sparklocal.session
 
+import org.apache.spark.sql.SparkSession
 
-object ExecutionEngine extends Enumeration {
+/**
+  * Internal execution engine of all operations e.g. Spark, Scala
+  */
+trait ExecutionEngine[Session <: SparkSessionAPI] {
+  def builder(): Builder[Session]
+}
 
-  /**
-    * Internal execution engine of all operations e.g. Spark, Scala
-    */
-  type ExecutionEngine = Value
+object ExecutionEngine  {
 
   /**
     *  Spark execution engine
     */
-  val Spark = Value
+  object Spark extends ExecutionEngine[SparkSessionAPISparkImpl] {
+    override def builder(): Builder[SparkSessionAPISparkImpl] = new BuilderSparkImpl(SparkSession.builder())
+  }
 
   /**
     * Scala collections with eager transformations
     */
-  val ScalaEager = Value
+  object ScalaEager extends ExecutionEngine[SparkSessionAPIScalaImpl] {
+    override def builder(): Builder[SparkSessionAPIScalaImpl] = new BuilderScalaImpl
+  }
+
 }

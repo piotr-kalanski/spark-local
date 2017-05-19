@@ -2,7 +2,6 @@ package com.datawizards.sparklocal.session
 
 import com.datawizards.sparklocal.SparkLocalBaseTest
 import com.datawizards.sparklocal.rdd.RDDAPI
-import com.datawizards.sparklocal.session.ExecutionEngine.ExecutionEngine
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -24,7 +23,7 @@ class CreateRDDTest extends SparkLocalBaseTest {
     )
   }
 
-  private def createRDD(engine: ExecutionEngine): RDDAPI[Int] =
+  private def createRDD[Session <: SparkSessionAPI](engine: ExecutionEngine[Session]): RDDAPI[Int] =
     SparkSessionAPI
       .builder(engine)
       .master("local")

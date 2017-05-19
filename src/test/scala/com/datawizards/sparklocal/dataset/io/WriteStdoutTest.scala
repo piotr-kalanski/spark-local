@@ -25,9 +25,9 @@ class WriteStdoutTest extends SparkLocalBaseTest {
                      ||s1          |1     |2      |1000000.0|4.0     |5       |true |6      |
                      ||large string|21    |22     |23.0     |24.0    |25      |false|26     |
                      |+------------+------+-------+---------+--------+--------+-----+-------+
-                     |""".stripMargin
+                     |""".stripMargin.replace("\r", "").replace("\n", "")
 
-    val result = ds.write(Stdout())
+    val result = ds.write(Stdout()).replace("\r", "").replace("\n", "")
 
     assertResult(expected) { result }
   }

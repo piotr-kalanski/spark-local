@@ -3,7 +3,6 @@ package com.datawizards.sparklocal.session
 import com.datawizards.sparklocal.SparkLocalBaseTest
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.rdd.RDDAPI
-import com.datawizards.sparklocal.session.ExecutionEngine.ExecutionEngine
 import com.datawizards.sparklocal.implicits._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -39,14 +38,14 @@ class CreateDatasetTest extends SparkLocalBaseTest {
     )
   }
 
-  private def createDataset(engine: ExecutionEngine): DataSetAPI[Int] =
+  private def createDataset[Session <: SparkSessionAPI](engine: ExecutionEngine[Session]): DataSetAPI[Int] =
     SparkSessionAPI
       .builder(engine)
       .master("local")
       .getOrCreate()
       .createDataset(data)
 
-  private def createDatasetRDD(engine: ExecutionEngine): DataSetAPI[Int] =
+  private def createDatasetRDD[Session <: SparkSessionAPI](engine: ExecutionEngine[Session]): DataSetAPI[Int] =
     SparkSessionAPI
       .builder(engine)
       .master("local")
