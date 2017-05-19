@@ -4,6 +4,7 @@ import com.datawizards.sparklocal.SparkLocalBaseTest
 import com.datawizards.sparklocal.TestModel.LargeClass
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore.Stdout
+import com.datawizards.sparklocal.implicits._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -24,9 +25,9 @@ class WriteStdoutTest extends SparkLocalBaseTest {
                      ||s1          |1     |2      |1000000.0|4.0     |5       |true |6      |
                      ||large string|21    |22     |23.0     |24.0    |25      |false|26     |
                      |+------------+------+-------+---------+--------+--------+-----+-------+
-                     |""".stripMargin
+                     |""".stripMargin.replace("\r", "").replace("\n", "")
 
-    val result = ds.write(Stdout())
+    val result = ds.write(Stdout()).replace("\r", "").replace("\n", "")
 
     assertResult(expected) { result }
   }

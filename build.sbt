@@ -34,7 +34,7 @@ libraryDependencies ++= Seq(
   "org.json4s" %% "json4s-native" % "3.5.2",
   "org.apache.parquet" % "parquet-avro" % "1.9.0",
   "com.sksamuel.avro4s" %% "avro4s-core" % "1.6.4",
-  "org.scalatest" %% "scalatest" % "3.0.1" % "test",
+  "org.scalatest" %% "scalatest" % "2.2.6" % "test",
   "junit" % "junit" % "4.10" % "test"
 )
 

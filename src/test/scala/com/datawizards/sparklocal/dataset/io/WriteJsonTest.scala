@@ -2,11 +2,11 @@ package com.datawizards.sparklocal.dataset.io
 
 import java.io.File
 
-import com.datawizards.class2csv._
 import com.datawizards.sparklocal.SparkLocalBaseTest
 import com.datawizards.sparklocal.TestModel.Person
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore.JsonDataStore
+import com.datawizards.sparklocal.implicits._
 import org.apache.spark.sql.SaveMode
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -26,8 +26,8 @@ class WriteJsonTest extends SparkLocalBaseTest {
       """{"name":"first","age":10}
         |{"name":"second","age":11}""".stripMargin
 
-    assertResult(expected) {
-      readFileContent(file)
+    assertResult(expected.replace("\r", "").replace("\n", "")) {
+      readFileContent(file).replace("\r", "").replace("\n", "")
     }
   }
 

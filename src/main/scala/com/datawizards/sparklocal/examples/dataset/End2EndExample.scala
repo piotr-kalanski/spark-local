@@ -13,6 +13,8 @@ object End2EndExample extends App {
     .master("local")
     .getOrCreate()
 
+  import session.implicits._
+
   val people = session.read[Person](JsonDataStore(getClass.getResource("/hr_people.json").getPath))
   val workExperience = session.read[WorkExperience](CSVDataStore(getClass.getResource("/hr_work_experience.csv").getPath))
 

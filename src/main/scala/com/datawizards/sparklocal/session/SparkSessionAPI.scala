@@ -3,12 +3,9 @@ package com.datawizards.sparklocal.session
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.dataset.io.{ReaderExecutor, ReaderScalaImpl, ReaderSparkImpl}
 import com.datawizards.sparklocal.rdd.RDDAPI
-import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
+import org.apache.spark.sql.{Encoder, SQLContext, SQLImplicits, SparkSession}
 
 import scala.reflect.ClassTag
-import scala.reflect.runtime.universe.TypeTag
 
 object SparkSessionAPI {
 
@@ -17,17 +14,11 @@ object SparkSessionAPI {
     *
     * @param engine Spark or Scala implementation
     */
-  def builder(engine: ExecutionEngine.ExecutionEngine): Builder = engine match {
-    case ExecutionEngine.ScalaEager => new BuilderScalaImpl
-    case ExecutionEngine.Spark => new BuilderSparkImpl(SparkSession.builder())
-  }
+  def builder[Session <: SparkSessionAPI](engine: ExecutionEngine[Session]): Builder[Session] = engine.builder()
 
 }
 
 trait SparkSessionAPI {
-  //def version: String
-
-  //def conf: RuntimeConfig
 
   /**
     * Create new RDD based on Scala collection
@@ -37,12 +28,12 @@ trait SparkSessionAPI {
   /**
     * Create new DataSet based on Scala collection
     */
-  def createDataset[T: ClassTag: TypeTag](data: Seq[T]): DataSetAPI[T]
+  def createDataset[T: ClassTag](data: Seq[T])(implicit enc: Encoder[T]): DataSetAPI[T]
 
   /**
     * Create new DataSet based on RDD
     */
-  def createDataset[T: ClassTag: TypeTag](data: RDDAPI[T]): DataSetAPI[T] =
+  def createDataset[T: ClassTag](data: RDDAPI[T])(implicit enc: Encoder[T]): DataSetAPI[T] =
     data.toDataSet
 
   /**
@@ -106,12 +97,16 @@ trait SparkSessionAPI {
   //def broadcast[T: ClassTag](value: T): Broadcast[T]
 }
 
-object SparkSessionAPIScalaImpl extends SparkSessionAPI {
+class SparkSessionAPIScalaImpl extends SparkSessionAPI {
+
+  object implicits {
+    implicit def enc[T]: Encoder[T] = null
+  }
 
   override def createRDD[T: ClassTag](data: Seq[T]): RDDAPI[T] =
     RDDAPI(data)
 
-  override def createDataset[T: ClassTag: TypeTag](data: Seq[T]): DataSetAPI[T] =
+  override def createDataset[T: ClassTag](data: Seq[T])(implicit enc: Encoder[T]): DataSetAPI[T] =
     DataSetAPI(data)
 
   override def read[T]: ReaderExecutor[T] =
@@ -119,17 +114,22 @@ object SparkSessionAPIScalaImpl extends SparkSessionAPI {
 
   override def textFile(path: String, minPartitions: Int=2): RDDAPI[String] =
     RDDAPI(scala.io.Source.fromFile(path).getLines().toIterable)
+
 }
 
 class SparkSessionAPISparkImpl(private [session] val spark: SparkSession) extends SparkSessionAPI {
 
+  object implicitImpl extends SQLImplicits {
+    override protected def _sqlContext: SQLContext = spark.sqlContext
+  }
+
+  val implicits = implicitImpl
+
   override def createRDD[T: ClassTag](data: Seq[T]): RDDAPI[T] =
     RDDAPI(spark.sparkContext.parallelize(data))
 
-  override def createDataset[T: ClassTag: TypeTag](data: Seq[T]): DataSetAPI[T] = {
-    implicit val encoder = ExpressionEncoder[T]
+  override def createDataset[T: ClassTag](data: Seq[T])(implicit enc: Encoder[T]): DataSetAPI[T] =
     DataSetAPI(spark.createDataset(data))
-  }
 
   override def read[T]: ReaderExecutor[T] =
     ReaderSparkImpl.read[T]

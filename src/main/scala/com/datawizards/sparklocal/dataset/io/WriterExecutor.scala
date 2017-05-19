@@ -4,31 +4,32 @@ import com.datawizards.class2csv.CsvEncoder
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore._
 import com.sksamuel.avro4s.{FromRecord, SchemaFor, ToRecord}
-import org.apache.spark.sql.SaveMode
+import org.apache.spark.sql.{Encoder, SaveMode}
 
 import scala.reflect.ClassTag
 
 abstract class WriterExecutor[T](ds: DataSetAPI[T]) {
   def apply(dataStore: CSVDataStore, saveMode: SaveMode)
-           (implicit ct: ClassTag[T], enc: CsvEncoder[T]): Unit
-  def apply(dataStore: JsonDataStore, saveMode: SaveMode): Unit
+           (implicit ct: ClassTag[T], csvEncoder: CsvEncoder[T], encoder: Encoder[T]): Unit
+  def apply(dataStore: JsonDataStore, saveMode: SaveMode)
+           (implicit encoder: Encoder[T]): Unit
   def apply(dataStore: ParquetDataStore, saveMode: SaveMode)
-           (implicit s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T]): Unit
+           (implicit s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], encoder: Encoder[T]): Unit
   def apply(dataStore: AvroDataStore, saveMode: SaveMode)
-           (implicit s: SchemaFor[T], r: ToRecord[T]): Unit
+           (implicit s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit
   def apply(dataStore: HiveDataStore, saveMode: SaveMode)
-           (implicit s: SchemaFor[T], r: ToRecord[T]): Unit
-  def apply()(implicit ct: ClassTag[T], enc: CsvEncoder[T]): String =
+           (implicit s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit
+  def apply()(implicit ct: ClassTag[T], csvEncoder: CsvEncoder[T]): String =
     apply(Stdout())
-  def apply(rows:Int)(implicit ct: ClassTag[T], enc: CsvEncoder[T]): String =
+  def apply(rows:Int)(implicit ct: ClassTag[T], csvEncoder: CsvEncoder[T]): String =
     apply(Stdout(rows))
   def apply(dataStore: Stdout, saveMode: SaveMode)
-           (implicit ct: ClassTag[T], enc: CsvEncoder[T]): String =
+           (implicit ct: ClassTag[T], csvEncoder: CsvEncoder[T]): String =
     apply(dataStore)
   def apply(dataStore: Stdout)
-           (implicit ct: ClassTag[T], enc: CsvEncoder[T]): String = {
+           (implicit ct: ClassTag[T], csvEncoder: CsvEncoder[T]): String = {
     val sep = "|"
-    val encodedRows = ds.take(dataStore.rows).map(r => enc.encode(r))
+    val encodedRows = ds.take(dataStore.rows).map(r => csvEncoder.encode(r))
     val classFields = ct.runtimeClass.getDeclaredFields.map(_.getName)
     val fields:Array[String] =
       if(classFields.nonEmpty) classFields

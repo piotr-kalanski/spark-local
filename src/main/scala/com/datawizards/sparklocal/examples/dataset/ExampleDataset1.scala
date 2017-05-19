@@ -2,6 +2,7 @@ package com.datawizards.sparklocal.examples.dataset
 
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import org.apache.spark.sql.SparkSession
+import com.datawizards.sparklocal.implicits._
 
 object ExampleDataset1 {
 

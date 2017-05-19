@@ -3,7 +3,7 @@ package com.datawizards.sparklocal.session
 import com.datawizards.sparklocal.SparkLocalBaseTest
 import com.datawizards.sparklocal.TestModel.{Person, PersonBigInt}
 import com.datawizards.sparklocal.datastore.{CSVDataStore, JsonDataStore}
-import com.datawizards.sparklocal.session.ExecutionEngine.ExecutionEngine
+import com.datawizards.sparklocal.implicits._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -21,7 +21,7 @@ class ReadFileTest extends SparkLocalBaseTest {
   }
 
 
-  private def testReadCSV(engine: ExecutionEngine): Unit = {
+  private def testReadCSV[Session <: SparkSessionAPI](engine: ExecutionEngine[Session]): Unit = {
     val peopleCSV = CSVDataStore(getClass.getResource("/people.csv").getPath)
 
     val session = SparkSessionAPI
@@ -39,7 +39,7 @@ class ReadFileTest extends SparkLocalBaseTest {
     }
   }
 
-  private def testReadJson(engine: ExecutionEngine): Unit = {
+  private def testReadJson[Session <: SparkSessionAPI](engine: ExecutionEngine[Session]): Unit = {
     val peopleJson = JsonDataStore(getClass.getResource("/people.json").getPath)
 
     val session = SparkSessionAPI

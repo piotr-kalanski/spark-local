@@ -4,6 +4,7 @@ import com.datawizards.sparklocal.SparkLocalBaseTest
 import com.datawizards.sparklocal.TestModel.Person
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore.HiveDataStore
+import com.datawizards.sparklocal.implicits._
 import org.apache.spark.sql.SaveMode
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
