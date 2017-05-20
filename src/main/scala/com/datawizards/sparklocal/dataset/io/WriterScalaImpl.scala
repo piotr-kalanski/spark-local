@@ -1,8 +1,10 @@
 package com.datawizards.sparklocal.dataset.io
 
 import java.io.{File, PrintWriter}
+import java.sql.DriverManager
 
 import com.datawizards.class2csv._
+import com.datawizards.sparklocal.dataset.io.class2jdbc._
 import org.json4s.jackson.Serialization
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore._
@@ -78,6 +80,14 @@ class WriterScalaImpl[T] extends Writer[T] {
       apply(AvroDataStore(dataStore.localFilePath), saveMode)
     }
 
+    override def apply(dataStore: JdbcDataStore, saveMode: SaveMode)
+                      (implicit ct: ClassTag[T], jdbcEncoder: class2jdbc.JdbcEncoder[T], encoder: Encoder[T]): Unit = {
+      Class.forName(dataStore.driverClassName)
+      val connection = DriverManager.getConnection(dataStore.url, dataStore.connectionProperties)
+      val inserts = generateInserts(ds.collect(), dataStore.fullTableName)
+      connection.createStatement().execute(inserts.mkString(";"))
+      connection.close()
+    }
   }
 
 }

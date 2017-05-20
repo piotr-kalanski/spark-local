@@ -68,6 +68,17 @@ class WriterSparkImpl[T] extends Writer[T] {
         .write
         .mode(saveMode)
         .saveAsTable(dataStore.fullTableName)
+
+    override def apply(dataStore: JdbcDataStore, saveMode: SaveMode)
+                      (implicit ct: ClassTag[T], jdbcEncoder: class2jdbc.JdbcEncoder[T], encoder: Encoder[T]): Unit = {
+      Class.forName(dataStore.driverClassName)
+      ds
+        .toDataset
+        .write
+        .mode(saveMode)
+        .jdbc(dataStore.url, dataStore.fullTableName, dataStore.connectionProperties)
+    }
+
   }
 
 }
