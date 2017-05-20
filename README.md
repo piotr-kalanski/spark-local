@@ -5,6 +5,7 @@ API enabling switching between Spark execution engine and local implementation b
 [![Build Status](https://api.travis-ci.org/piotr-kalanski/spark-local.png?branch=development)](https://api.travis-ci.org/piotr-kalanski/spark-local.png?branch=development)
 [![codecov.io](http://codecov.io/github/piotr-kalanski/spark-local/coverage.svg?branch=development)](http://codecov.io/github/piotr-kalanski/spark-local/coverage.svg?branch=development)
 [<img src="https://img.shields.io/maven-central/v/com.github.piotr-kalanski/spark-local_2.11.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22spark-local_2.11%22)
+[![Stories in Ready](https://badge.waffle.io/piotr-kalanski/spark-local.png?label=Ready)](https://waffle.io/piotr-kalanski/spark-local)
 [![License](http://img.shields.io/:license-Apache%202-red.svg)](http://www.apache.org/licenses/LICENSE-2.0.txt)
 
 # Table of contents
@@ -13,7 +14,8 @@ API enabling switching between Spark execution engine and local implementation b
 - [Getting started](#getting-started)
 - [Examples](#examples)
 - [Supported operations](#supported-operations)
-- [Supported Spark versions](#supported-spark-verions)
+- [IO operations](#io-operations)
+- [Supported Spark versions](#supported-spark-versions)
 
 # Goals
 
@@ -25,7 +27,7 @@ API enabling switching between Spark execution engine and local implementation b
 Include dependency:
 
 ```scala
-"com.github.piotr-kalanski" % "spark-local_2.11" % "0.3.0"
+"com.github.piotr-kalanski" % "spark-local_2.11" % "0.4.0"
 ```
 
 or
@@ -34,11 +36,37 @@ or
 <dependency>
     <groupId>com.github.piotr-kalanski</groupId>
     <artifactId>spark-local_2.11</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
 </dependency>
 ```
 
 # Examples
+
+## Creating Session
+
+Entry point for library is session object which is similar to SparkSession object from Apache Spark.
+
+Process of creating Session is also similar to Apache Spark.
+
+When creating Session object you can choose between different execution engines. Currently supported:
+
+- Spark - wrapper on Spark, which can be used at production data volumes
+- ScalaEager - implementation based on Scala collection with eager transformations, which makes it fast for unit testing
+
+```scala
+import com.datawizards.sparklocal.session.ExecutionEngine.ExecutionEngine
+import com.datawizards.sparklocal.session.{ExecutionEngine, SparkSessionAPI}
+
+// just change this value to start using different execution engine
+val engine = ExecutionEngine.ScalaEager
+
+val session = SparkSessionAPI
+      .builder(engine)
+      .master("local")
+      .getOrCreate()
+
+val ds = session.read[Person](CSVDataStore(file))
+```
 
 ## RDD API
 
@@ -385,10 +413,126 @@ object ExampleHRReport {
 |rightOuterJoin|![](images/API-supported-green.png)|
 |fullOuterJoin|![](images/API-supported-green.png)|
 
+# IO operations
+
+Library provides dedicated API for input/output operations with implementation for Spark and Scala collections.
+
+Supported formats:
+- CSV
+- JSON
+- Parquet
+- Avro
+- Hive
+
+## CSV
+
+### Read CSV file
+
+```scala
+val reader: Reader = ReaderScalaImpl // Scala implementation
+//val reader: Reader = ReaderSparkImpl // Spark implementation
+
+reader.read[Person](
+    CSVDataStore(
+        path = "people.csv",
+        delimiter = ';',
+        header = false,
+        columns = Seq("name","age")
+    )
+)
+```
+
+### Write to CSV file
+
+```scala
+ds.write(CSVDataStore(file), SaveMode.Overwrite)
+```
+
+## JSON
+
+### Read JSON file
+
+```scala
+reader.read[Person](JsonDataStore("people.json"))
+```
+
+### Write to JSON file
+
+```scala
+ds.write(JsonDataStore("people.json"), SaveMode.Overwrite)
+```
+
+## Avro
+
+Current implementation produces different binary files for Spark and Scala.
+Spark by default compress files with snappy and spark-local implementation is based on: https://github.com/sksamuel/avro4s, which saves data without compression.
+
+### Read Avro file
+
+```scala
+reader.read[Person](AvroDataStore("people.avro"))
+```
+
+### Write to Avro file
+
+```scala
+ds.write(AvroDataStore("people.avro"), SaveMode.Overwrite)
+```
+
+## Parquet
+
+### Read Parquet file
+
+```scala
+reader.read[Person](ParquetDataStore("people.parquet"))
+```
+
+### Write to Parquet file
+
+```scala
+ds.write(ParquetDataStore("people.parquet"), SaveMode.Overwrite)
+```
+
+## Hive
+
+### Read Hive table
+
+```scala
+reader.read[Person](HiveDataStore("db", "table"))
+```
+
+### Write to Hive table
+
+```scala
+ds.write(HiveDataStore("db", "table"), SaveMode.Overwrite)
+```
+
+## JDBC
+
+Currently library supports only appending data to existing table.
+
+### Read JDBC table
+
+```scala
+
+val database = "public"
+val table = "people"
+val properties = new java.util.Properties()
+val driverName = "org.h2.Driver"
+reader.read[Person](JdbcDataStore(connectionString, database, table, properties, driverName))
+```
+
+### Write to JDBC table
+
+```scala
+ds.write(JdbcDataStore(connectionString, database, table, properties, driverName), SaveMode.Append)
+```
+
 # Supported Spark versions
 
 |spark-local|Spark version|
 |-----------|-------------|
+|0.4        |2.1.0        |
 |0.3        |2.1.0        |
 |0.2        |2.1.0        |
 |0.1        |2.1.0        |

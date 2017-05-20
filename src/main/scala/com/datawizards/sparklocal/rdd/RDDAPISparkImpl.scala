@@ -3,28 +3,29 @@ package com.datawizards.sparklocal.rdd
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import org.apache.spark.{Partition, Partitioner}
 import org.apache.spark.rdd.{PartitionCoalescer, RDD}
+import org.apache.spark.sql.Encoder
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.storage.StorageLevel
 
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe.TypeTag
 
-class RDDAPISparkImpl[T: ClassTag: TypeTag](val data: RDD[T]) extends RDDAPI[T] {
+class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
 
-  private def create[U: ClassTag: TypeTag](rdd: RDD[U]) = new RDDAPISparkImpl(rdd)
+  private def create[U: ClassTag](rdd: RDD[U]) = new RDDAPISparkImpl(rdd)
 
   override private[rdd] def toRDD = data
 
   override def collect(): Array[T] =
     data.collect()
 
-  override def map[That: ClassTag: TypeTag](map: (T) => That): RDDAPI[That] =
+  override def map[That: ClassTag](map: (T) => That): RDDAPI[That] =
     create(data.map(map))
 
   override def filter(p: (T) => Boolean): RDDAPI[T] =
     create(data.filter(p))
 
-  override def flatMap[U: ClassTag: TypeTag](func: (T) => TraversableOnce[U]): RDDAPI[U] =
+  override def flatMap[U: ClassTag](func: (T) => TraversableOnce[U]): RDDAPI[U] =
     create(data.flatMap(func))
 
   override def reduce(func: (T, T) => T): T =
@@ -42,7 +43,7 @@ class RDDAPISparkImpl[T: ClassTag: TypeTag](val data: RDD[T]) extends RDDAPI[T] 
   override def isEmpty: Boolean =
     data.isEmpty
 
-  override def zip[U: ClassTag: TypeTag](other: RDDAPI[U]): RDDAPI[(T, U)] = other match {
+  override def zip[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)] = other match {
     case rddScala:RDDAPIScalaImpl[U] => RDDAPI(data zip parallelize(rddScala.data))
     case rddSpark:RDDAPISparkImpl[U] => create(data zip rddSpark.data)
   }
@@ -87,7 +88,7 @@ class RDDAPISparkImpl[T: ClassTag: TypeTag](val data: RDD[T]) extends RDDAPI[T] 
   override def partitions: Array[Partition] =
     data.partitions
 
-  override def sortBy[K](f: (T) => K, ascending: Boolean, numPartitions: Int)(implicit ord: Ordering[K], ctag: ClassTag[K], tg: TypeTag[K]): RDDAPI[T] =
+  override def sortBy[K](f: (T) => K, ascending: Boolean, numPartitions: Int)(implicit ord: Ordering[K], ctag: ClassTag[K]): RDDAPI[T] =
     create(data.sortBy(f,ascending,numPartitions)(ord,ctag))
 
   override def intersection(other: RDDAPI[T]): RDDAPI[T] = other match {
@@ -132,21 +133,21 @@ class RDDAPISparkImpl[T: ClassTag: TypeTag](val data: RDD[T]) extends RDDAPI[T] 
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(data.subtract(rddSpark.data, partitioner))
   }
 
-  override def cartesian[U: ClassTag: TypeTag](other: RDDAPI[U]): RDDAPI[(T, U)] = other match {
+  override def cartesian[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)] = other match {
     case rddScala:RDDAPIScalaImpl[U] => create(data.cartesian(parallelize(rddScala.data)))
     case rddSpark:RDDAPISparkImpl[U] => RDDAPI(data.cartesian(rddSpark.data))
   }
 
-  override def aggregate[U: ClassTag: TypeTag](zeroValue: U)(seqOp: (U, T) => U, combOp: (U, U) => U): U =
+  override def aggregate[U: ClassTag](zeroValue: U)(seqOp: (U, T) => U, combOp: (U, U) => U): U =
     data.aggregate(zeroValue)(seqOp, combOp)
 
-  override def groupBy[K](f: (T) => K)(implicit kt: ClassTag[K], tg: TypeTag[K]): RDDAPI[(K, Iterable[T])] =
+  override def groupBy[K](f: (T) => K)(implicit kt: ClassTag[K]): RDDAPI[(K, Iterable[T])] =
     create(data.groupBy(f))
 
-  override def groupBy[K](f: (T) => K, numPartitions: Int)(implicit kt: ClassTag[K], tg: TypeTag[K]): RDDAPI[(K, Iterable[T])] =
+  override def groupBy[K](f: (T) => K, numPartitions: Int)(implicit kt: ClassTag[K]): RDDAPI[(K, Iterable[T])] =
     create(data.groupBy(f, numPartitions))
 
-  override def groupBy[K](f: (T) => K, p: Partitioner)(implicit kt: ClassTag[K], tg: TypeTag[K], ord: Ordering[K]): RDDAPI[(K, Iterable[T])] =
+  override def groupBy[K](f: (T) => K, p: Partitioner)(implicit kt: ClassTag[K], ord: Ordering[K]): RDDAPI[(K, Iterable[T])] =
     create(data.groupBy(f, p))
 
   override def coalesce(numPartitions: Int, shuffle: Boolean, partitionCoalescer: Option[PartitionCoalescer])(implicit ord: Ordering[T]): RDDAPI[T] =
@@ -164,9 +165,7 @@ class RDDAPISparkImpl[T: ClassTag: TypeTag](val data: RDD[T]) extends RDDAPI[T] 
   override def randomSplit(weights: Array[Double], seed: Long): Array[RDDAPI[T]] =
     data.randomSplit(weights, seed).map(rdd => RDDAPI(rdd))
 
-  override def toDataSet: DataSetAPI[T] = {
-    implicit val encoder = ExpressionEncoder[T]()
+  override def toDataSet(implicit enc: Encoder[T]): DataSetAPI[T] =
     DataSetAPI(spark.createDataset(data))
-  }
 
 }

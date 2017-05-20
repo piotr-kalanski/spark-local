@@ -2,23 +2,26 @@ package com.datawizards.sparklocal.dataset
 
 import java.util
 
+import com.datawizards.sparklocal.dataset.expressions.Expressions
+import com.datawizards.sparklocal.dataset.io.{WriterExecutor, WriterScalaImpl}
 import com.datawizards.sparklocal.rdd.RDDAPI
-import org.apache.spark.sql.Column
+import org.apache.spark.sql.{Column, Encoder}
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.util.random.{BernoulliCellSampler, BernoulliSampler, PoissonSampler}
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ListBuffer
 import scala.reflect.ClassTag
-import scala.reflect.runtime.universe.TypeTag
 
-class DataSetAPIScalaImpl[T: ClassTag: TypeTag](iterable: Iterable[T]) extends DataSetAPI[T] {
-  private val data: Seq[T] = iterable.toSeq
+class DataSetAPIScalaImpl[T: ClassTag](iterable: Iterable[T]) extends DataSetAPI[T] {
+  private[dataset] val data: Seq[T] = iterable.toSeq
 
-  private def create[U: ClassTag: TypeTag](it: Iterable[U]) = new DataSetAPIScalaImpl(it)
+  private def create[U: ClassTag](it: Iterable[U])(implicit enc: Encoder[U]=null) =
+    new DataSetAPIScalaImpl(it)
 
-  override private[dataset] def toDataset = createDataset(data)
+  override private[dataset] def toDataset(implicit enc: Encoder[T]) = createDataset(data)
 
-  override def map[That: ClassTag: TypeTag](map: T => That): DataSetAPI[That] =
+  override def map[That: ClassTag](map: T => That)(implicit enc: Encoder[That]): DataSetAPI[That] =
     create(data.map(map))
 
   override def collect(): Array[T] =
@@ -66,7 +69,7 @@ class DataSetAPIScalaImpl[T: ClassTag: TypeTag](iterable: Iterable[T]) extends D
   override def unpersist(blocking: Boolean): DataSetAPI[T] =
     this
 
-  override def flatMap[U: ClassTag: TypeTag](func: (T) => TraversableOnce[U]): DataSetAPI[U] =
+  override def flatMap[U: ClassTag](func: (T) => TraversableOnce[U])(implicit enc: Encoder[U]=null): DataSetAPI[U] =
     create(data.flatMap(func))
 
   override def distinct(): DataSetAPI[T] =
@@ -75,12 +78,12 @@ class DataSetAPIScalaImpl[T: ClassTag: TypeTag](iterable: Iterable[T]) extends D
   override def rdd(): RDDAPI[T] =
     RDDAPI(data)
 
-  override def union(other: DataSetAPI[T]): DataSetAPI[T] = other match {
+  override def union(other: DataSetAPI[T])(implicit enc: Encoder[T]): DataSetAPI[T] = other match {
     case dsSpark:DataSetAPISparkImpl[T] => DataSetAPI(this.toDataset.union(dsSpark.data))
     case dsScala:DataSetAPIScalaImpl[T] => create(data.union(dsScala.data))
   }
 
-  override def intersect(other: DataSetAPI[T]): DataSetAPI[T] = other match {
+  override def intersect(other: DataSetAPI[T])(implicit enc: Encoder[T]): DataSetAPI[T] = other match {
     case dsSpark:DataSetAPISparkImpl[T] => DataSetAPI(this.toDataset.intersect(dsSpark.data))
     case dsScala:DataSetAPIScalaImpl[T] => create(data.intersect(dsScala.data))
   }
@@ -88,7 +91,7 @@ class DataSetAPIScalaImpl[T: ClassTag: TypeTag](iterable: Iterable[T]) extends D
   override def takeAsList(n: Int): util.List[T] =
     data.take(n)
 
-  override def groupByKey[K: ClassTag: TypeTag](func: (T) => K): KeyValueGroupedDataSetAPI[K, T] =
+  override def groupByKey[K: ClassTag](func: (T) => K)(implicit enc: Encoder[K]=null): KeyValueGroupedDataSetAPI[K, T] =
     new KeyValueGroupedDataSetAPIScalaImpl(data.groupBy(func))
 
   override def limit(n: Int): DataSetAPI[T] =
@@ -126,5 +129,103 @@ class DataSetAPIScalaImpl[T: ClassTag: TypeTag](iterable: Iterable[T]) extends D
       create(sampler.sample(data.iterator).toIterable)
     }.toArray
   }
+
+  override def join[U: ClassTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression)
+                                (implicit encT: Encoder[T], encU: Encoder[U], encTU: Encoder[(T,U)]): DataSetAPI[(T, U)] = other match {
+    case dsScala:DataSetAPIScalaImpl[U] => create(
+      for {
+        left <- data
+        right <- dsScala.data
+        if condition.eval(left, right)
+      } yield (left, right)
+    )
+    case dsSpark:DataSetAPISparkImpl[U] => DataSetAPI(this.toDataset.joinWith(dsSpark.data, condition.toSparkColumn, "inner"))
+  }
+
+  override def leftOuterJoin[U: ClassTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression)
+                                         (implicit encT: Encoder[T], encU: Encoder[U], encTU: Encoder[(T,U)]): DataSetAPI[(T, U)] = other match {
+    case dsScala:DataSetAPIScalaImpl[U] =>
+      val b = new ListBuffer[(T,U)]
+
+      val empty: U = null.asInstanceOf[U]
+
+      for (left <- data) {
+        var rightExists = false
+        for (right <- dsScala.data) {
+          if (condition.eval(left, right)) {
+            b += ((left, right))
+            rightExists = true
+          }
+        }
+        if(!rightExists) {
+          b += ((left, empty))
+        }
+      }
+
+      create(b)
+    case dsSpark:DataSetAPISparkImpl[U] => DataSetAPI(this.toDataset.joinWith(dsSpark.data, condition.toSparkColumn, "left_outer"))
+  }
+
+  override def rightOuterJoin[U: ClassTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression)
+                                          (implicit encT: Encoder[T], encU: Encoder[U], encTU: Encoder[(T,U)]): DataSetAPI[(T, U)] = other match {
+    case dsScala:DataSetAPIScalaImpl[U] =>
+      val b = new ListBuffer[(T,U)]
+
+      val empty: T = null.asInstanceOf[T]
+
+      for (right <- dsScala.data) {
+        var leftExists = false
+        for (left <- data) {
+          if (condition.eval(left, right)) {
+            b += ((left, right))
+            leftExists = true
+          }
+        }
+        if(!leftExists) {
+          b += (empty -> right)
+        }
+      }
+
+      create(b)
+    case dsSpark:DataSetAPISparkImpl[U] => DataSetAPI(this.toDataset.joinWith(dsSpark.data, condition.toSparkColumn, "right_outer"))
+  }
+
+  override def fullOuterJoin[U: ClassTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression)
+                                         (implicit encT: Encoder[T], encU: Encoder[U], encTU: Encoder[(T,U)]): DataSetAPI[(T, U)] = other match {
+    case dsScala:DataSetAPIScalaImpl[U] =>
+      val b = new ListBuffer[(T,U)]
+
+      val emptyT: T = null.asInstanceOf[T]
+      val emptyU: U = null.asInstanceOf[U]
+
+      for (left <- data) {
+        var rightExists = false
+        for (right <- dsScala.data) {
+          if (condition.eval(left, right)) {
+            b += ((left, right))
+            rightExists = true
+          }
+        }
+        if(!rightExists) {
+          b += ((left, emptyU))
+        }
+      }
+      for (right <- dsScala.data) {
+        var leftExists = false
+        for (left <- data) {
+          if (condition.eval(left, right)) {
+            leftExists = true
+          }
+        }
+        if(!leftExists) {
+          b += ((emptyT, right))
+        }
+      }
+
+      create(b)
+    case dsSpark:DataSetAPISparkImpl[U] => DataSetAPI(this.toDataset.joinWith(dsSpark.data, condition.toSparkColumn, "outer"))
+  }
+
+  override def write: WriterExecutor[T] = new WriterScalaImpl[T].write(this)
 
 }

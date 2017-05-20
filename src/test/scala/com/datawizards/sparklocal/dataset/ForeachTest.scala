@@ -1,6 +1,7 @@
 package com.datawizards.sparklocal.dataset
 
 import com.datawizards.sparklocal.SparkLocalBaseTest
+import com.datawizards.sparklocal.implicits._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -22,14 +23,16 @@ class ForeachTest extends SparkLocalBaseTest {
   }
 
   test("Foreach - Spark") {
+    import spark.implicits._
     var accum = sc.longAccumulator
-    DataSetAPI(Seq(1,2,3)).foreach(x => accum.add(x))
+    DataSetAPI(Seq(1,2,3).toDS).foreach(x => accum.add(x))
     assert(accum.value == 6L)
   }
 
   test("Foreach partition - Spark") {
+    import spark.implicits._
     var accum = sc.longAccumulator
-    DataSetAPI(Seq(1,2,3)).foreachPartition(x => x.foreach(accum.add(_)))
+    DataSetAPI(Seq(1,2,3).toDS).foreachPartition(x => x.foreach(accum.add(_)))
     assert(accum.value == 6L)
   }
 

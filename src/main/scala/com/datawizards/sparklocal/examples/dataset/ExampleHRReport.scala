@@ -2,13 +2,13 @@ package com.datawizards.sparklocal.examples.dataset
 
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.examples.dataset.Model._
+import com.datawizards.sparklocal.implicits._
 import org.apache.spark.sql.SparkSession
 
 object ExampleHRReport {
 
   def main(args: Array[String]): Unit = {
     val spark = SparkSession.builder().master("local").getOrCreate()
-    import spark.implicits._
 
     val people = SampleData.people
     val peopleDs = people.toDS()

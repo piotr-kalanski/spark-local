@@ -1,11 +1,12 @@
 package com.datawizards.sparklocal.dataset
 
 import com.datawizards.sparklocal.SparkLocalBaseTest
+import com.datawizards.sparklocal.implicits._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class JoinsTest extends SparkLocalBaseTest {
+class JoinsRDDAPITest extends SparkLocalBaseTest {
 
   val left = Seq(
     (1,2000,10),
@@ -80,7 +81,7 @@ class JoinsTest extends SparkLocalBaseTest {
 
   test("join - Scala, Spark - equals") {
     assertDatasetOperationReturnsSameResultWithSorted(left){
-      Dataset => Dataset.join(rightDataset)(_._1, _._1)
+      ds => ds.join(rightDataset)(_._1, _._1)
     }
   }
 
