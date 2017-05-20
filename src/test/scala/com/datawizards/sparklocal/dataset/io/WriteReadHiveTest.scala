@@ -30,8 +30,6 @@ class WriteReadHiveTest extends SparkLocalBaseTest {
   }
 
   test("Writing and reading Hive table produces the same result - Spark") {
-    import spark.implicits._
-
     val expected = DataSetAPI(Seq(
       Person("p1", 10),
       Person("p2", 20),

@@ -2,6 +2,7 @@ package com.datawizards.sparklocal.dataset.io
 
 import com.datawizards.class2csv.CsvEncoder
 import com.datawizards.sparklocal.dataset.DataSetAPI
+import com.datawizards.sparklocal.dataset.io.class2jdbc.JdbcEncoder
 import com.datawizards.sparklocal.datastore._
 import com.sksamuel.avro4s.{FromRecord, SchemaFor, ToRecord}
 import org.apache.spark.sql.{Encoder, SaveMode}
@@ -19,6 +20,8 @@ abstract class WriterExecutor[T](ds: DataSetAPI[T]) {
            (implicit s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit
   def apply(dataStore: HiveDataStore, saveMode: SaveMode)
            (implicit s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit
+  def apply(dataStore: JdbcDataStore, saveMode: SaveMode)
+           (implicit ct: ClassTag[T], jdbcEncoder: JdbcEncoder[T], encoder: Encoder[T]): Unit
   def apply()(implicit ct: ClassTag[T], csvEncoder: CsvEncoder[T]): String =
     apply(Stdout())
   def apply(rows:Int)(implicit ct: ClassTag[T], csvEncoder: CsvEncoder[T]): String =
@@ -81,4 +84,23 @@ abstract class WriterExecutor[T](ds: DataSetAPI[T]) {
     println(result)
     result
   }
+
+  def csv(dataStore: CSVDataStore, saveMode: SaveMode)
+           (implicit ct: ClassTag[T], csvEncoder: CsvEncoder[T], encoder: Encoder[T]): Unit =
+    this.apply(dataStore, saveMode)
+  def json(dataStore: JsonDataStore, saveMode: SaveMode)
+           (implicit encoder: Encoder[T]): Unit =
+    this.apply(dataStore, saveMode)
+  def parquet(dataStore: ParquetDataStore, saveMode: SaveMode)
+           (implicit s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], encoder: Encoder[T]): Unit =
+    this.apply(dataStore, saveMode)
+  def avro(dataStore: AvroDataStore, saveMode: SaveMode)
+           (implicit s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit =
+    this.apply(dataStore, saveMode)
+  def table(dataStore: HiveDataStore, saveMode: SaveMode)
+           (implicit s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit =
+    this.apply(dataStore, saveMode)
+  def jdbc(dataStore: JdbcDataStore, saveMode: SaveMode)
+           (implicit ct: ClassTag[T], jdbcEncoder: JdbcEncoder[T], encoder: Encoder[T]): Unit =
+    this.apply(dataStore, saveMode)
 }

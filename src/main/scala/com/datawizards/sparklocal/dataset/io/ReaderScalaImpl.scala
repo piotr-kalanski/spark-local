@@ -1,6 +1,7 @@
 package com.datawizards.sparklocal.dataset.io
 
 import java.io.File
+import java.sql.DriverManager
 
 import com.datawizards.csv2class
 import com.datawizards.sparklocal.dataset.DataSetAPI
@@ -9,6 +10,7 @@ import com.datawizards.sparklocal.datastore
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe.TypeTag
 import com.datawizards.csv2class._
+import com.datawizards.sparklocal.dataset.io.jdbc2class._
 import shapeless.Generic.Aux
 import shapeless.HList
 import org.json4s._
@@ -67,6 +69,15 @@ object ReaderScalaImpl extends Reader {
     override def apply(dataStore: datastore.HiveDataStore)
                       (implicit ct: ClassTag[T], s: SchemaFor[T], r: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] =
       apply(datastore.AvroDataStore(dataStore.localFilePath))
+
+    override def apply[L <: HList](dataStore: datastore.JdbcDataStore)
+                                  (implicit ct: ClassTag[T], gen: Aux[T, L], fromRow: csv2class.FromRow[L], enc: Encoder[T]): DataSetAPI[T] = {
+      Class.forName(dataStore.driverClassName)
+      val connection = DriverManager.getConnection(dataStore.url, dataStore.connectionProperties)
+      val result = selectTable[T](connection, dataStore.fullTableName)
+      connection.close()
+      DataSetAPI(result._1)
+    }
 
   }
 

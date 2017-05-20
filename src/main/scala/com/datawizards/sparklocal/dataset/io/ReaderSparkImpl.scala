@@ -72,11 +72,21 @@ object ReaderSparkImpl extends Reader {
                       (implicit ct: ClassTag[T], s: SchemaFor[T], r: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] =
       DataSetAPI(
         spark
-        .read
-//        .schema(ExpressionEncoder[T]().schema)
-        .table(dataStore.fullTableName)
-        .as[T]
+          .read
+          .table(dataStore.fullTableName)
+          .as[T]
       )
+
+    override def apply[L <: HList](dataStore: datastore.JdbcDataStore)
+                                  (implicit ct: ClassTag[T], gen: Aux[T, L], fromRow: csv2class.FromRow[L], enc: Encoder[T]): DataSetAPI[T] = {
+      Class.forName(dataStore.driverClassName)
+      DataSetAPI(
+        spark
+          .read
+          .jdbc(dataStore.url, dataStore.fullTableName, dataStore.connectionProperties)
+          .as[T]
+      )
+    }
   }
 
 }
