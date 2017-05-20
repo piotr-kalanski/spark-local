@@ -27,7 +27,7 @@ API enabling switching between Spark execution engine and local implementation b
 Include dependency:
 
 ```scala
-"com.github.piotr-kalanski" % "spark-local_2.11" % "0.3.0"
+"com.github.piotr-kalanski" % "spark-local_2.11" % "0.4.0"
 ```
 
 or
@@ -36,7 +36,7 @@ or
 <dependency>
     <groupId>com.github.piotr-kalanski</groupId>
     <artifactId>spark-local_2.11</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
 </dependency>
 ```
 
@@ -505,6 +505,27 @@ reader.read[Person](HiveDataStore("db", "table"))
 
 ```scala
 ds.write(HiveDataStore("db", "table"), SaveMode.Overwrite)
+```
+
+## JDBC
+
+Currently library supports only appending data to existing table.
+
+### Read JDBC table
+
+```scala
+
+val database = "public"
+val table = "people"
+val properties = new java.util.Properties()
+val driverName = "org.h2.Driver"
+reader.read[Person](JdbcDataStore(connectionString, database, table, properties, driverName))
+```
+
+### Write to JDBC table
+
+```scala
+ds.write(JdbcDataStore(connectionString, database, table, properties, driverName), SaveMode.Append)
 ```
 
 # Supported Spark versions
