@@ -11,6 +11,7 @@ import scala.reflect.ClassTag
 import scala.reflect.runtime.universe.TypeTag
 import com.datawizards.csv2class._
 import com.datawizards.sparklocal.dataset.io.jdbc2class._
+import com.datawizards.sparklocal.datastore.FileDataStore
 import shapeless.Generic.Aux
 import shapeless.HList
 import org.json4s._
@@ -26,44 +27,49 @@ object ReaderScalaImpl extends Reader {
   override def read[T]: ReaderExecutor[T] = new ReaderExecutor[T] {
     override def apply[L <: HList](dataStore: datastore.CSVDataStore)
                                   (implicit ct: ClassTag[T], gen: Aux[T, L], fromRow: csv2class.FromRow[L], enc: Encoder[T]): DataSetAPI[T] = {
-      val parsed = parseCSV[T](
-        path = dataStore.path,
-        delimiter = dataStore.delimiter,
-        quote = dataStore.quote,
-        escape = dataStore.escape,
-        header = dataStore.header,
-        columns = dataStore.columns
-      )
-
-      DataSetAPI(parsed._1)
+      genericFileRead(dataStore) { file =>
+        parseCSV[T](
+          path = file.getPath,
+          delimiter = dataStore.delimiter,
+          quote = dataStore.quote,
+          escape = dataStore.escape,
+          header = dataStore.header,
+          columns = dataStore.columns
+        )._1
+      }
     }
 
     override def apply(dataStore: datastore.JsonDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T]): DataSetAPI[T] = {
       implicit val formats = DefaultFormats
 
-      DataSetAPI(
+      genericFileRead(dataStore) { file =>
         scala.io.Source
-          .fromFile(dataStore.path)
+          .fromFile(file)
           .getLines()
           .map(line => parse(line).extract[T])
           .toIterable
-      )
+      }
     }
 
     override def apply(dataStore: datastore.ParquetDataStore)
                       (implicit ct: ClassTag[T], s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], enc: Encoder[T]): DataSetAPI[T] = {
-      val reader = AvroParquetReader.builder[GenericRecord](new Path(dataStore.path)).build()
       val format = RecordFormat[T]
-      val iterator = Iterator.continually(reader.read).takeWhile(_ != null).map(format.from)
-      DataSetAPI(iterator.toStream)
+
+      genericFileRead(dataStore) { file =>
+        val reader = AvroParquetReader.builder[GenericRecord](new Path(file.getPath)).build()
+        val iterator = Iterator.continually(reader.read).takeWhile(_ != null).map(format.from)
+        iterator.toList
+      }
     }
 
     override def apply(dataStore: datastore.AvroDataStore)
                       (implicit ct: ClassTag[T], s: SchemaFor[T], r: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] = {
-      val is = AvroInputStream.data[T](new File(dataStore.path))
-      val data = is.iterator.toSet
-      is.close()
-      DataSetAPI(data)
+      genericFileRead(dataStore) { file =>
+        val is = AvroInputStream.data[T](file)
+        val result = is.iterator.toList
+        is.close()
+        result
+      }
     }
 
     override def apply(dataStore: datastore.HiveDataStore)
@@ -79,6 +85,22 @@ object ReaderScalaImpl extends Reader {
       DataSetAPI(result._1)
     }
 
+    private def genericFileRead(dataStore: FileDataStore)
+                               (readFile: File=>Iterable[T])
+                               (implicit ct: ClassTag[T]): DataSetAPI[T] = {
+      def readAllFilesFromDirectory(directory: File): Iterable[T] = {
+        directory
+          .listFiles()
+          .filter(f => f.getName.endsWith(dataStore.extension))
+          .map(f => readFile(f))
+          .reduce(_ ++ _)
+      }
+
+      val file = new File(dataStore.path)
+      val data = if(file.isDirectory) readAllFilesFromDirectory(file) else readFile(file)
+
+      DataSetAPI(data)
+    }
   }
 
 }

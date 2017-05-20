@@ -23,55 +23,54 @@ class WriterScalaImpl[T] extends Writer[T] {
 
     override def apply(dataStore: CSVDataStore, saveMode: SaveMode)
                       (implicit ct: ClassTag[T], csvEncoder: CsvEncoder[T], encoder: Encoder[T]): Unit =
-      writeCSV(
-        data = ds.collect(),
-        path = dataStore.path,
-        delimiter = dataStore.delimiter,
-        header = dataStore.header,
-        columns = dataStore.columns,
-        escape = dataStore.escape,
-        quote = dataStore.quote
-      )
-
-    override def apply(dataStore: JsonDataStore, saveMode: SaveMode)
-                      (implicit encoder: Encoder[T]): Unit = {
-      implicit val formats = DefaultFormats
-
-      val pw = new PrintWriter(dataStore.path)
-
-      for(e <- ds) {
-        e match {
-          case a:AnyRef => pw.write(Serialization.write(a)(formats))
-          case _ => throw new Exception("Not supported type for JSON serialization!")
-        }
-        pw.write("\n")
+      genericFileWrite(dataStore, saveMode) {file =>
+        writeCSV(
+          data = ds.collect(),
+          path = file.getPath,
+          delimiter = dataStore.delimiter,
+          header = dataStore.header,
+          columns = dataStore.columns,
+          escape = dataStore.escape,
+          quote = dataStore.quote
+        )
       }
 
-      pw.close()
-    }
+    override def apply(dataStore: JsonDataStore, saveMode: SaveMode)
+                      (implicit encoder: Encoder[T]): Unit =
+      genericFileWrite(dataStore, saveMode) {file =>
+        implicit val formats = DefaultFormats
+        val pw = new PrintWriter(file)
+        for(e <- ds) {
+          e match {
+            case a:AnyRef => pw.write(Serialization.write(a)(formats))
+            case _ => throw new Exception("Not supported type for JSON serialization!")
+          }
+          pw.write("\n")
+        }
+        pw.close()
+      }
 
     override def apply(dataStore: ParquetDataStore, saveMode: SaveMode)
-                      (implicit s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], encoder: Encoder[T]): Unit = {
-      val file = new File(dataStore.path)
-      //TODO - delete only in overwrite mode!
-      file.delete()
-      val writer = AvroParquetWriter
-          .builder[GenericRecord](new Path(dataStore.path))
+                      (implicit s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], encoder: Encoder[T]): Unit =
+      genericFileWrite(dataStore, saveMode) {file =>
+        val writer = AvroParquetWriter
+          .builder[GenericRecord](new Path(file.getPath))
           .withSchema(s())
           .build()
-      val format = RecordFormat[T]
-      for(e <- ds)
-        writer.write(format.to(e))
-      writer.close()
-    }
+        val format = RecordFormat[T]
+        for(e <- ds)
+          writer.write(format.to(e))
+        writer.close()
+      }
 
     override def apply(dataStore: AvroDataStore, saveMode: SaveMode)
-                      (implicit s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit = {
-      val os = AvroOutputStream.data[T](new File(dataStore.path))
-      os.write(ds.collect())
-      os.flush()
-      os.close()
-    }
+                      (implicit s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit =
+      genericFileWrite(dataStore, saveMode) {file =>
+        val os = AvroOutputStream.data[T](file)
+        os.write(ds.collect())
+        os.flush()
+        os.close()
+      }
 
     override def apply(dataStore: HiveDataStore, saveMode: SaveMode)
                       (implicit s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit = {
@@ -88,6 +87,44 @@ class WriterScalaImpl[T] extends Writer[T] {
       connection.createStatement().execute(inserts.mkString(";"))
       connection.close()
     }
+
+    private def genericFileWrite(dataStore: FileDataStore, saveMode: SaveMode)
+                                (writeTo: File => Unit): Unit = {
+      val directory = new File(dataStore.path)
+      saveMode match {
+        case SaveMode.Append =>
+          writeToDirectory(directory)
+        case SaveMode.ErrorIfExists =>
+          if(directory.exists())
+            throw new Exception(s"Directory ${directory.getPath} already exists!")
+          else
+            writeToDirectory(directory)
+        case SaveMode.Overwrite =>
+          if(directory.exists())
+            deleteRecursively(directory)
+          writeToDirectory(directory)
+        case SaveMode.Ignore =>
+          if(!directory.exists())
+            writeToDirectory(directory)
+      }
+
+      def writeToDirectory(directory: File): Unit = {
+        if(!directory.exists())
+          directory.mkdir()
+        val file = new File(directory, uuid + dataStore.extension)
+        writeTo(file)
+      }
+    }
+
+    private def deleteRecursively(file: File): Unit = {
+      if (file.isDirectory)
+        file.listFiles.foreach(deleteRecursively)
+      if (file.exists && !file.delete)
+        throw new Exception(s"Unable to delete ${file.getAbsolutePath}")
+    }
+
+    private def uuid: String = java.util.UUID.randomUUID.toString
+
   }
 
 }
