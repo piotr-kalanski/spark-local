@@ -27,7 +27,7 @@ class WriteJsonTest extends SparkLocalBaseTest {
         |{"name":"second","age":11}""".stripMargin
 
     assertResult(expected.replace("\r", "").replace("\n", "")) {
-      readFileContent(file).replace("\r", "").replace("\n", "")
+      readJsonFileContentFromDirectory(file).replace("\r", "").replace("\n", "")
     }
   }
 
@@ -46,7 +46,7 @@ class WriteJsonTest extends SparkLocalBaseTest {
     ds1.write(JsonDataStore(file1), SaveMode.Overwrite)
     ds2.write(JsonDataStore(file2), SaveMode.Overwrite)
 
-    assert(readFileContent(file1) == readJsonFileContentFromDirectory(file2))
+    assert(readJsonFileContentFromDirectory(file1) == readJsonFileContentFromDirectory(file2))
   }
 
   private def readFileContent(file: String): String =

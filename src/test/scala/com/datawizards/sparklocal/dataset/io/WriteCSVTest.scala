@@ -29,7 +29,7 @@ class WriteCSVTest extends SparkLocalBaseTest {
         |second,11""".stripMargin
 
     assertResult(expected.replace("\r", "").replace("\n", "")) {
-      readFileContent(file).replace("\r", "").replace("\n", "")
+      readCSVFileContentFromDirectory(file).replace("\r", "").replace("\n", "")
     }
   }
 
@@ -47,7 +47,7 @@ class WriteCSVTest extends SparkLocalBaseTest {
         |second;11""".stripMargin
 
     assertResult(expected.replace("\r", "").replace("\n", "")) {
-      readFileContent(file).replace("\r", "").replace("\n", "")
+      readCSVFileContentFromDirectory(file).replace("\r", "").replace("\n", "")
     }
   }
 
@@ -64,7 +64,7 @@ class WriteCSVTest extends SparkLocalBaseTest {
         |second,11""".stripMargin
 
     assertResult(expected.replace("\r", "").replace("\n", "")) {
-      readFileContent(file).replace("\r", "").replace("\n", "")
+      readCSVFileContentFromDirectory(file).replace("\r", "").replace("\n", "")
     }
   }
 
@@ -82,7 +82,7 @@ class WriteCSVTest extends SparkLocalBaseTest {
         |"second, second",11""".stripMargin
 
     assertResult(expected.replace("\r", "").replace("\n", "")) {
-      readFileContent(file).replace("\r", "").replace("\n", "")
+      readCSVFileContentFromDirectory(file).replace("\r", "").replace("\n", "")
     }
   }
 
@@ -104,7 +104,7 @@ class WriteCSVTest extends SparkLocalBaseTest {
         |"p;4";40""".stripMargin
 
     assertResult(expected.replace("\r", "").replace("\n", "")) {
-      readFileContent(file).replace("\r", "").replace("\n", "")
+      readCSVFileContentFromDirectory(file).replace("\r", "").replace("\n", "")
     }
   }
 
@@ -123,7 +123,7 @@ class WriteCSVTest extends SparkLocalBaseTest {
     ds1.write(CSVDataStore(file1), SaveMode.Overwrite)
     ds2.write(CSVDataStore(file2), SaveMode.Overwrite)
 
-    assert(readFileContent(file1).replace("\r", "").replace("\n", "") == readCSVFileContentFromDirectory(file2).replace("\r", "").replace("\n", ""))
+    assert(readCSVFileContentFromDirectory(file1).replace("\r", "").replace("\n", "") == readCSVFileContentFromDirectory(file2).replace("\r", "").replace("\n", ""))
   }
 
   test("CSV file with custom header and separator - equals") {
@@ -143,16 +143,16 @@ class WriteCSVTest extends SparkLocalBaseTest {
     ds1.write(CSVDataStore(file1, delimiter = ';', columns = Seq("s2","i2")), SaveMode.Overwrite)
     ds2.write(CSVDataStore(file2, delimiter = ';', columns = Seq("s2","i2")), SaveMode.Overwrite)
 
-    assert(readFileContent(file1) == readCSVFileContentFromDirectory(file2))
+    assert(readCSVFileContentFromDirectory(file1) == readCSVFileContentFromDirectory(file2))
   }
-
-  private def readFileContent(file: String): String =
-    scala.io.Source.fromFile(file).getLines().mkString("\n")
 
   private def readCSVFileContentFromDirectory(directory: String): String = {
     val dir = new File(directory)
     val csvFile = dir.listFiles().filter(f => f.getName.endsWith(".csv")).head
     readFileContent(csvFile.getPath)
   }
+
+  private def readFileContent(file: String): String =
+    scala.io.Source.fromFile(file).getLines().mkString("\n")
 
 }
