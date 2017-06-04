@@ -4,6 +4,8 @@ import com.datawizards.sparklocal.SparkLocalBaseTest
 import com.datawizards.sparklocal.TestModel.Person
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore.CSVDataStore
+import com.datawizards.sparklocal.impl.scala.eager.dataset.io.ReaderScalaImpl
+import com.datawizards.sparklocal.impl.spark.dataset.io.ReaderSparkImpl
 import com.datawizards.sparklocal.implicits._
 import org.apache.spark.sql.SaveMode
 import org.junit.runner.RunWith

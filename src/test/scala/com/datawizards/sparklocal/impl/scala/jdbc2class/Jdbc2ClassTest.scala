@@ -1,4 +1,4 @@
-package com.datawizards.sparklocal.dataset.io.jdbc2class
+package com.datawizards.sparklocal.impl.scala.jdbc2class
 
 import java.sql.DriverManager
 

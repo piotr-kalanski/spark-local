@@ -532,6 +532,7 @@ ds.write(JdbcDataStore(connectionString, database, table, properties, driverName
 
 |spark-local|Spark version|
 |-----------|-------------|
+|0.5        |2.1.0        |
 |0.4        |2.1.0        |
 |0.3        |2.1.0        |
 |0.2        |2.1.0        |

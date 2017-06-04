@@ -1,4 +1,6 @@
-package com.datawizards.sparklocal.session
+package com.datawizards.sparklocal.impl.scala.eager.session
+
+import com.datawizards.sparklocal.session.Builder
 import org.apache.spark.SparkConf
 
 class BuilderScalaImpl extends Builder[SparkSessionAPIScalaImpl] {

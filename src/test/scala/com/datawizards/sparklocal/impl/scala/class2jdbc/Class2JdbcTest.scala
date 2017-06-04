@@ -1,4 +1,4 @@
-package com.datawizards.sparklocal.dataset.io.class2jdbc
+package com.datawizards.sparklocal.impl.scala.class2jdbc
 
 import com.datawizards.sparklocal.TestModel.Person
 import org.junit.runner.RunWith

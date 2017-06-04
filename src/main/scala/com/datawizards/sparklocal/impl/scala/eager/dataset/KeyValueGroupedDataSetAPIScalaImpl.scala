@@ -1,5 +1,7 @@
-package com.datawizards.sparklocal.dataset
+package com.datawizards.sparklocal.impl.scala.eager.dataset
 
+import com.datawizards.sparklocal.dataset.{DataSetAPI, KeyValueGroupedDataSetAPI}
+import com.datawizards.sparklocal.impl.spark.dataset.KeyValueGroupedDataSetAPISparkImpl
 import org.apache.spark.sql.{Encoder, KeyValueGroupedDataset}
 
 import scala.reflect.ClassTag
@@ -16,7 +18,7 @@ class KeyValueGroupedDataSetAPIScalaImpl[K: ClassTag, T: ClassTag](private[datas
       .mapValues(x => x._2)
   }
 
-  override private[dataset] def toKeyValueGroupedDataSet(implicit encK: Encoder[K], encT: Encoder[T], encKT: Encoder[(K, T)]) = createKeyValueGroupedDataset(data)
+  override private[sparklocal] def toKeyValueGroupedDataSet(implicit encK: Encoder[K], encT: Encoder[T], encKT: Encoder[(K, T)]) = createKeyValueGroupedDataset(data)
 
   override def count(): DataSetAPI[(K, Long)] =
     DataSetAPI(data.mapValues(_.size.toLong))

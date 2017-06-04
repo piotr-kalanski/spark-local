@@ -1,17 +1,18 @@
-package com.datawizards.sparklocal.dataset.io
+package com.datawizards.sparklocal.impl.spark.dataset.io
 
+import com.databricks.spark.avro._
+import com.datawizards.csv2class
 import com.datawizards.sparklocal.dataset.DataSetAPI
+import com.datawizards.sparklocal.dataset.io.{Reader, ReaderExecutor}
 import com.datawizards.sparklocal.datastore
+import com.sksamuel.avro4s.{FromRecord, SchemaFor, ToRecord}
+import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.sql.{Encoder, SparkSession}
+import shapeless.Generic.Aux
+import shapeless.HList
 
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe.TypeTag
-import com.databricks.spark.avro._
-import com.datawizards.csv2class
-import com.sksamuel.avro4s.{FromRecord, SchemaFor, ToRecord}
-import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
-import shapeless.Generic.Aux
-import shapeless.HList
 
 object ReaderSparkImpl extends Reader {
   private lazy val spark: SparkSession = SparkSession.builder().getOrCreate()

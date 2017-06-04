@@ -1,19 +1,20 @@
-package com.datawizards.sparklocal.rdd
+package com.datawizards.sparklocal.impl.scala.eager.rdd
 
 import com.datawizards.sparklocal.dataset.DataSetAPI
+import com.datawizards.sparklocal.impl.spark.rdd.RDDAPISparkImpl
+import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.rdd.PartitionCoalescer
 import org.apache.spark.sql.Encoder
-import org.apache.spark.{Partition, Partitioner}
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.util.random.{BernoulliCellSampler, BernoulliSampler, PoissonSampler}
+import org.apache.spark.{Partition, Partitioner}
 
 import scala.reflect.ClassTag
-import scala.reflect.runtime.universe.TypeTag
 
 class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] {
-  private[rdd] val data: Seq[T] = iterable.toSeq
+  private[sparklocal] val data: Seq[T] = iterable.toSeq
 
-  override private[rdd] def toRDD = parallelize(data)
+  override private[sparklocal] def toRDD = parallelize(data)
 
   private def create[U: ClassTag](data: Iterable[U]) = new RDDAPIScalaImpl(data)
 

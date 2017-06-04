@@ -1,8 +1,9 @@
-package com.datawizards.sparklocal.dataset.io
+package com.datawizards.sparklocal.impl.spark.dataset.io
 
-import com.datawizards.class2csv
 import com.databricks.spark.avro._
+import com.datawizards.class2csv
 import com.datawizards.sparklocal.dataset.DataSetAPI
+import com.datawizards.sparklocal.dataset.io.{Writer, WriterExecutor}
 import com.datawizards.sparklocal.datastore._
 import com.sksamuel.avro4s.{FromRecord, SchemaFor, ToRecord}
 import org.apache.spark.sql.{Encoder, SaveMode}
@@ -70,7 +71,7 @@ class WriterSparkImpl[T] extends Writer[T] {
         .saveAsTable(dataStore.fullTableName)
 
     override def apply(dataStore: JdbcDataStore, saveMode: SaveMode)
-                      (implicit ct: ClassTag[T], jdbcEncoder: class2jdbc.JdbcEncoder[T], encoder: Encoder[T]): Unit = {
+                      (implicit ct: ClassTag[T], jdbcEncoder: com.datawizards.sparklocal.impl.scala.class2jdbc.JdbcEncoder[T], encoder: Encoder[T]): Unit = {
       Class.forName(dataStore.driverClassName)
       ds
         .toDataset

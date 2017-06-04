@@ -1,5 +1,6 @@
-package com.datawizards.sparklocal.rdd
+package com.datawizards.sparklocal.impl.spark.rdd
 
+import com.datawizards.sparklocal.rdd.{PairRDDFunctionsAPI, RDDAPI}
 import org.apache.spark.Partitioner
 import org.apache.spark.rdd.{PairRDDFunctions, RDD}
 

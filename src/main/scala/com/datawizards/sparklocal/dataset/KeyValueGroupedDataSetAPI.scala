@@ -6,7 +6,7 @@ import scala.reflect.ClassTag
 
 trait KeyValueGroupedDataSetAPI[K, V] {
   protected lazy val spark: SparkSession = SparkSession.builder().getOrCreate()
-  private[dataset] def toKeyValueGroupedDataSet(implicit encK: Encoder[K], encT: Encoder[V], encKT: Encoder[(K, V)]): KeyValueGroupedDataset[K, V]
+  private[sparklocal] def toKeyValueGroupedDataSet(implicit encK: Encoder[K], encT: Encoder[V], encKT: Encoder[(K, V)]): KeyValueGroupedDataset[K, V]
 
   def count(): DataSetAPI[(K, Long)]
   def mapGroups[U: ClassTag](f: (K, Iterator[V]) => U)

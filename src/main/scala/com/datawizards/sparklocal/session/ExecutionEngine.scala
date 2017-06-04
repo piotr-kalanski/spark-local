@@ -1,5 +1,7 @@
 package com.datawizards.sparklocal.session
 
+import com.datawizards.sparklocal.impl.scala.eager.session.{BuilderScalaImpl, SparkSessionAPIScalaImpl}
+import com.datawizards.sparklocal.impl.spark.session.{BuilderSparkImpl, SparkSessionAPISparkImpl}
 import org.apache.spark.sql.SparkSession
 
 /**

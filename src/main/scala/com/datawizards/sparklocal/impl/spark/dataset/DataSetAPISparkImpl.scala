@@ -1,9 +1,11 @@
-package com.datawizards.sparklocal.dataset
+package com.datawizards.sparklocal.impl.spark.dataset
 
 import java.util
 
 import com.datawizards.sparklocal.dataset.expressions.Expressions
-import com.datawizards.sparklocal.dataset.io.{WriterExecutor, WriterSparkImpl}
+import com.datawizards.sparklocal.dataset.io.WriterExecutor
+import com.datawizards.sparklocal.dataset.{DataSetAPI, KeyValueGroupedDataSetAPI}
+import com.datawizards.sparklocal.impl.spark.dataset.io.WriterSparkImpl
 import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.sql.{Column, Dataset, Encoder}
 import org.apache.spark.storage.StorageLevel
@@ -14,7 +16,7 @@ class DataSetAPISparkImpl[T: ClassTag](val data: Dataset[T]) extends DataSetAPI[
 
   private def create[U: ClassTag](ds: Dataset[U]) = new DataSetAPISparkImpl(ds)
 
-  override private[dataset] def toDataset(implicit enc: Encoder[T]) = data
+  override private[sparklocal] def toDataset(implicit enc: Encoder[T]) = data
 
   override def map[That: ClassTag](map: T => That)(implicit enc: Encoder[That]): DataSetAPI[That] =
     create(data.map(map))

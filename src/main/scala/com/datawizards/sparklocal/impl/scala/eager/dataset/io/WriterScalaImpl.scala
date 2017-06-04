@@ -1,19 +1,20 @@
-package com.datawizards.sparklocal.dataset.io
+package com.datawizards.sparklocal.impl.scala.eager.dataset.io
 
 import java.io.{File, PrintWriter}
 import java.sql.DriverManager
 
 import com.datawizards.class2csv._
-import com.datawizards.sparklocal.dataset.io.class2jdbc._
-import org.json4s.jackson.Serialization
 import com.datawizards.sparklocal.dataset.DataSetAPI
+import com.datawizards.sparklocal.impl.scala.class2jdbc._
+import com.datawizards.sparklocal.dataset.io.{Writer, WriterExecutor}
 import com.datawizards.sparklocal.datastore._
-import org.apache.spark.sql.{Encoder, SaveMode}
-import org.json4s.DefaultFormats
 import com.sksamuel.avro4s._
 import org.apache.avro.generic.GenericRecord
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.avro.AvroParquetWriter
+import org.apache.spark.sql.{Encoder, SaveMode}
+import org.json4s.DefaultFormats
+import org.json4s.jackson.Serialization
 
 import scala.reflect.ClassTag
 
@@ -80,7 +81,7 @@ class WriterScalaImpl[T] extends Writer[T] {
     }
 
     override def apply(dataStore: JdbcDataStore, saveMode: SaveMode)
-                      (implicit ct: ClassTag[T], jdbcEncoder: class2jdbc.JdbcEncoder[T], encoder: Encoder[T]): Unit = {
+                      (implicit ct: ClassTag[T], jdbcEncoder: com.datawizards.sparklocal.impl.scala.class2jdbc.JdbcEncoder[T], encoder: Encoder[T]): Unit = {
       Class.forName(dataStore.driverClassName)
       val connection = DriverManager.getConnection(dataStore.url, dataStore.connectionProperties)
       val inserts = generateInserts(ds.collect(), dataStore.fullTableName)

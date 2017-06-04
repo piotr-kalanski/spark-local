@@ -1,26 +1,27 @@
-package com.datawizards.sparklocal.dataset.io
+package com.datawizards.sparklocal.impl.scala.eager.dataset.io
 
 import java.io.File
 import java.sql.DriverManager
 
 import com.datawizards.csv2class
-import com.datawizards.sparklocal.dataset.DataSetAPI
-import com.datawizards.sparklocal.datastore
-
-import scala.reflect.ClassTag
-import scala.reflect.runtime.universe.TypeTag
 import com.datawizards.csv2class._
-import com.datawizards.sparklocal.dataset.io.jdbc2class._
+import com.datawizards.sparklocal.dataset.DataSetAPI
+import com.datawizards.sparklocal.impl.scala.jdbc2class._
+import com.datawizards.sparklocal.dataset.io.{Reader, ReaderExecutor}
+import com.datawizards.sparklocal.datastore
 import com.datawizards.sparklocal.datastore.FileDataStore
-import shapeless.Generic.Aux
-import shapeless.HList
-import org.json4s._
-import org.json4s.native.JsonMethods._
 import com.sksamuel.avro4s._
 import org.apache.avro.generic.GenericRecord
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.avro.AvroParquetReader
 import org.apache.spark.sql.Encoder
+import org.json4s._
+import org.json4s.native.JsonMethods._
+import shapeless.Generic.Aux
+import shapeless.HList
+
+import scala.reflect.ClassTag
+import scala.reflect.runtime.universe.TypeTag
 
 object ReaderScalaImpl extends Reader {
 

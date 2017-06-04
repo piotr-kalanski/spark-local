@@ -1,9 +1,12 @@
-package com.datawizards.sparklocal.dataset
+package com.datawizards.sparklocal.impl.scala.eager.dataset
 
 import java.util
 
 import com.datawizards.sparklocal.dataset.expressions.Expressions
-import com.datawizards.sparklocal.dataset.io.{WriterExecutor, WriterScalaImpl}
+import com.datawizards.sparklocal.dataset.io.WriterExecutor
+import com.datawizards.sparklocal.dataset.{DataSetAPI, KeyValueGroupedDataSetAPI}
+import com.datawizards.sparklocal.impl.scala.eager.dataset.io.WriterScalaImpl
+import com.datawizards.sparklocal.impl.spark.dataset.DataSetAPISparkImpl
 import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.sql.{Column, Encoder}
 import org.apache.spark.storage.StorageLevel
@@ -14,12 +17,12 @@ import scala.collection.mutable.ListBuffer
 import scala.reflect.ClassTag
 
 class DataSetAPIScalaImpl[T: ClassTag](iterable: Iterable[T]) extends DataSetAPI[T] {
-  private[dataset] val data: Seq[T] = iterable.toSeq
+  private[sparklocal] val data: Seq[T] = iterable.toSeq
 
   private def create[U: ClassTag](it: Iterable[U])(implicit enc: Encoder[U]=null) =
     new DataSetAPIScalaImpl(it)
 
-  override private[dataset] def toDataset(implicit enc: Encoder[T]) = createDataset(data)
+  override private[sparklocal] def toDataset(implicit enc: Encoder[T]) = createDataset(data)
 
   override def map[That: ClassTag](map: T => That)(implicit enc: Encoder[That]): DataSetAPI[That] =
     create(data.map(map))

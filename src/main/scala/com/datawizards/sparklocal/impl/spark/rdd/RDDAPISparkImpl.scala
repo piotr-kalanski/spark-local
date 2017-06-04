@@ -1,20 +1,20 @@
-package com.datawizards.sparklocal.rdd
+package com.datawizards.sparklocal.impl.spark.rdd
 
 import com.datawizards.sparklocal.dataset.DataSetAPI
-import org.apache.spark.{Partition, Partitioner}
+import com.datawizards.sparklocal.impl.scala.eager.rdd.RDDAPIScalaImpl
+import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.rdd.{PartitionCoalescer, RDD}
 import org.apache.spark.sql.Encoder
-import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.{Partition, Partitioner}
 
 import scala.reflect.ClassTag
-import scala.reflect.runtime.universe.TypeTag
 
 class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
 
   private def create[U: ClassTag](rdd: RDD[U]) = new RDDAPISparkImpl(rdd)
 
-  override private[rdd] def toRDD = data
+  override private[sparklocal] def toRDD = data
 
   override def collect(): Array[T] =
     data.collect()

@@ -1,5 +1,6 @@
-package com.datawizards.sparklocal.session
+package com.datawizards.sparklocal.impl.spark.session
 
+import com.datawizards.sparklocal.session.Builder
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 
