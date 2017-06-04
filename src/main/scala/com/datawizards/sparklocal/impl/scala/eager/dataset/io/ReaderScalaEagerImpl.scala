@@ -23,8 +23,7 @@ import shapeless.HList
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe.TypeTag
 
-object ReaderScalaImpl extends Reader {
-
+object ReaderScalaEagerImpl extends Reader {
   override def read[T]: ReaderExecutor[T] = new ReaderExecutor[T] {
     override def apply[L <: HList](dataStore: datastore.CSVDataStore)
                                   (implicit ct: ClassTag[T], gen: Aux[T, L], fromRow: csv2class.FromRow[L], enc: Encoder[T]): DataSetAPI[T] = {

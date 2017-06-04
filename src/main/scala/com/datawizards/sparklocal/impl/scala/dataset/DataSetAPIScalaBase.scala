@@ -1,11 +1,11 @@
-package com.datawizards.sparklocal.impl.scala.eager.dataset
+package com.datawizards.sparklocal.impl.scala.dataset
 
 import java.util
 
 import com.datawizards.sparklocal.dataset.expressions.Expressions
 import com.datawizards.sparklocal.dataset.io.WriterExecutor
-import com.datawizards.sparklocal.dataset.{DataSetAPI, KeyValueGroupedDataSetAPI}
-import com.datawizards.sparklocal.impl.scala.eager.dataset.io.WriterScalaImpl
+import com.datawizards.sparklocal.dataset.DataSetAPI
+import com.datawizards.sparklocal.impl.scala.dataset.io.WriterScalaImpl
 import com.datawizards.sparklocal.impl.spark.dataset.DataSetAPISparkImpl
 import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.sql.{Column, Encoder}
@@ -16,11 +16,12 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 import scala.reflect.ClassTag
 
-class DataSetAPIScalaImpl[T: ClassTag](iterable: Iterable[T]) extends DataSetAPI[T] {
-  private[sparklocal] val data: Seq[T] = iterable.toSeq
+abstract class DataSetAPIScalaBase[T: ClassTag] extends DataSetAPI[T] {
+  type InternalCollection <: Iterable[T]
 
-  private def create[U: ClassTag](it: Iterable[U])(implicit enc: Encoder[U]=null) =
-    new DataSetAPIScalaImpl(it)
+  private[sparklocal] val data: InternalCollection
+
+  protected def create[U: ClassTag](it: Iterable[U])(implicit enc: Encoder[U]=null): DataSetAPIScalaBase[U]
 
   override private[sparklocal] def toDataset(implicit enc: Encoder[T]) = createDataset(data)
 
@@ -31,7 +32,7 @@ class DataSetAPIScalaImpl[T: ClassTag](iterable: Iterable[T]) extends DataSetAPI
     data.toArray
 
   override def collectAsList(): java.util.List[T] =
-    data
+    data.toList
 
   override def filter(p: T => Boolean): DataSetAPI[T] =
     create(data.filter(p))
@@ -75,27 +76,21 @@ class DataSetAPIScalaImpl[T: ClassTag](iterable: Iterable[T]) extends DataSetAPI
   override def flatMap[U: ClassTag](func: (T) => TraversableOnce[U])(implicit enc: Encoder[U]=null): DataSetAPI[U] =
     create(data.flatMap(func))
 
-  override def distinct(): DataSetAPI[T] =
-    create(data.distinct)
-
   override def rdd(): RDDAPI[T] =
     RDDAPI(data)
 
   override def union(other: DataSetAPI[T])(implicit enc: Encoder[T]): DataSetAPI[T] = other match {
     case dsSpark:DataSetAPISparkImpl[T] => DataSetAPI(this.toDataset.union(dsSpark.data))
-    case dsScala:DataSetAPIScalaImpl[T] => create(data.union(dsScala.data))
+    case dsScala:DataSetAPIScalaBase[T] => union(data, dsScala)
   }
 
   override def intersect(other: DataSetAPI[T])(implicit enc: Encoder[T]): DataSetAPI[T] = other match {
     case dsSpark:DataSetAPISparkImpl[T] => DataSetAPI(this.toDataset.intersect(dsSpark.data))
-    case dsScala:DataSetAPIScalaImpl[T] => create(data.intersect(dsScala.data))
+    case dsScala:DataSetAPIScalaBase[T] => intersect(data, dsScala)
   }
 
   override def takeAsList(n: Int): util.List[T] =
-    data.take(n)
-
-  override def groupByKey[K: ClassTag](func: (T) => K)(implicit enc: Encoder[K]=null): KeyValueGroupedDataSetAPI[K, T] =
-    new KeyValueGroupedDataSetAPIScalaImpl(data.groupBy(func))
+    data.take(n).toList
 
   override def limit(n: Int): DataSetAPI[T] =
     create(data.take(n))
@@ -135,7 +130,7 @@ class DataSetAPIScalaImpl[T: ClassTag](iterable: Iterable[T]) extends DataSetAPI
 
   override def join[U: ClassTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression)
                                 (implicit encT: Encoder[T], encU: Encoder[U], encTU: Encoder[(T,U)]): DataSetAPI[(T, U)] = other match {
-    case dsScala:DataSetAPIScalaImpl[U] => create(
+    case dsScala:DataSetAPIScalaBase[U] => create(
       for {
         left <- data
         right <- dsScala.data
@@ -147,7 +142,7 @@ class DataSetAPIScalaImpl[T: ClassTag](iterable: Iterable[T]) extends DataSetAPI
 
   override def leftOuterJoin[U: ClassTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression)
                                          (implicit encT: Encoder[T], encU: Encoder[U], encTU: Encoder[(T,U)]): DataSetAPI[(T, U)] = other match {
-    case dsScala:DataSetAPIScalaImpl[U] =>
+    case dsScala:DataSetAPIScalaBase[U] =>
       val b = new ListBuffer[(T,U)]
 
       val empty: U = null.asInstanceOf[U]
@@ -171,7 +166,7 @@ class DataSetAPIScalaImpl[T: ClassTag](iterable: Iterable[T]) extends DataSetAPI
 
   override def rightOuterJoin[U: ClassTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression)
                                           (implicit encT: Encoder[T], encU: Encoder[U], encTU: Encoder[(T,U)]): DataSetAPI[(T, U)] = other match {
-    case dsScala:DataSetAPIScalaImpl[U] =>
+    case dsScala:DataSetAPIScalaBase[U] =>
       val b = new ListBuffer[(T,U)]
 
       val empty: T = null.asInstanceOf[T]
@@ -195,7 +190,7 @@ class DataSetAPIScalaImpl[T: ClassTag](iterable: Iterable[T]) extends DataSetAPI
 
   override def fullOuterJoin[U: ClassTag](other: DataSetAPI[U], condition: Expressions.BooleanExpression)
                                          (implicit encT: Encoder[T], encU: Encoder[U], encTU: Encoder[(T,U)]): DataSetAPI[(T, U)] = other match {
-    case dsScala:DataSetAPIScalaImpl[U] =>
+    case dsScala:DataSetAPIScalaBase[U] =>
       val b = new ListBuffer[(T,U)]
 
       val emptyT: T = null.asInstanceOf[T]
@@ -231,4 +226,8 @@ class DataSetAPIScalaImpl[T: ClassTag](iterable: Iterable[T]) extends DataSetAPI
 
   override def write: WriterExecutor[T] = new WriterScalaImpl[T].write(this)
 
+  protected def union(data: InternalCollection, dsScala: DataSetAPIScalaBase[T]): DataSetAPIScalaBase[T]
+  protected def intersect(data: InternalCollection, dsScala: DataSetAPIScalaBase[T]): DataSetAPIScalaBase[T]
+  protected def diff(data: InternalCollection, dsScala: DataSetAPIScalaBase[T]): DataSetAPIScalaBase[T]
 }
+

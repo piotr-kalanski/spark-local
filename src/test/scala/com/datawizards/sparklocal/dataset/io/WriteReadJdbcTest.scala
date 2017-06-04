@@ -6,7 +6,7 @@ import com.datawizards.sparklocal.SparkLocalBaseTest
 import com.datawizards.sparklocal.TestModel.Person
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore.JdbcDataStore
-import com.datawizards.sparklocal.impl.scala.eager.dataset.io.ReaderScalaImpl
+import com.datawizards.sparklocal.impl.scala.eager.dataset.io.ReaderScalaEagerImpl
 import com.datawizards.sparklocal.impl.spark.dataset.io.ReaderSparkImpl
 import com.datawizards.sparklocal.implicits._
 import org.apache.spark.sql.SaveMode
@@ -31,7 +31,7 @@ class WriteReadJdbcTest extends SparkLocalBaseTest {
     val expected = DataSetAPI(data)
     expected.write(dataStore, SaveMode.Append)
     assertResult(expected) {
-      ReaderScalaImpl.read[Person](dataStore)
+      ReaderScalaEagerImpl.read[Person](dataStore)
     }
     connection.close()
   }

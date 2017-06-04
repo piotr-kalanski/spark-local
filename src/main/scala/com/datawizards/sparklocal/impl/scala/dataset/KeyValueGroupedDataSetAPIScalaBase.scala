@@ -1,4 +1,4 @@
-package com.datawizards.sparklocal.impl.scala.eager.dataset
+package com.datawizards.sparklocal.impl.scala.dataset
 
 import com.datawizards.sparklocal.dataset.{DataSetAPI, KeyValueGroupedDataSetAPI}
 import com.datawizards.sparklocal.impl.spark.dataset.KeyValueGroupedDataSetAPISparkImpl
@@ -6,11 +6,12 @@ import org.apache.spark.sql.{Encoder, KeyValueGroupedDataset}
 
 import scala.reflect.ClassTag
 
-class KeyValueGroupedDataSetAPIScalaImpl[K: ClassTag, T: ClassTag](private[dataset] val data: Map[K,Seq[T]]) extends KeyValueGroupedDataSetAPI[K, T] {
+abstract class KeyValueGroupedDataSetAPIScalaBase[K: ClassTag, T: ClassTag] extends KeyValueGroupedDataSetAPI[K, T] {
+  type InternalCollection <: Map[K, Iterable[T]]
 
-  private def create[U: ClassTag](data: Map[K,Seq[U]]) = new KeyValueGroupedDataSetAPIScalaImpl(data)
+  private[sparklocal] val data: InternalCollection
 
-  private def createKeyValueGroupedDataset(d: Map[K,Seq[T]])
+  private def createKeyValueGroupedDataset(d: InternalCollection)
                                           (implicit encK: Encoder[K], encT: Encoder[T], encKT: Encoder[(K, T)]): KeyValueGroupedDataset[K,T] = {
     val ds = spark.createDataset(d.toSeq.flatMap(kv => kv._2.map(v => (kv._1,v))))
     ds
@@ -18,14 +19,11 @@ class KeyValueGroupedDataSetAPIScalaImpl[K: ClassTag, T: ClassTag](private[datas
       .mapValues(x => x._2)
   }
 
-  override private[sparklocal] def toKeyValueGroupedDataSet(implicit encK: Encoder[K], encT: Encoder[T], encKT: Encoder[(K, T)]) = createKeyValueGroupedDataset(data)
+  override private[sparklocal] def toKeyValueGroupedDataSet(implicit encK: Encoder[K], encT: Encoder[T], encKT: Encoder[(K, T)]) =
+    createKeyValueGroupedDataset(data)
 
   override def count(): DataSetAPI[(K, Long)] =
     DataSetAPI(data.mapValues(_.size.toLong))
-
-  override def mapValues[W: ClassTag](func: (T) => W)
-                                     (implicit enc: Encoder[W]=null): KeyValueGroupedDataSetAPI[K, W] =
-    create(data.mapValues(_.map(func)))
 
   override def mapGroups[U: ClassTag](f: (K, Iterator[T]) => U)
                                      (implicit enc: Encoder[U]=null): DataSetAPI[U] =
@@ -55,7 +53,7 @@ class KeyValueGroupedDataSetAPIScalaImpl[K: ClassTag, T: ClassTag](private[datas
                                                   encKU: Encoder[(K,U)]=null
                                                  ): DataSetAPI[R] = other match {
     case sparkKV:KeyValueGroupedDataSetAPISparkImpl[K,U] => new KeyValueGroupedDataSetAPISparkImpl(this.toKeyValueGroupedDataSet).cogroup(sparkKV)(f)
-    case scalaKV:KeyValueGroupedDataSetAPIScalaImpl[K,U] => DataSetAPI({
+    case scalaKV:KeyValueGroupedDataSetAPIScalaBase[K,U] => DataSetAPI({
       val xs      = data
       val ys      = scalaKV.data
       val allKeys = xs.keys ++ ys.keys
