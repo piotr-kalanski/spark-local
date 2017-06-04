@@ -1,9 +1,9 @@
-package com.datawizards.sparklocal.impl.scala.eager.rdd
+package com.datawizards.sparklocal.impl.scala.rdd
 
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.impl.spark.rdd.RDDAPISparkImpl
 import com.datawizards.sparklocal.rdd.RDDAPI
-import org.apache.spark.rdd.PartitionCoalescer
+import org.apache.spark.rdd.{PartitionCoalescer, RDD}
 import org.apache.spark.sql.Encoder
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.util.random.{BernoulliCellSampler, BernoulliSampler, PoissonSampler}
@@ -11,12 +11,14 @@ import org.apache.spark.{Partition, Partitioner}
 
 import scala.reflect.ClassTag
 
-class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] {
-  private[sparklocal] val data: Seq[T] = iterable.toSeq
+abstract class RDDAPIScalaBase[T: ClassTag] extends RDDAPI[T] {
+  type InternalCollection <: Iterable[T]
+
+  private[sparklocal] val data: InternalCollection
 
   override private[sparklocal] def toRDD = parallelize(data)
 
-  private def create[U: ClassTag](data: Iterable[U]) = new RDDAPIScalaImpl(data)
+  protected def create[U: ClassTag](data: Iterable[U]): RDDAPIScalaBase[U]
 
   override def collect(): Array[T] = data.toArray
 
@@ -38,7 +40,7 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
   override def isEmpty: Boolean = data.isEmpty
 
   override def zip[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)] = other match {
-    case rddScala:RDDAPIScalaImpl[U] => create(data zip rddScala.data)
+    case rddScala:RDDAPIScalaBase[U] => create(data zip rddScala.data)
     case rddSpark:RDDAPISparkImpl[U] => RDDAPI(parallelize(data) zip rddSpark.data)
   }
 
@@ -48,16 +50,14 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
 
   override def checkpoint(): RDDAPI[T] = this
 
-  override def cache(): RDDAPI[T] = this
+  override def persist(newLevel: StorageLevel): RDDAPI[T] = cache()
 
-  override def persist(newLevel: StorageLevel): RDDAPI[T] = this
-
-  override def persist(): RDDAPI[T] = this
+  override def persist(): RDDAPI[T] = cache()
 
   override def unpersist(blocking: Boolean): RDDAPI[T] = this
 
   override def union(other: RDDAPI[T]): RDDAPI[T] = other match {
-    case rddScala:RDDAPIScalaImpl[T] => create(data union rddScala.data)
+    case rddScala:RDDAPIScalaBase[T] => union(data, rddScala)
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(parallelize(data) union rddSpark.data)
   }
 
@@ -69,50 +69,42 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
 
   override def partitions: Array[Partition] = Array.empty
 
-  override def sortBy[K](f: (T) => K, ascending: Boolean, numPartitions: Int)(implicit ord: Ordering[K], ctag: ClassTag[K]): RDDAPI[T] =
-    create(data.sortBy(f)(if(ascending) ord else ord.reverse))
-
   override def intersection(other: RDDAPI[T]): RDDAPI[T] = other match {
-    case rddScala:RDDAPIScalaImpl[T] => create(data intersect rddScala.data)
+    case rddScala:RDDAPIScalaBase[T] => intersect(data, rddScala)
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(parallelize(data) intersection rddSpark.data)
   }
 
   override def intersection(other: RDDAPI[T], numPartitions: Int): RDDAPI[T] = other match {
-    case rddScala:RDDAPIScalaImpl[T] => create(data intersect rddScala.data)
+    case rddScala:RDDAPIScalaBase[T] => intersect(data, rddScala)
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(parallelize(data).intersection(rddSpark.data, numPartitions))
   }
 
   override def intersection(other: RDDAPI[T], partitioner: Partitioner)(implicit ord: Ordering[T]): RDDAPI[T] = other match {
-    case rddScala:RDDAPIScalaImpl[T] => create(data intersect rddScala.data)
+    case rddScala:RDDAPIScalaBase[T] => intersect(data, rddScala)
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(parallelize(data).intersection(rddSpark.data, partitioner)(ord))
   }
 
   override def count(): Long = data.size
 
-  override def distinct(): RDDAPI[T] = create(data.distinct)
-
   override def distinct(numPartitions: Int)(implicit ord: Ordering[T]): RDDAPI[T] = distinct()
 
-  override def top(num: Int)(implicit ord: Ordering[T]): Array[T] =
-    data.sorted(ord.reverse).take(num).toArray
-
   override def subtract(other: RDDAPI[T]): RDDAPI[T] = other match {
-    case rddScala:RDDAPIScalaImpl[T] => create(data.diff(rddScala.data))
+    case rddScala:RDDAPIScalaBase[T] => diff(data, rddScala)
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(parallelize(data).subtract(rddSpark.data))
   }
 
   override def subtract(other: RDDAPI[T], numPartitions: Int): RDDAPI[T] = other match {
-    case rddScala:RDDAPIScalaImpl[T] => create(data diff rddScala.data)
+    case rddScala:RDDAPIScalaBase[T] => diff(data, rddScala)
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(parallelize(data).subtract(rddSpark.data, numPartitions))
   }
 
   override def subtract(other: RDDAPI[T], partitioner: Partitioner)(implicit ord: Ordering[T]): RDDAPI[T] = other match {
-    case rddScala:RDDAPIScalaImpl[T] => create(data diff rddScala.data)
+    case rddScala:RDDAPIScalaBase[T] => diff(data, rddScala)
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(parallelize(data).subtract(rddSpark.data, partitioner)(ord))
   }
 
   override def cartesian[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)] = other match {
-    case rddScala:RDDAPIScalaImpl[U] => create(
+    case rddScala:RDDAPIScalaBase[U] => create(
       for{
         left <- data
         right <- rddScala.data
@@ -134,9 +126,6 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
     groupBy(f)
 
   override def coalesce(numPartitions: Int, shuffle: Boolean, partitionCoalescer: Option[PartitionCoalescer])(implicit ord: Ordering[T]): RDDAPI[T] = this
-
-  override def takeOrdered(num: Int)(implicit ord: Ordering[T]): Array[T] =
-    data.sorted.take(num).toArray
 
   override def sample(withReplacement: Boolean, fraction: Double, seed: Long): RDDAPI[T] = {
     val sampler = if (withReplacement) new PoissonSampler[T](fraction) else new BernoulliSampler[T](fraction)
@@ -165,4 +154,9 @@ class RDDAPIScalaImpl[T: ClassTag](val iterable: Iterable[T]) extends RDDAPI[T] 
   override def toDataSet(implicit enc: Encoder[T]): DataSetAPI[T] =
     DataSetAPI(data)
 
+  protected def union(data: InternalCollection, rddScala: RDDAPIScalaBase[T]): RDDAPI[T]
+
+  protected def intersect(data: InternalCollection, rddScala: RDDAPIScalaBase[T]): RDDAPI[T]
+
+  protected def diff(data: InternalCollection, rddScala: RDDAPIScalaBase[T]): RDDAPI[T]
 }

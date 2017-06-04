@@ -1,25 +1,28 @@
 package com.datawizards.sparklocal.rdd
 
 import com.datawizards.sparklocal.dataset.DataSetAPI
-import com.datawizards.sparklocal.impl.scala.eager.rdd.{PairRDDFunctionsAPIScalaImpl, RDDAPIScalaImpl}
+import com.datawizards.sparklocal.impl.scala.`lazy`.rdd.{PairRDDFunctionsAPIScalaLazyImpl, RDDAPIScalaLazyImpl}
+import com.datawizards.sparklocal.impl.scala.eager.rdd.{PairRDDFunctionsAPIScalaEagerImpl, RDDAPIScalaEagerImpl}
 import com.datawizards.sparklocal.impl.spark.rdd.{PairRDDFunctionsAPISparkImpl, RDDAPISparkImpl}
 import org.apache.spark.{Partition, Partitioner}
 import org.apache.spark.rdd.{PartitionCoalescer, RDD}
 import org.apache.spark.sql.{Encoder, SparkSession}
 import org.apache.spark.storage.StorageLevel
 
-import scala.collection.Map
+import scala.collection.{Map, SeqView}
 import scala.reflect.ClassTag
-import scala.reflect.runtime.universe.TypeTag
 
 object RDDAPI {
-  def apply[T: ClassTag](iterable: Iterable[T]) = new RDDAPIScalaImpl(iterable)
-  def apply[T: ClassTag](rdd: RDD[T]) = new RDDAPISparkImpl(rdd)
+  def apply[T: ClassTag](iterable: Iterable[T]): RDDAPI[T] = apply(iterable.toSeq)
+  def apply[T: ClassTag](seq: Seq[T]): RDDAPI[T] = new RDDAPIScalaEagerImpl(seq)
+  def apply[T: ClassTag](seq: SeqView[T, Seq[T]]): RDDAPI[T] = new RDDAPIScalaLazyImpl(seq)
+  def apply[T: ClassTag](rdd: RDD[T]): RDDAPI[T] = new RDDAPISparkImpl(rdd)
 
   implicit def rddToPairRDDFunctions[K, V](rdd: RDDAPI[(K, V)])
     (implicit kct: ClassTag[K], vct: ClassTag[V], ord: Ordering[K] = null): PairRDDFunctionsAPI[K, V] = {
      rdd match {
-      case rddScala:RDDAPIScalaImpl[(K,V)] => new PairRDDFunctionsAPIScalaImpl(rddScala)(kct,vct,ord)
+      case rddScala:RDDAPIScalaEagerImpl[(K,V)] => new PairRDDFunctionsAPIScalaEagerImpl(rddScala)(kct,vct,ord)
+      case rddScala:RDDAPIScalaLazyImpl[(K,V)] => new PairRDDFunctionsAPIScalaLazyImpl(rddScala)(kct,vct,ord)
       case rddSpark:RDDAPISparkImpl[(K,V)] => new PairRDDFunctionsAPISparkImpl(rddSpark)(kct,vct,ord)
     }
   }
@@ -29,6 +32,7 @@ object RDDAPI {
 trait RDDAPI[T] {
   protected lazy val spark: SparkSession = SparkSession.builder().getOrCreate()
   protected def parallelize[That: ClassTag](d: Seq[That]): RDD[That] = spark.sparkContext.parallelize(d)
+  protected def parallelize[That: ClassTag](d: Iterable[That]): RDD[That] = parallelize(d.toSeq)
   private[sparklocal] def toRDD: RDD[T]
 
   def collect(): Array[T]

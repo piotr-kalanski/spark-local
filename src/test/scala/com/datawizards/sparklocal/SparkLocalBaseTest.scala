@@ -175,7 +175,12 @@ trait SparkLocalBaseTest extends FunSuite {
   def assertRDDOperationReturnsSameResultWithEqual[T:ClassTag:TypeTag, Result](data: Seq[T], op: RDDAPI[T] => Result)(eq: ((Result,Result) => Boolean)): Unit = {
     val rdd = sc.parallelize(data)
 
-    assert(eq(op(RDDAPI(data)),op(RDDAPI(rdd))))
+    val scalaEagerImpl = op(RDDAPI(data))
+    val scalaLazyImpl = op(RDDAPI(data.view))
+    val sparkImpl = op(RDDAPI(rdd))
+
+    assert(eq(scalaEagerImpl, sparkImpl))
+    assert(eq(scalaEagerImpl, scalaLazyImpl))
   }
 
   /**

@@ -1,7 +1,7 @@
 package com.datawizards.sparklocal.impl.spark.rdd
 
 import com.datawizards.sparklocal.dataset.DataSetAPI
-import com.datawizards.sparklocal.impl.scala.eager.rdd.RDDAPIScalaImpl
+import com.datawizards.sparklocal.impl.scala.eager.rdd.RDDAPIScalaEagerImpl
 import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.rdd.{PartitionCoalescer, RDD}
 import org.apache.spark.sql.Encoder
@@ -44,7 +44,7 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
     data.isEmpty
 
   override def zip[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)] = other match {
-    case rddScala:RDDAPIScalaImpl[U] => RDDAPI(data zip parallelize(rddScala.data))
+    case rddScala:RDDAPIScalaEagerImpl[U] => RDDAPI(data zip parallelize(rddScala.data))
     case rddSpark:RDDAPISparkImpl[U] => create(data zip rddSpark.data)
   }
 
@@ -72,7 +72,7 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
     create(data.unpersist(blocking))
 
   override def union(other: RDDAPI[T]): RDDAPI[T] = other match {
-    case rddScala:RDDAPIScalaImpl[T] => RDDAPI(data union parallelize(rddScala.data))
+    case rddScala:RDDAPIScalaEagerImpl[T] => RDDAPI(data union parallelize(rddScala.data))
     case rddSpark:RDDAPISparkImpl[T] => create(data union rddSpark.data)
   }
 
@@ -92,17 +92,17 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
     create(data.sortBy(f,ascending,numPartitions)(ord,ctag))
 
   override def intersection(other: RDDAPI[T]): RDDAPI[T] = other match {
-    case rddScala:RDDAPIScalaImpl[T] => create(data.intersection(parallelize(rddScala.data)))
+    case rddScala:RDDAPIScalaEagerImpl[T] => create(data.intersection(parallelize(rddScala.data)))
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(data.intersection(rddSpark.data))
   }
 
   override def intersection(other: RDDAPI[T], numPartitions: Int): RDDAPI[T] = other match {
-    case rddScala:RDDAPIScalaImpl[T] => create(data.intersection(parallelize(rddScala.data), numPartitions))
+    case rddScala:RDDAPIScalaEagerImpl[T] => create(data.intersection(parallelize(rddScala.data), numPartitions))
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(data.intersection(rddSpark.data, numPartitions))
   }
 
   override def intersection(other: RDDAPI[T], partitioner: Partitioner)(implicit ord: Ordering[T]): RDDAPI[T] = other match {
-    case rddScala:RDDAPIScalaImpl[T] => create(data.intersection(parallelize(rddScala.data), partitioner)(ord))
+    case rddScala:RDDAPIScalaEagerImpl[T] => create(data.intersection(parallelize(rddScala.data), partitioner)(ord))
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(data.intersection(rddSpark.data, partitioner)(ord))
   }
 
@@ -119,22 +119,22 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
     data.top(num)(ord)
 
   override def subtract(other: RDDAPI[T]): RDDAPI[T] = other match {
-    case rddScala:RDDAPIScalaImpl[T] => create(data.subtract(parallelize(rddScala.data)))
+    case rddScala:RDDAPIScalaEagerImpl[T] => create(data.subtract(parallelize(rddScala.data)))
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(data.subtract(rddSpark.data))
   }
 
   override def subtract(other: RDDAPI[T], numPartitions: Int): RDDAPI[T] = other match {
-    case rddScala:RDDAPIScalaImpl[T] => create(data.subtract(parallelize(rddScala.data), numPartitions))
+    case rddScala:RDDAPIScalaEagerImpl[T] => create(data.subtract(parallelize(rddScala.data), numPartitions))
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(data.subtract(rddSpark.data, numPartitions))
   }
 
   override def subtract(other: RDDAPI[T], partitioner: Partitioner)(implicit ord: Ordering[T]): RDDAPI[T] = other match {
-    case rddScala:RDDAPIScalaImpl[T] => create(data.subtract(parallelize(rddScala.data), partitioner))
+    case rddScala:RDDAPIScalaEagerImpl[T] => create(data.subtract(parallelize(rddScala.data), partitioner))
     case rddSpark:RDDAPISparkImpl[T] => RDDAPI(data.subtract(rddSpark.data, partitioner))
   }
 
   override def cartesian[U: ClassTag](other: RDDAPI[U]): RDDAPI[(T, U)] = other match {
-    case rddScala:RDDAPIScalaImpl[U] => create(data.cartesian(parallelize(rddScala.data)))
+    case rddScala:RDDAPIScalaEagerImpl[U] => create(data.cartesian(parallelize(rddScala.data)))
     case rddSpark:RDDAPISparkImpl[U] => RDDAPI(data.cartesian(rddSpark.data))
   }
 
