@@ -12,11 +12,13 @@ class ReadFileTest extends SparkLocalBaseTest {
 
   test("read CSV") {
     testReadCSV(ExecutionEngine.ScalaEager)
+    testReadCSV(ExecutionEngine.ScalaLazy)
     testReadCSV(ExecutionEngine.Spark)
   }
 
   test("read JSON") {
     testReadJson(ExecutionEngine.ScalaEager)
+    testReadJson(ExecutionEngine.ScalaLazy)
     testReadJson(ExecutionEngine.Spark)
   }
 

@@ -1,11 +1,11 @@
-package com.datawizards.sparklocal.impl.scala.eager.dataset.io
+package com.datawizards.sparklocal.impl.scala.`lazy`.dataset.io
 
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.impl.scala.dataset.io.ReaderScalaBase
 
 import scala.reflect.ClassTag
 
-object ReaderScalaEagerImpl extends ReaderScalaBase {
+object ReaderScalaLazyImpl extends ReaderScalaBase {
   override protected def createDataSet[T: ClassTag](iterable: Iterable[T]): DataSetAPI[T] =
-    DataSetAPI(iterable)
+    DataSetAPI(iterable.toSeq.view)
 }

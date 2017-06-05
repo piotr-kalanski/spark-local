@@ -1,30 +1,26 @@
-package com.datawizards.sparklocal.impl.scala.eager.session
+package com.datawizards.sparklocal.impl.scala.`lazy`.session
 
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.dataset.io.ReaderExecutor
-import com.datawizards.sparklocal.impl.scala.eager.dataset.io.ReaderScalaEagerImpl
+import com.datawizards.sparklocal.impl.scala.`lazy`.dataset.io.ReaderScalaLazyImpl
+import com.datawizards.sparklocal.impl.scala.session.SparkSessionAPIScalaBase
 import com.datawizards.sparklocal.rdd.RDDAPI
-import com.datawizards.sparklocal.session.SparkSessionAPI
 import org.apache.spark.sql.Encoder
 
 import scala.reflect.ClassTag
 
-class SparkSessionAPIScalaImpl extends SparkSessionAPI {
-
-  object implicits {
-    implicit def enc[T]: Encoder[T] = null
-  }
+class SparkSessionAPIScalaLazyImpl extends SparkSessionAPIScalaBase {
 
   override def createRDD[T: ClassTag](data: Seq[T]): RDDAPI[T] =
-    RDDAPI(data)
+    RDDAPI(data.view)
 
   override def createDataset[T: ClassTag](data: Seq[T])(implicit enc: Encoder[T]): DataSetAPI[T] =
-    DataSetAPI(data)
+    DataSetAPI(data.view)
 
   override def read[T]: ReaderExecutor[T] =
-    ReaderScalaEagerImpl.read[T]
+    ReaderScalaLazyImpl.read[T]
 
   override def textFile(path: String, minPartitions: Int=2): RDDAPI[String] =
-    RDDAPI(scala.io.Source.fromFile(path).getLines().toIterable)
+    RDDAPI(scala.io.Source.fromFile(path).getLines().toSeq.view)
 
 }
