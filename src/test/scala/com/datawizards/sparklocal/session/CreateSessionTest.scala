@@ -1,6 +1,7 @@
 package com.datawizards.sparklocal.session
 
 import com.datawizards.sparklocal.SparkLocalBaseTest
+import com.datawizards.sparklocal.impl.spark.session.SparkSessionAPISparkImpl
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 

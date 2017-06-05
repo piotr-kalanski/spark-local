@@ -27,11 +27,19 @@ class CreateDatasetTest extends SparkLocalBaseTest {
   test("Create DataSet - equals") {
     assertDatasetEquals(
       createDataset(ExecutionEngine.ScalaEager),
+      createDataset(ExecutionEngine.ScalaLazy)
+    )
+    assertDatasetEquals(
+      createDataset(ExecutionEngine.ScalaEager),
       createDataset(ExecutionEngine.Spark)
     )
   }
 
   test("Create DataSet(RDD) - equals") {
+    assertDatasetEquals(
+      createDatasetRDD(ExecutionEngine.ScalaEager),
+      createDatasetRDD(ExecutionEngine.ScalaLazy)
+    )
     assertDatasetEquals(
       createDatasetRDD(ExecutionEngine.ScalaEager),
       createDatasetRDD(ExecutionEngine.Spark)

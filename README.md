@@ -52,6 +52,7 @@ When creating Session object you can choose between different execution engines.
 
 - Spark - wrapper on Spark, which can be used at production data volumes
 - ScalaEager - implementation based on Scala collection with eager transformations, which makes it fast for unit testing
+- ScalaLazy - implementation based on Scala collection with lazy transformations, dedicated for working with small/mid size data
 
 ```scala
 import com.datawizards.sparklocal.session.ExecutionEngine.ExecutionEngine
@@ -532,6 +533,7 @@ ds.write(JdbcDataStore(connectionString, database, table, properties, driverName
 
 |spark-local|Spark version|
 |-----------|-------------|
+|0.5        |2.1.0        |
 |0.4        |2.1.0        |
 |0.3        |2.1.0        |
 |0.2        |2.1.0        |

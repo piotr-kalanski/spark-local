@@ -79,7 +79,12 @@ trait SparkLocalBaseTest extends FunSuite {
   def assertDatasetOperationReturnsSameResultWithEqual[T:ClassTag:TypeTag, Result](data: Seq[T], op: DataSetAPI[T] => Result)(eq: ((Result,Result) => Boolean)): Unit = {
     val ds = spark.createDataset(data)(ExpressionEncoder[T]())
 
-    assert(eq(op(DataSetAPI(data)),op(DataSetAPI(ds))))
+    val scalaEagerImpl = op(DataSetAPI(data))
+    val scalaLazyImpl = op(DataSetAPI(data.view))
+    val sparkImpl = op(DataSetAPI(ds))
+
+    assert(eq(scalaEagerImpl, sparkImpl))
+    assert(eq(scalaEagerImpl, scalaLazyImpl))
   }
 
   /**
@@ -175,7 +180,12 @@ trait SparkLocalBaseTest extends FunSuite {
   def assertRDDOperationReturnsSameResultWithEqual[T:ClassTag:TypeTag, Result](data: Seq[T], op: RDDAPI[T] => Result)(eq: ((Result,Result) => Boolean)): Unit = {
     val rdd = sc.parallelize(data)
 
-    assert(eq(op(RDDAPI(data)),op(RDDAPI(rdd))))
+    val scalaEagerImpl = op(RDDAPI(data))
+    val scalaLazyImpl = op(RDDAPI(data.view))
+    val sparkImpl = op(RDDAPI(rdd))
+
+    assert(eq(scalaEagerImpl, sparkImpl))
+    assert(eq(scalaEagerImpl, scalaLazyImpl))
   }
 
   /**

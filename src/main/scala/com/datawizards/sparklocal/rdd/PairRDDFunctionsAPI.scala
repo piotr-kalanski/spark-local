@@ -6,11 +6,11 @@ import org.apache.spark.sql.SparkSession
 
 import scala.collection.Map
 import scala.reflect.ClassTag
-//import scala.reflect.runtime.universe.TypeTag
 
 trait PairRDDFunctionsAPI[K, V] {
   protected lazy val spark: SparkSession = SparkSession.builder().getOrCreate()
   protected def parallelize[That: ClassTag](d: Seq[That]): RDD[That] = spark.sparkContext.parallelize(d)
+  protected def parallelize[That: ClassTag](d: Iterable[That]): RDD[That] = parallelize(d.toSeq)
 
   def mapValues[U: ClassTag](f: (V) => U): RDDAPI[(K, U)]
   def keys: RDDAPI[K]

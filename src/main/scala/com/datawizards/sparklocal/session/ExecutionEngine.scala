@@ -1,5 +1,8 @@
 package com.datawizards.sparklocal.session
 
+import com.datawizards.sparklocal.impl.scala.`lazy`.session.{BuilderScalaLazyImpl, SparkSessionAPIScalaLazyImpl}
+import com.datawizards.sparklocal.impl.scala.eager.session.{BuilderScalaEagerImpl, SparkSessionAPIScalaEagerImpl}
+import com.datawizards.sparklocal.impl.spark.session.{BuilderSparkImpl, SparkSessionAPISparkImpl}
 import org.apache.spark.sql.SparkSession
 
 /**
@@ -21,8 +24,15 @@ object ExecutionEngine  {
   /**
     * Scala collections with eager transformations
     */
-  object ScalaEager extends ExecutionEngine[SparkSessionAPIScalaImpl] {
-    override def builder(): Builder[SparkSessionAPIScalaImpl] = new BuilderScalaImpl
+  object ScalaEager extends ExecutionEngine[SparkSessionAPIScalaEagerImpl] {
+    override def builder(): Builder[SparkSessionAPIScalaEagerImpl] = new BuilderScalaEagerImpl
+  }
+
+  /**
+    * Scala collections with lazy transformations
+    */
+  object ScalaLazy extends ExecutionEngine[SparkSessionAPIScalaLazyImpl] {
+    override def builder(): Builder[SparkSessionAPIScalaLazyImpl] = new BuilderScalaLazyImpl
   }
 
 }
