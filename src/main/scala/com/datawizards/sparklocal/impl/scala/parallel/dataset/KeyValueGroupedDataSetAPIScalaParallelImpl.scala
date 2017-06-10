@@ -16,5 +16,5 @@ class KeyValueGroupedDataSetAPIScalaParallelImpl[K: ClassTag, T: ClassTag](priva
 
   override def mapValues[W: ClassTag](func: (T) => W)
                                      (implicit enc: Encoder[W]=null): KeyValueGroupedDataSetAPI[K, W] =
-    new KeyValueGroupedDataSetAPIScalaParallelImpl(data.mapValues(_.map(func).par))
+    new KeyValueGroupedDataSetAPIScalaParallelImpl(data.mapValues(_.map(func)))
 }

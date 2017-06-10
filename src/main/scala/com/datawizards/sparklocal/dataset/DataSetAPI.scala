@@ -5,12 +5,14 @@ import com.datawizards.sparklocal.dataset.io.WriterExecutor
 import com.datawizards.sparklocal.impl.scala.`lazy`.dataset.DataSetAPIScalaLazyImpl
 import com.datawizards.sparklocal.impl.scala.eager.dataset.DataSetAPIScalaEagerImpl
 import com.datawizards.sparklocal.impl.scala.parallel.dataset.DataSetAPIScalaParallelImpl
+import com.datawizards.sparklocal.impl.scala.parallellazy.ParallelLazySeq
+import com.datawizards.sparklocal.impl.scala.parallellazy.dataset.DataSetAPIScalaParallelLazyImpl
 import com.datawizards.sparklocal.impl.spark.dataset.DataSetAPISparkImpl
 import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.sql.{Column, Dataset, Encoder, SparkSession}
 import org.apache.spark.storage.StorageLevel
 
-import scala.collection.{GenIterable, SeqView}
+import scala.collection.SeqView
 import scala.collection.parallel.ParSeq
 import scala.reflect.ClassTag
 
@@ -23,6 +25,8 @@ object DataSetAPI {
     new DataSetAPIScalaLazyImpl(data)
   def apply[T: ClassTag](seq: ParSeq[T]): DataSetAPI[T] =
     new DataSetAPIScalaParallelImpl(seq)
+  def apply[T: ClassTag](data: ParallelLazySeq[T]): DataSetAPI[T] =
+    new DataSetAPIScalaParallelLazyImpl(data)
   def apply[T: ClassTag](ds: Dataset[T]): DataSetAPI[T] = new DataSetAPISparkImpl(ds)
 }
 

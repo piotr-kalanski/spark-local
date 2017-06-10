@@ -1,6 +1,7 @@
 package com.datawizards.sparklocal
 
 import com.datawizards.sparklocal.dataset.DataSetAPI
+import com.datawizards.sparklocal.impl.scala.parallellazy.ParallelLazySeq
 import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
@@ -99,11 +100,13 @@ trait SparkLocalBaseTest extends FunSuite {
     val scalaEagerImpl = op(DataSetAPI(data))
     val scalaLazyImpl = op(DataSetAPI(data.view))
     val scalaParallelImpl = op(DataSetAPI(data.par))
+    val scalaParallelLazyImpl = op(DataSetAPI(new ParallelLazySeq(data.par)))
     val sparkImpl = op(DataSetAPI(ds))
 
     assert(eq(scalaEagerImpl, sparkImpl))
     assert(eq(scalaEagerImpl, scalaLazyImpl))
     assert(eq(scalaEagerImpl, scalaParallelImpl))
+    assert(eq(scalaEagerImpl, scalaParallelLazyImpl))
   }
 
   /**
@@ -203,10 +206,12 @@ trait SparkLocalBaseTest extends FunSuite {
     val scalaLazyImpl = op(RDDAPI(data.view))
     val scalaParallelImpl = op(RDDAPI(data.par))
     val sparkImpl = op(RDDAPI(rdd))
+    val scalaParallelLazyImpl = op(RDDAPI(new ParallelLazySeq(data.par)))
 
     assert(eq(scalaEagerImpl, sparkImpl))
     assert(eq(scalaEagerImpl, scalaLazyImpl))
     assert(eq(scalaEagerImpl, scalaParallelImpl))
+    assert(eq(scalaEagerImpl, scalaParallelLazyImpl))
   }
 
   /**
