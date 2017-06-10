@@ -2,6 +2,7 @@ package com.datawizards.sparklocal.session
 
 import com.datawizards.sparklocal.impl.scala.`lazy`.session.{BuilderScalaLazyImpl, SparkSessionAPIScalaLazyImpl}
 import com.datawizards.sparklocal.impl.scala.eager.session.{BuilderScalaEagerImpl, SparkSessionAPIScalaEagerImpl}
+import com.datawizards.sparklocal.impl.scala.parallel.session.{BuilderScalaParallelImpl, SparkSessionAPIScalaParallelImpl}
 import com.datawizards.sparklocal.impl.spark.session.{BuilderSparkImpl, SparkSessionAPISparkImpl}
 import org.apache.spark.sql.SparkSession
 
@@ -35,4 +36,10 @@ object ExecutionEngine  {
     override def builder(): Builder[SparkSessionAPIScalaLazyImpl] = new BuilderScalaLazyImpl
   }
 
+  /**
+    * Scala collections with parallel transformations
+    */
+  object ScalaParallel extends ExecutionEngine[SparkSessionAPIScalaParallelImpl] {
+    override def builder(): Builder[SparkSessionAPIScalaParallelImpl] = new BuilderScalaParallelImpl
+  }
 }

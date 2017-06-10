@@ -8,22 +8,24 @@ import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.impl.scala.dataset.io.WriterScalaImpl
 import com.datawizards.sparklocal.impl.spark.dataset.DataSetAPISparkImpl
 import com.datawizards.sparklocal.rdd.RDDAPI
-import org.apache.spark.sql.{Column, Encoder}
+import org.apache.spark.sql.{Column, Dataset, Encoder}
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.util.random.{BernoulliCellSampler, BernoulliSampler, PoissonSampler}
 
+import scala.collection.GenIterable
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 import scala.reflect.ClassTag
 
 abstract class DataSetAPIScalaBase[T: ClassTag] extends DataSetAPI[T] {
-  type InternalCollection <: Iterable[T]
+  type InternalCollection <: GenIterable[T]
 
   private[sparklocal] val data: InternalCollection
 
-  protected def create[U: ClassTag](it: Iterable[U])(implicit enc: Encoder[U]=null): DataSetAPIScalaBase[U]
+  private[sparklocal] def create[U: ClassTag](it: GenIterable[U])(implicit enc: Encoder[U]=null): DataSetAPIScalaBase[U]
 
-  override private[sparklocal] def toDataset(implicit enc: Encoder[T]) = createDataset(data)
+  override private[sparklocal] def toDataset(implicit enc: Encoder[T]) =
+    createDataset(data.toSeq.seq)
 
   override def map[That: ClassTag](map: T => That)(implicit enc: Encoder[That]): DataSetAPI[That] =
     create(data.map(map))
@@ -76,8 +78,7 @@ abstract class DataSetAPIScalaBase[T: ClassTag] extends DataSetAPI[T] {
   override def flatMap[U: ClassTag](func: (T) => TraversableOnce[U])(implicit enc: Encoder[U]=null): DataSetAPI[U] =
     create(data.flatMap(func))
 
-  override def rdd(): RDDAPI[T] =
-    RDDAPI(data)
+  override def rdd(): RDDAPI[T]
 
   override def union(other: DataSetAPI[T])(implicit enc: Encoder[T]): DataSetAPI[T] = other match {
     case dsSpark:DataSetAPISparkImpl[T] => DataSetAPI(this.toDataset.union(dsSpark.data))

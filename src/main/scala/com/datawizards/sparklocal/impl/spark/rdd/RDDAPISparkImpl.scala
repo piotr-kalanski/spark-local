@@ -8,6 +8,7 @@ import org.apache.spark.sql.Encoder
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.{Partition, Partitioner}
 
+import scala.collection.GenIterable
 import scala.reflect.ClassTag
 
 class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
@@ -141,14 +142,14 @@ class RDDAPISparkImpl[T: ClassTag](val data: RDD[T]) extends RDDAPI[T] {
   override def aggregate[U: ClassTag](zeroValue: U)(seqOp: (U, T) => U, combOp: (U, U) => U): U =
     data.aggregate(zeroValue)(seqOp, combOp)
 
-  override def groupBy[K](f: (T) => K)(implicit kt: ClassTag[K]): RDDAPI[(K, Iterable[T])] =
-    create(data.groupBy(f))
+  override def groupBy[K](f: (T) => K)(implicit kt: ClassTag[K]): RDDAPI[(K, GenIterable[T])] =
+    create(data.groupBy(f).mapValues(i => i.asInstanceOf[GenIterable[T]]))
 
-  override def groupBy[K](f: (T) => K, numPartitions: Int)(implicit kt: ClassTag[K]): RDDAPI[(K, Iterable[T])] =
-    create(data.groupBy(f, numPartitions))
+  override def groupBy[K](f: (T) => K, numPartitions: Int)(implicit kt: ClassTag[K]): RDDAPI[(K, GenIterable[T])] =
+    create(data.groupBy(f, numPartitions).mapValues(i => i.asInstanceOf[GenIterable[T]]))
 
-  override def groupBy[K](f: (T) => K, p: Partitioner)(implicit kt: ClassTag[K], ord: Ordering[K]): RDDAPI[(K, Iterable[T])] =
-    create(data.groupBy(f, p))
+  override def groupBy[K](f: (T) => K, p: Partitioner)(implicit kt: ClassTag[K], ord: Ordering[K]): RDDAPI[(K, GenIterable[T])] =
+    create(data.groupBy(f, p).mapValues(i => i.asInstanceOf[GenIterable[T]]))
 
   override def coalesce(numPartitions: Int, shuffle: Boolean, partitionCoalescer: Option[PartitionCoalescer])(implicit ord: Ordering[T]): RDDAPI[T] =
     create(data.coalesce(numPartitions, shuffle, partitionCoalescer))
