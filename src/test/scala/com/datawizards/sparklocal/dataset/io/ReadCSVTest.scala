@@ -3,7 +3,9 @@ package com.datawizards.sparklocal.dataset.io
 import com.datawizards.sparklocal.SparkLocalBaseTest
 import com.datawizards.sparklocal.TestModel.Person
 import com.datawizards.sparklocal.datastore.CSVDataStore
+import com.datawizards.sparklocal.impl.scala.`lazy`.dataset.io.ReaderScalaLazyImpl
 import com.datawizards.sparklocal.impl.scala.eager.dataset.io.ReaderScalaEagerImpl
+import com.datawizards.sparklocal.impl.scala.parallel.dataset.io.ReaderScalaParallelImpl
 import com.datawizards.sparklocal.impl.spark.dataset.io.ReaderSparkImpl
 import com.datawizards.sparklocal.implicits._
 import org.junit.runner.RunWith
@@ -45,7 +47,14 @@ class ReadCSVTest extends SparkLocalBaseTest {
   test("Read CSV - equals") {
     //access lazy val spark just to init SparkContext
     spark
-    assert(ReaderScalaEagerImpl.read[Person](peopleCSV) == ReaderSparkImpl.read[Person](peopleCSV))
+    val scalaEagerDs = ReaderScalaEagerImpl.read[Person](peopleCSV)
+    val scalaLazyDs = ReaderScalaLazyImpl.read[Person](peopleCSV)
+    val scalaParallelDs = ReaderScalaParallelImpl.read[Person](peopleCSV)
+    val sparkDs = ReaderSparkImpl.read[Person](peopleCSV)
+
+    assertDatasetEquals(scalaEagerDs, scalaLazyDs)
+    assertDatasetEquals(scalaEagerDs, scalaParallelDs)
+    assertDatasetEquals(scalaEagerDs, sparkDs)
   }
 
   test("Read CSV with custom options - equals") {

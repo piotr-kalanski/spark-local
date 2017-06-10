@@ -1,15 +1,18 @@
 package com.datawizards.sparklocal.impl.scala.eager.rdd
 
+import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.impl.scala.rdd.RDDAPIScalaBase
 import com.datawizards.sparklocal.rdd.RDDAPI
+import org.apache.spark.sql.Encoder
 
+import scala.collection.GenIterable
 import scala.reflect.ClassTag
 
 class RDDAPIScalaEagerImpl[T: ClassTag](private[sparklocal] val data: Seq[T]) extends RDDAPIScalaBase[T] {
   override type InternalCollection = Seq[T]
 
-  override protected def create[U: ClassTag](data: Iterable[U]): RDDAPIScalaBase[U] =
-    new RDDAPIScalaEagerImpl(data.toSeq.view)
+  override private[sparklocal] def create[U: ClassTag](data: GenIterable[U]): RDDAPIScalaBase[U] =
+    new RDDAPIScalaEagerImpl(data.toSeq.seq)
 
   override protected def union(data: InternalCollection, rddScala: RDDAPIScalaBase[T]): RDDAPI[T] =
     create(data.union(rddScala.data.toSeq))
@@ -34,4 +37,6 @@ class RDDAPIScalaEagerImpl[T: ClassTag](private[sparklocal] val data: Seq[T]) ex
   override def top(num: Int)(implicit ord: Ordering[T]): Array[T] =
     data.sorted(ord.reverse).take(num).toArray
 
+  override def toDataSet(implicit enc: Encoder[T]): DataSetAPI[T] =
+    DataSetAPI(data)
 }

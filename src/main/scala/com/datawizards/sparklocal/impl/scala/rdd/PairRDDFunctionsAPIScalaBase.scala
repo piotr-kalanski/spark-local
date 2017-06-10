@@ -4,7 +4,7 @@ import com.datawizards.sparklocal.impl.spark.rdd.RDDAPISparkImpl
 import com.datawizards.sparklocal.rdd.{PairRDDFunctionsAPI, RDDAPI}
 import org.apache.spark.Partitioner
 
-import scala.collection.Map
+import scala.collection.{GenIterable, GenMap, Map}
 import scala.collection.mutable.ListBuffer
 import scala.reflect.ClassTag
 
@@ -16,8 +16,10 @@ abstract class PairRDDFunctionsAPIScalaBase[K, V](implicit kct: ClassTag[K], vct
 
     private val data = rdd.data
 
+    protected def create[U: ClassTag](data: GenIterable[U]): RDDAPIScalaBase[U]
+
     override def mapValues[U: ClassTag](f: (V) => U): RDDAPI[(K, U)] =
-      RDDAPI(
+      create(
         data.map { case (k, v) => (k, f(v)) }
       )
 
@@ -32,13 +34,13 @@ abstract class PairRDDFunctionsAPIScalaBase[K, V](implicit kct: ClassTag[K], vct
         f(v).map(x => (k,x))
       }
 
-    override def countByKey(): Map[K, Long] =
+    override def countByKey(): GenMap[K, Long] =
       data
         .groupBy(_._1)
         .mapValues(_.size)
 
     override def reduceByKey(func: (V, V) => V): RDDAPI[(K, V)] =
-      RDDAPI(
+      create(
         data
           .groupBy(_._1)
           .mapValues(
@@ -54,19 +56,19 @@ abstract class PairRDDFunctionsAPIScalaBase[K, V](implicit kct: ClassTag[K], vct
     override def reduceByKeyLocally(func: (V, V) => V): Map[K, V] =
       reduceByKey(func).collect().toMap
 
-    override def groupByKey(): RDDAPI[(K, Iterable[V])] =
-      RDDAPI(
+    override def groupByKey(): RDDAPI[(K, GenIterable[V])] =
+      create(
         data
           .groupBy(_._1)
           .mapValues(_.map(_._2))
       )
 
-    override def groupByKey(numPartitions: Int): RDDAPI[(K, Iterable[V])] = groupByKey()
+    override def groupByKey(numPartitions: Int): RDDAPI[(K, GenIterable[V])] = groupByKey()
 
-    override def groupByKey(partitioner: Partitioner): RDDAPI[(K, Iterable[V])] = groupByKey()
+    override def groupByKey(partitioner: Partitioner): RDDAPI[(K, GenIterable[V])] = groupByKey()
 
     override def foldByKey(zeroValue: V)(func: (V, V) => V): RDDAPI[(K, V)] =
-      RDDAPI(
+      create(
         data
           .groupBy(_._1)
           .mapValues(
@@ -80,13 +82,10 @@ abstract class PairRDDFunctionsAPIScalaBase[K, V](implicit kct: ClassTag[K], vct
     override def foldByKey(zeroValue: V, partitioner: Partitioner)(func: (V, V) => V): RDDAPI[(K, V)] = foldByKey(zeroValue)(func)
 
     override def join[W: ClassTag](other: RDDAPI[(K, W)]): RDDAPI[(K, (V, W))] = other match {
-      case rddScala:RDDAPIScalaBase[(K, W)] => RDDAPI(
-        for {
-          left <- data
-          right <- rddScala.data
-          if left._1 == right._1
-        } yield (left._1, (left._2, right._2))
-      )
+      case rddScala:RDDAPIScalaBase[(K, W)] =>
+        this.cogroup(other).flatMapValues( pair =>
+          for (v <- pair._1.iterator; w <- pair._2.iterator) yield (v, w)
+        )
       case rddSpark:RDDAPISparkImpl[(K, W)] => RDDAPI(parallelize(data).join(rddSpark.data))
     }
 
@@ -102,22 +101,13 @@ abstract class PairRDDFunctionsAPIScalaBase[K, V](implicit kct: ClassTag[K], vct
 
     override def leftOuterJoin[W: ClassTag](other: RDDAPI[(K, W)]): RDDAPI[(K, (V, Option[W]))] = other match {
       case rddScala:RDDAPIScalaBase[(K, W)] =>
-        val b = new ListBuffer[(K, (V, Option[W]))]
-
-        for (left <- data) {
-          var rightExists = false
-          for (right <- rddScala.data) {
-            if (left._1 == right._1) {
-              b += ((left._1, (left._2, Some(right._2))))
-              rightExists = true
-            }
-          }
-          if(!rightExists) {
-            b += ((left._1, (left._2, None)))
+        this.cogroup(other).flatMapValues { pair =>
+          if (pair._2.isEmpty) {
+            pair._1.iterator.map(v => (v, None))
+          } else {
+            for (v <- pair._1.iterator; w <- pair._2.iterator) yield (v, Some(w))
           }
         }
-
-        RDDAPI(b)
       case rddSpark:RDDAPISparkImpl[(K, W)] => RDDAPI(parallelize(data).leftOuterJoin(rddSpark.data))
     }
 
@@ -133,22 +123,13 @@ abstract class PairRDDFunctionsAPIScalaBase[K, V](implicit kct: ClassTag[K], vct
 
     override def rightOuterJoin[W: ClassTag](other: RDDAPI[(K, W)]): RDDAPI[(K, (Option[V], W))] = other match {
       case rddScala:RDDAPIScalaBase[(K, W)] =>
-        val b = new ListBuffer[(K, (Option[V], W))]
-
-        for (right <- rddScala.data) {
-          var leftExists = false
-          for (left <- data) {
-            if (left._1 == right._1) {
-              b += ((right._1, (Some(left._2), right._2)))
-              leftExists = true
-            }
-          }
-          if(!leftExists) {
-            b += ((right._1, (None, right._2)))
+        this.cogroup(other).flatMapValues { pair =>
+          if (pair._1.isEmpty) {
+            pair._2.iterator.map(w => (None, w))
+          } else {
+            for (v <- pair._1.iterator; w <- pair._2.iterator) yield (Some(v), w)
           }
         }
-
-        RDDAPI(b)
       case rddSpark:RDDAPISparkImpl[(K, W)] => RDDAPI(parallelize(data).rightOuterJoin(rddSpark.data))
     }
 
@@ -164,33 +145,11 @@ abstract class PairRDDFunctionsAPIScalaBase[K, V](implicit kct: ClassTag[K], vct
 
     override def fullOuterJoin[W: ClassTag](other: RDDAPI[(K, W)]): RDDAPI[(K, (Option[V], Option[W]))] = other match {
       case rddScala:RDDAPIScalaBase[(K, W)] =>
-        val b = new ListBuffer[(K, (Option[V], Option[W]))]
-
-        for (left <- data) {
-          var rightExists = false
-          for (right <- rddScala.data) {
-            if (left._1 == right._1) {
-              b += ((right._1, (Some(left._2), Some(right._2))))
-              rightExists = true
-            }
-          }
-          if(!rightExists) {
-            b += ((left._1, (Some(left._2), None)))
-          }
+        this.cogroup(other).flatMapValues {
+          case (vs, Seq()) => vs.iterator.map(v => (Some(v), None))
+          case (Seq(), ws) => ws.iterator.map(w => (None, Some(w)))
+          case (vs, ws) => for (v <- vs.iterator; w <- ws.iterator) yield (Some(v), Some(w))
         }
-        for (right <- rddScala.data) {
-          var leftExists = false
-          for (left <- data) {
-            if (left._1 == right._1) {
-              leftExists = true
-            }
-          }
-          if(!leftExists) {
-            b += ((right._1, (None, Some(right._2))))
-          }
-        }
-
-        RDDAPI(b)
       case rddSpark:RDDAPISparkImpl[(K, W)] => RDDAPI(parallelize(data).fullOuterJoin(rddSpark.data))
     }
 
@@ -204,17 +163,17 @@ abstract class PairRDDFunctionsAPIScalaBase[K, V](implicit kct: ClassTag[K], vct
       case rddSpark:RDDAPISparkImpl[(K, W)] => RDDAPI(parallelize(data).fullOuterJoin(rddSpark.data, partitioner))
     }
 
-    override def cogroup[W1: ClassTag, W2: ClassTag, W3: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], other3: RDDAPI[(K, W3)], partitioner: Partitioner): RDDAPI[(K, (Iterable[V], Iterable[W1], Iterable[W2], Iterable[W3]))] =
+    override def cogroup[W1: ClassTag, W2: ClassTag, W3: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], other3: RDDAPI[(K, W3)], partitioner: Partitioner): RDDAPI[(K, (GenIterable[V], GenIterable[W1], GenIterable[W2], GenIterable[W3]))] =
       cogroup(other1, other2, other3)
 
-    override def cogroup[W: ClassTag](other: RDDAPI[(K, W)], partitioner: Partitioner): RDDAPI[(K, (Iterable[V], Iterable[W]))] =
+    override def cogroup[W: ClassTag](other: RDDAPI[(K, W)], partitioner: Partitioner): RDDAPI[(K, (GenIterable[V], GenIterable[W]))] =
       cogroup(other)
 
-    override def cogroup[W1: ClassTag, W2: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], partitioner: Partitioner): RDDAPI[(K, (Iterable[V], Iterable[W1], Iterable[W2]))] =
+    override def cogroup[W1: ClassTag, W2: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], partitioner: Partitioner): RDDAPI[(K, (GenIterable[V], GenIterable[W1], GenIterable[W2]))] =
       cogroup(other1, other2)
 
-    override def cogroup[W1: ClassTag, W2: ClassTag, W3: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], other3: RDDAPI[(K, W3)]): RDDAPI[(K, (Iterable[V], Iterable[W1], Iterable[W2], Iterable[W3]))] = (other1, other2, other3) match {
-      case (rddScala1:RDDAPIScalaBase[(K, W1)], rddScala2:RDDAPIScalaBase[(K, W2)], rddScala3:RDDAPIScalaBase[(K, W3)]) => RDDAPI({
+    override def cogroup[W1: ClassTag, W2: ClassTag, W3: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], other3: RDDAPI[(K, W3)]): RDDAPI[(K, (GenIterable[V], GenIterable[W1], GenIterable[W2], GenIterable[W3]))] = (other1, other2, other3) match {
+      case (rddScala1:RDDAPIScalaBase[(K, W1)], rddScala2:RDDAPIScalaBase[(K, W2)], rddScala3:RDDAPIScalaBase[(K, W3)]) => create({
         val xs      = data.groupBy(_._1).mapValues(_.map(_._2))
         val other1s      = rddScala1.data.groupBy(_._1).mapValues(_.map(_._2))
         val other2s      = rddScala2.data.groupBy(_._1).mapValues(_.map(_._2))
@@ -228,11 +187,11 @@ abstract class PairRDDFunctionsAPIScalaBase[K, V](implicit kct: ClassTag[K], vct
           key -> (xsWithKey, other1WithKey, other2WithKey, other3WithKey)
         }
       })
-      case _ => RDDAPI(rdd.toRDD.cogroup(other1.toRDD, other2.toRDD, other3.toRDD))
+      case _ => RDDAPI(rdd.toRDD).cogroup(RDDAPI(other1.toRDD), RDDAPI(other2.toRDD), RDDAPI(other3.toRDD))
     }
 
-    override def cogroup[W: ClassTag](other: RDDAPI[(K, W)]): RDDAPI[(K, (Iterable[V], Iterable[W]))] = other match {
-      case rddScala:RDDAPIScalaBase[(K, W)] => RDDAPI({
+    override def cogroup[W: ClassTag](other: RDDAPI[(K, W)]): RDDAPI[(K, (GenIterable[V], GenIterable[W]))] = other match {
+      case rddScala:RDDAPIScalaBase[(K, W)] => create({
         val xs      = data.groupBy(_._1).mapValues(_.map(_._2))
         val ys      = rddScala.data.groupBy(_._1).mapValues(_.map(_._2))
         val allKeys = xs.keys ++ ys.keys
@@ -242,11 +201,11 @@ abstract class PairRDDFunctionsAPIScalaBase[K, V](implicit kct: ClassTag[K], vct
           key -> (xsWithKey, ysWithKey)
         }
       })
-      case rddSpark:RDDAPISparkImpl[(K, W)] => RDDAPI(parallelize(data).cogroup(rddSpark.data))
+      case rddSpark:RDDAPISparkImpl[(K, W)] => RDDAPI(rdd.toRDD).cogroup(rddSpark)
     }
 
-    override def cogroup[W1: ClassTag, W2: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)]): RDDAPI[(K, (Iterable[V], Iterable[W1], Iterable[W2]))] = (other1, other2) match {
-      case (rddScala1:RDDAPIScalaBase[(K, W1)], rddScala2:RDDAPIScalaBase[(K, W2)]) => RDDAPI({
+    override def cogroup[W1: ClassTag, W2: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)]): RDDAPI[(K, (GenIterable[V], GenIterable[W1], GenIterable[W2]))] = (other1, other2) match {
+      case (rddScala1:RDDAPIScalaBase[(K, W1)], rddScala2:RDDAPIScalaBase[(K, W2)]) => create({
         val xs      = data.groupBy(_._1).mapValues(_.map(_._2))
         val other1s      = rddScala1.data.groupBy(_._1).mapValues(_.map(_._2))
         val other2s      = rddScala2.data.groupBy(_._1).mapValues(_.map(_._2))
@@ -258,24 +217,24 @@ abstract class PairRDDFunctionsAPIScalaBase[K, V](implicit kct: ClassTag[K], vct
           key -> (xsWithKey, other1WithKey, other2WithKey)
         }
       })
-      case _ => RDDAPI(rdd.toRDD.cogroup(other1.toRDD, other2.toRDD))
+      case _ => RDDAPI(rdd.toRDD).cogroup(RDDAPI(other1.toRDD), RDDAPI(other2.toRDD))
     }
 
-    override def cogroup[W: ClassTag](other: RDDAPI[(K, W)], numPartitions: Int): RDDAPI[(K, (Iterable[V], Iterable[W]))] =
+    override def cogroup[W: ClassTag](other: RDDAPI[(K, W)], numPartitions: Int): RDDAPI[(K, (GenIterable[V], GenIterable[W]))] =
       cogroup(other)
 
-    override def cogroup[W1: ClassTag, W2: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], numPartitions: Int): RDDAPI[(K, (Iterable[V], Iterable[W1], Iterable[W2]))] =
+    override def cogroup[W1: ClassTag, W2: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], numPartitions: Int): RDDAPI[(K, (GenIterable[V], GenIterable[W1], GenIterable[W2]))] =
       cogroup(other1, other2)
 
-    override def cogroup[W1: ClassTag, W2: ClassTag, W3: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], other3: RDDAPI[(K, W3)], numPartitions: Int): RDDAPI[(K, (Iterable[V], Iterable[W1], Iterable[W2], Iterable[W3]))] =
+    override def cogroup[W1: ClassTag, W2: ClassTag, W3: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], other3: RDDAPI[(K, W3)], numPartitions: Int): RDDAPI[(K, (GenIterable[V], GenIterable[W1], GenIterable[W2], GenIterable[W3]))] =
       cogroup(other1, other2, other3)
 
-    override def collectAsMap(): Map[K, V] = data.toMap
+    override def collectAsMap(): GenMap[K, V] = data.toMap
 
     override def subtractByKey[W: ClassTag](other: RDDAPI[(K, W)]): RDDAPI[(K, V)] = other match {
       case rddScala: RDDAPIScalaBase[(K, W)] =>
         val otherSet = rddScala.data.map{case (k,_) => k}.toSet
-        RDDAPI(data.filter{case (k,_) => !otherSet.contains(k)})
+        create(data.filter{case (k,_) => !otherSet.contains(k)})
       case rddSpark: RDDAPISparkImpl[(K, W)] => RDDAPI(parallelize(data).subtractByKey(rddSpark.data))
     }
 
@@ -284,7 +243,7 @@ abstract class PairRDDFunctionsAPIScalaBase[K, V](implicit kct: ClassTag[K], vct
     override def subtractByKey[W: ClassTag](other: RDDAPI[(K, W)], p: Partitioner): RDDAPI[(K, V)] = subtractByKey(other)
 
     override def aggregateByKey[U: ClassTag](zeroValue: U)(seqOp: (U, V) => U, combOp: (U, U) => U): RDDAPI[(K, U)] =
-      RDDAPI(
+      create(
         data
           .groupBy(_._1)
           .mapValues(

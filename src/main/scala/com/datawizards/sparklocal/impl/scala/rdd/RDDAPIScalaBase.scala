@@ -9,16 +9,17 @@ import org.apache.spark.storage.StorageLevel
 import org.apache.spark.util.random.{BernoulliCellSampler, BernoulliSampler, PoissonSampler}
 import org.apache.spark.{Partition, Partitioner}
 
+import scala.collection.GenIterable
 import scala.reflect.ClassTag
 
 abstract class RDDAPIScalaBase[T: ClassTag] extends RDDAPI[T] {
-  type InternalCollection <: Iterable[T]
+  type InternalCollection <: GenIterable[T]
 
   private[sparklocal] val data: InternalCollection
 
   override private[sparklocal] def toRDD = parallelize(data)
 
-  protected def create[U: ClassTag](data: Iterable[U]): RDDAPIScalaBase[U]
+  private[sparklocal] def create[U: ClassTag](data: GenIterable[U]): RDDAPIScalaBase[U]
 
   override def collect(): Array[T] = data.toArray
 
@@ -116,13 +117,13 @@ abstract class RDDAPIScalaBase[T: ClassTag] extends RDDAPI[T] {
   override def aggregate[U: ClassTag](zeroValue: U)(seqOp: (U, T) => U, combOp: (U, U) => U): U =
     data.aggregate(zeroValue)(seqOp, combOp)
 
-  override def groupBy[K](f: (T) => K)(implicit kt: ClassTag[K]): RDDAPI[(K, Iterable[T])] =
+  override def groupBy[K](f: (T) => K)(implicit kt: ClassTag[K]): RDDAPI[(K, GenIterable[T])] =
     this.map(t => (f(t), t)).groupByKey()
 
-  override def groupBy[K](f: (T) => K, numPartitions: Int)(implicit kt: ClassTag[K]): RDDAPI[(K, Iterable[T])] =
+  override def groupBy[K](f: (T) => K, numPartitions: Int)(implicit kt: ClassTag[K]): RDDAPI[(K, GenIterable[T])] =
     groupBy(f)
 
-  override def groupBy[K](f: (T) => K, p: Partitioner)(implicit kt: ClassTag[K], ord: Ordering[K]): RDDAPI[(K, Iterable[T])] =
+  override def groupBy[K](f: (T) => K, p: Partitioner)(implicit kt: ClassTag[K], ord: Ordering[K]): RDDAPI[(K, GenIterable[T])] =
     groupBy(f)
 
   override def coalesce(numPartitions: Int, shuffle: Boolean, partitionCoalescer: Option[PartitionCoalescer])(implicit ord: Ordering[T]): RDDAPI[T] = this
@@ -151,8 +152,7 @@ abstract class RDDAPIScalaBase[T: ClassTag] extends RDDAPI[T] {
     }.toArray
   }
 
-  override def toDataSet(implicit enc: Encoder[T]): DataSetAPI[T] =
-    DataSetAPI(data)
+  override def toDataSet(implicit enc: Encoder[T]): DataSetAPI[T]
 
   protected def union(data: InternalCollection, rddScala: RDDAPIScalaBase[T]): RDDAPI[T]
 

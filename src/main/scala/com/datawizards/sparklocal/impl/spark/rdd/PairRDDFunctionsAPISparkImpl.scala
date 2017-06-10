@@ -4,9 +4,8 @@ import com.datawizards.sparklocal.rdd.{PairRDDFunctionsAPI, RDDAPI}
 import org.apache.spark.Partitioner
 import org.apache.spark.rdd.{PairRDDFunctions, RDD}
 
-import scala.collection.Map
+import scala.collection.{GenIterable, GenMap, Map}
 import scala.reflect.ClassTag
-//import scala.reflect.runtime.universe.TypeTag
 
 class PairRDDFunctionsAPISparkImpl[K, V](rdd: RDDAPISparkImpl[(K,V)])
   (implicit kct: ClassTag[K], vct: ClassTag[V], ord: Ordering[K] = null)
@@ -27,7 +26,7 @@ class PairRDDFunctionsAPISparkImpl[K, V](rdd: RDDAPISparkImpl[(K,V)])
   override def flatMapValues[U: ClassTag](f: (V) => TraversableOnce[U]): RDDAPI[(K, U)] =
     RDDAPI(data.flatMapValues(f))
 
-  override def countByKey(): Map[K, Long] =
+  override def countByKey(): GenMap[K, Long] =
     data.countByKey()
 
   override def reduceByKey(func: (V, V) => V): RDDAPI[(K, V)] =
@@ -42,14 +41,14 @@ class PairRDDFunctionsAPISparkImpl[K, V](rdd: RDDAPISparkImpl[(K,V)])
   override def reduceByKeyLocally(func: (V, V) => V): Map[K, V] =
     data.reduceByKeyLocally(func)
 
-  override def groupByKey(): RDDAPI[(K, Iterable[V])] =
-    RDDAPI(data.groupByKey())
+  override def groupByKey(): RDDAPI[(K, GenIterable[V])] =
+    RDDAPI(data.groupByKey().mapValues(i => i.asInstanceOf[GenIterable[V]]))
 
-  override def groupByKey(numPartitions: Int): RDDAPI[(K, Iterable[V])] =
-    RDDAPI(data.groupByKey(numPartitions))
+  override def groupByKey(numPartitions: Int): RDDAPI[(K, GenIterable[V])] =
+    RDDAPI(data.groupByKey(numPartitions).mapValues(i => i.asInstanceOf[GenIterable[V]]))
 
-  override def groupByKey(partitioner: Partitioner): RDDAPI[(K, Iterable[V])] =
-    RDDAPI(data.groupByKey(partitioner))
+  override def groupByKey(partitioner: Partitioner): RDDAPI[(K, GenIterable[V])] =
+    RDDAPI(data.groupByKey(partitioner).mapValues(i => i.asInstanceOf[GenIterable[V]]))
 
   override def foldByKey(zeroValue: V)(func: (V, V) => V): RDDAPI[(K, V)] =
     RDDAPI(data.foldByKey(zeroValue)(func))
@@ -96,34 +95,106 @@ class PairRDDFunctionsAPISparkImpl[K, V](rdd: RDDAPISparkImpl[(K,V)])
   override def fullOuterJoin[W: ClassTag](other: RDDAPI[(K, W)], partitioner: Partitioner): RDDAPI[(K, (Option[V], Option[W]))] =
     RDDAPI(data.fullOuterJoin(other.toRDD, partitioner))
 
-  override def cogroup[W1: ClassTag, W2: ClassTag, W3: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], other3: RDDAPI[(K, W3)], partitioner: Partitioner): RDDAPI[(K, (Iterable[V], Iterable[W1], Iterable[W2], Iterable[W3]))] =
-    RDDAPI(data.cogroup(other1.toRDD, other2.toRDD, other3.toRDD, partitioner))
+  override def cogroup[W1: ClassTag, W2: ClassTag, W3: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], other3: RDDAPI[(K, W3)], partitioner: Partitioner): RDDAPI[(K, (GenIterable[V], GenIterable[W1], GenIterable[W2], GenIterable[W3]))] =
+    RDDAPI(
+      data
+        .cogroup(other1.toRDD, other2.toRDD, other3.toRDD, partitioner)
+        .mapValues(v => (
+          v._1.asInstanceOf[GenIterable[V]],
+          v._2.asInstanceOf[GenIterable[W1]],
+          v._3.asInstanceOf[GenIterable[W2]],
+          v._4.asInstanceOf[GenIterable[W3]]
+        ))
+    )
 
-  override def cogroup[W: ClassTag](other: RDDAPI[(K, W)], partitioner: Partitioner): RDDAPI[(K, (Iterable[V], Iterable[W]))] =
-    RDDAPI(data.cogroup(other.toRDD, partitioner))
+  override def cogroup[W: ClassTag](other: RDDAPI[(K, W)], partitioner: Partitioner): RDDAPI[(K, (GenIterable[V], GenIterable[W]))] =
+    RDDAPI(
+      data
+        .cogroup(other.toRDD, partitioner)
+        .mapValues(v => (
+          v._1.asInstanceOf[GenIterable[V]],
+          v._2.asInstanceOf[GenIterable[W]]
+        ))
+    )
 
-  override def cogroup[W1: ClassTag, W2: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], partitioner: Partitioner): RDDAPI[(K, (Iterable[V], Iterable[W1], Iterable[W2]))] =
-    RDDAPI(data.cogroup(other1.toRDD, other2.toRDD, partitioner))
+  override def cogroup[W1: ClassTag, W2: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], partitioner: Partitioner): RDDAPI[(K, (GenIterable[V], GenIterable[W1], GenIterable[W2]))] =
+    RDDAPI(
+      data
+        .cogroup(other1.toRDD, other2.toRDD, partitioner)
+        .mapValues(v => (
+          v._1.asInstanceOf[GenIterable[V]],
+          v._2.asInstanceOf[GenIterable[W1]],
+          v._3.asInstanceOf[GenIterable[W2]]
+        ))
+    )
 
-  override def cogroup[W1: ClassTag, W2: ClassTag, W3: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], other3: RDDAPI[(K, W3)]): RDDAPI[(K, (Iterable[V], Iterable[W1], Iterable[W2], Iterable[W3]))] =
-    RDDAPI(data.cogroup(other1.toRDD, other2.toRDD, other3.toRDD))
+  override def cogroup[W1: ClassTag, W2: ClassTag, W3: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], other3: RDDAPI[(K, W3)]): RDDAPI[(K, (GenIterable[V], GenIterable[W1], GenIterable[W2], GenIterable[W3]))] =
+    RDDAPI(
+      data
+        .cogroup(other1.toRDD, other2.toRDD, other3.toRDD)
+        .mapValues(v => (
+          v._1.asInstanceOf[GenIterable[V]],
+          v._2.asInstanceOf[GenIterable[W1]],
+          v._3.asInstanceOf[GenIterable[W2]],
+          v._4.asInstanceOf[GenIterable[W3]]
+        ))
+    )
 
-  override def cogroup[W: ClassTag](other: RDDAPI[(K, W)]): RDDAPI[(K, (Iterable[V], Iterable[W]))] =
-    RDDAPI(data.cogroup(other.toRDD))
+  override def cogroup[W: ClassTag](other: RDDAPI[(K, W)]): RDDAPI[(K, (GenIterable[V], GenIterable[W]))] =
+    RDDAPI(
+      data
+        .cogroup(other.toRDD)
+        .mapValues(v => (
+          v._1.asInstanceOf[GenIterable[V]],
+          v._2.asInstanceOf[GenIterable[W]]
+        ))
+    )
 
-  override def cogroup[W1: ClassTag, W2: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)]): RDDAPI[(K, (Iterable[V], Iterable[W1], Iterable[W2]))] =
-    RDDAPI(data.cogroup(other1.toRDD, other2.toRDD))
+  override def cogroup[W1: ClassTag, W2: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)]): RDDAPI[(K, (GenIterable[V], GenIterable[W1], GenIterable[W2]))] =
+    RDDAPI(
+      data
+        .cogroup(other1.toRDD, other2.toRDD)
+        .mapValues(v => (
+          v._1.asInstanceOf[GenIterable[V]],
+          v._2.asInstanceOf[GenIterable[W1]],
+          v._3.asInstanceOf[GenIterable[W2]]
+        ))
+    )
 
-  override def cogroup[W: ClassTag](other: RDDAPI[(K, W)], numPartitions: Int): RDDAPI[(K, (Iterable[V], Iterable[W]))] =
-    RDDAPI(data.cogroup(other.toRDD, numPartitions))
+  override def cogroup[W: ClassTag](other: RDDAPI[(K, W)], numPartitions: Int): RDDAPI[(K, (GenIterable[V], GenIterable[W]))] =
+    RDDAPI(
+      data
+        .cogroup(other.toRDD, numPartitions)
+        .mapValues(v => (
+          v._1.asInstanceOf[GenIterable[V]],
+          v._2.asInstanceOf[GenIterable[W]]
+        ))
+    )
 
-  override def cogroup[W1: ClassTag, W2: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], numPartitions: Int): RDDAPI[(K, (Iterable[V], Iterable[W1], Iterable[W2]))] =
-    RDDAPI(data.cogroup(other1.toRDD, other2.toRDD, numPartitions))
+  override def cogroup[W1: ClassTag, W2: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], numPartitions: Int): RDDAPI[(K, (GenIterable[V], GenIterable[W1], GenIterable[W2]))] =
+    RDDAPI(
+      data
+        .cogroup(other1.toRDD, other2.toRDD, numPartitions)
+        .mapValues(v => (
+          v._1.asInstanceOf[GenIterable[V]],
+          v._2.asInstanceOf[GenIterable[W1]],
+          v._3.asInstanceOf[GenIterable[W2]]
+        ))
+    )
 
-  override def cogroup[W1: ClassTag, W2: ClassTag, W3: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], other3: RDDAPI[(K, W3)], numPartitions: Int): RDDAPI[(K, (Iterable[V], Iterable[W1], Iterable[W2], Iterable[W3]))] =
-    RDDAPI(data.cogroup(other1.toRDD, other2.toRDD, other3.toRDD, numPartitions))
+  override def cogroup[W1: ClassTag, W2: ClassTag, W3: ClassTag](other1: RDDAPI[(K, W1)], other2: RDDAPI[(K, W2)], other3: RDDAPI[(K, W3)], numPartitions: Int): RDDAPI[(K, (GenIterable[V], GenIterable[W1], GenIterable[W2], GenIterable[W3]))] =
+    RDDAPI(
+      data
+        .cogroup(other1.toRDD, other2.toRDD, other3.toRDD, numPartitions)
+        .mapValues(v => (
+          v._1.asInstanceOf[GenIterable[V]],
+          v._2.asInstanceOf[GenIterable[W1]],
+          v._3.asInstanceOf[GenIterable[W2]],
+          v._4.asInstanceOf[GenIterable[W3]]
+        ))
+    )
 
-  override def collectAsMap(): Map[K, V] =
+  override def collectAsMap(): GenMap[K, V] =
     data.collectAsMap()
 
   override def subtractByKey[W: ClassTag](other: RDDAPI[(K, W)]): RDDAPI[(K, V)] =
