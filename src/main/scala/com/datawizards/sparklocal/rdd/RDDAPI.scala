@@ -4,6 +4,8 @@ import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.impl.scala.`lazy`.rdd.{PairRDDFunctionsAPIScalaLazyImpl, RDDAPIScalaLazyImpl}
 import com.datawizards.sparklocal.impl.scala.eager.rdd.{PairRDDFunctionsAPIScalaEagerImpl, RDDAPIScalaEagerImpl}
 import com.datawizards.sparklocal.impl.scala.parallel.rdd.{PairRDDFunctionsAPIScalaParallelImpl, RDDAPIScalaParallelImpl}
+import com.datawizards.sparklocal.impl.scala.parallellazy.ParallelLazySeq
+import com.datawizards.sparklocal.impl.scala.parallellazy.rdd.{PairRDDFunctionsAPIScalaParallelLazyImpl, RDDAPIScalaParallelLazyImpl}
 import com.datawizards.sparklocal.impl.spark.rdd.{PairRDDFunctionsAPISparkImpl, RDDAPISparkImpl}
 import org.apache.spark.{Partition, Partitioner}
 import org.apache.spark.rdd.{PartitionCoalescer, RDD}
@@ -19,6 +21,7 @@ object RDDAPI {
   def apply[T: ClassTag](seq: Seq[T]): RDDAPI[T] = new RDDAPIScalaEagerImpl(seq)
   def apply[T: ClassTag](seq: SeqView[T, Seq[T]]): RDDAPI[T] = new RDDAPIScalaLazyImpl(seq)
   def apply[T: ClassTag](seq: ParSeq[T]): RDDAPI[T] = new RDDAPIScalaParallelImpl(seq)
+  def apply[T: ClassTag](data: ParallelLazySeq[T]): RDDAPI[T] = new RDDAPIScalaParallelLazyImpl(data)
   def apply[T: ClassTag](rdd: RDD[T]): RDDAPI[T] = new RDDAPISparkImpl(rdd)
 
   implicit def rddToPairRDDFunctions[K, V](rdd: RDDAPI[(K, V)])
@@ -27,6 +30,7 @@ object RDDAPI {
       case rddScala:RDDAPIScalaEagerImpl[(K,V)] => new PairRDDFunctionsAPIScalaEagerImpl(rddScala)(kct,vct,ord)
       case rddScala:RDDAPIScalaLazyImpl[(K,V)] => new PairRDDFunctionsAPIScalaLazyImpl(rddScala)(kct,vct,ord)
       case rddScala:RDDAPIScalaParallelImpl[(K,V)] => new PairRDDFunctionsAPIScalaParallelImpl(rddScala)(kct,vct,ord)
+      case rddScala:RDDAPIScalaParallelLazyImpl[(K,V)] => new PairRDDFunctionsAPIScalaParallelLazyImpl(rddScala)(kct,vct,ord)
       case rddSpark:RDDAPISparkImpl[(K,V)] => new PairRDDFunctionsAPISparkImpl(rddSpark)(kct,vct,ord)
     }
   }

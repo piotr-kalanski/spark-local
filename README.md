@@ -54,6 +54,7 @@ When creating Session object you can choose between different execution engines.
 - ScalaEager - implementation based on Scala collection with eager transformations, which makes it fast for unit testing
 - ScalaLazy - implementation based on Scala collection with lazy transformations, dedicated for working with small/mid size data
 - ScalaParallel - implementation based on Scala parallel collection with eager transformations
+- ScalaParallelLazy - implementation based on Scala parallel collection with lazy transformations
 
 ```scala
 import com.datawizards.sparklocal.session.ExecutionEngine.ExecutionEngine
