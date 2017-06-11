@@ -3,6 +3,8 @@
 *.class
 *.log
 
+sparklocal.log*
+
 # sbt specific
 .cache
 .history
@@ -22,3 +24,6 @@ checkpoints/
 spark-warehouse/
 
 metastore_db/
+
+benchmarkResults.csv
+benchmarkResultsNarrow.csv

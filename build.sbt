@@ -36,7 +36,10 @@ libraryDependencies ++= Seq(
   "com.sksamuel.avro4s" %% "avro4s-core" % "1.6.4",
   "org.scalatest" %% "scalatest" % "2.2.6" % "test",
   "junit" % "junit" % "4.10" % "test",
-  "com.h2database" % "h2" % "1.4.195" % "test"
+  "com.h2database" % "h2" % "1.4.195" % "test",
+  "com.storm-enroute" %% "scalameter-core" % "0.8.2" % "test",
+  "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.5" % "test",
+  "com.github.piotr-kalanski" % "splot" % "0.2.0" % "test"
 )
 
 coverageExcludedPackages := "com.datawizards.sparklocal.examples.*"
