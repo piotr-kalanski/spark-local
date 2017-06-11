@@ -24,6 +24,6 @@ object BenchmarkResultsSerialization {
       parseCSV[BenchmarkResultNarrow](benchmarkNarrowResultsFile)._1
     )
 
-  private val benchmarkResultsFile = "benchmarkResults.csv"
-  private val benchmarkNarrowResultsFile = "benchmarkResultsNarrow.csv"
+  private val benchmarkResultsFile = "benchmarks/benchmarkResults.csv"
+  private val benchmarkNarrowResultsFile = "benchmarks/benchmarkResultsNarrow.csv"
 }

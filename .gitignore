@@ -24,6 +24,3 @@ checkpoints/
 spark-warehouse/
 
 metastore_db/
-
-benchmarkResults.csv
-benchmarkResultsNarrow.csv

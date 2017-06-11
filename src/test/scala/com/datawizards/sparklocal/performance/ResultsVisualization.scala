@@ -32,11 +32,13 @@ object ResultsVisualization {
         val file = s"${collection}_${operationName}_$sampleSize.png"
 
         resultsInGroup
+          .filter(_.engine != "Spark")
           .buildPlot()
           .bar(_.engine, _.time)
           .size(800, 200)
-          .title(s"$collection.$operationName() operation time by engine [ms] - sample size: $sampleSize")
+          .titles(s"$collection.$operationName() operation time by engine [ms] - sample size: $sampleSize", "", "")
           .legendVisible(false)
+          .showAnnotations(true)
           .save("benchmarks/" + file , ImageFormats.PNG)
 
         charts += ChartMetaData(file, collection, operationName, sampleSize)
@@ -47,7 +49,7 @@ object ResultsVisualization {
 
   private def generateMarkdownImages(charts: Iterable[ChartMetaData]): String = {
     val buffer = new StringBuilder()
-    buffer ++= "\n# Images\n"
+    buffer ++= "\n# Comparing Scala implementations\n"
 
     charts
       .groupBy(_.collection)
@@ -55,6 +57,8 @@ object ResultsVisualization {
         buffer ++= s"\n## $collection\n"
         resultsWithinCollection
           .groupBy(_.sampleSize)
+          .toSeq
+          .sortBy(_._1)
           .foreach{case (sampleSize, resultsWithinGroup) =>
             buffer ++= s"\n### Sample size = $sampleSize elements\n\n"
             for(chart <- resultsWithinGroup)
@@ -74,16 +78,19 @@ object ResultsVisualization {
         buffer ++= s"\n## $collection\n"
         resultsWithinCollection
           .groupBy(_.sampleSize)
+          .toSeq
+          .sortBy(_._1)
           .foreach{case (sampleSize, resultsWithinGroup) =>
             buffer ++= s"\n### Sample size = $sampleSize elements\n\n"
             buffer ++= "|Operation|ScalaEager|ScalaLazy|ScalaParallel|ScalaParallelLazy|Spark|\n"
             buffer ++= "|--|--|--|--|--|--|\n"
             for(r <- resultsWithinGroup)
-              buffer ++= s"|${r.collection}.${r.operationName}()|${round(r.scalaEagerTime)}|${round(r.scalaLazyTime)}|${round(r.scalaParallelTime)}|${round(r.scalaParallelLazyTime)}|${round(r.sparkTime)}|\n"
+              buffer ++= s"|${r.collection}.${r.operationName}()|${round(r.scalaEagerTime, r.sparkTime)}|${round(r.scalaLazyTime, r.sparkTime)}|${round(r.scalaParallelTime, r.sparkTime)}|${round(r.scalaParallelLazyTime, r.sparkTime)}|${round(r.sparkTime, r.sparkTime)}|\n"
           }
       }
 
-    def round(d: Double): String = (math.round(d*1000) / 1000.0).toString
+    def round(time: Double, sparkTime: Double): String =
+      s"${math.round(time*1000) / 1000.0} (${math.round(time / sparkTime * 100)})%"
 
     buffer.toString()
   }

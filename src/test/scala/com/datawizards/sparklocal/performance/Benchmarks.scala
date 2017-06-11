@@ -10,7 +10,8 @@ object Benchmarks {
   private lazy val inputDataSets = Seq(
     dataSets10Elements,
     dataSets100Elements,
-    dataSets1000Elements
+    dataSets1000Elements,
+    dataSets100000Elements
   )
 
   lazy val peopleDataSetBenchmarks: Seq[DataSetBenchmarkSetting[Person]] = Seq(
@@ -49,6 +50,14 @@ object Benchmarks {
         .groupByKey(p => p.name)
         .mapGroups{case (name, people) => (name, people.size)}
         .collect()
+    },
+    dataSetBenchmarkSettings("map().filter().groupByKey().mapGroups", inputDataSets) {
+      ds => ds
+        .map(p => Person(p.name, p.age*2))
+        .filter(_.age > 5)
+        .groupByKey(p => p.name)
+        .mapGroups{case (name, people) => (name, people.size)}
+        .collect()
     }
   )
     .flatten
@@ -57,7 +66,8 @@ object Benchmarks {
   private lazy val inputRDDs = Seq(
     rdds10Elements,
     rdds100Elements,
-    rdds1000Elements
+    rdds1000Elements,
+    rdds100000Elements
   )
 
   lazy val peopleRDDBenchmarks: Seq[RDDBenchmarkSetting[Person]] = Seq(

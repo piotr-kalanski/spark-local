@@ -15,9 +15,11 @@ object BenchmarkTestData {
   lazy val dataSets10Elements: InputDataSets[Person] = createInputDataSets(people10Elements)
   lazy val dataSets100Elements: InputDataSets[Person] = createInputDataSets(people100Elements)
   lazy val dataSets1000Elements: InputDataSets[Person] = createInputDataSets(people1000Elements)
+  lazy val dataSets100000Elements: InputDataSets[Person] = createInputDataSets(people100000Elements)
   lazy val rdds10Elements: InputRDDs[Person] = createInputRDDs(people10Elements)
   lazy val rdds100Elements: InputRDDs[Person] = createInputRDDs(people100Elements)
   lazy val rdds1000Elements: InputRDDs[Person] = createInputRDDs(people1000Elements)
+  lazy val rdds100000Elements: InputRDDs[Person] = createInputRDDs(people100000Elements)
 
   def createInputDataSets[T: ClassTag: TypeTag](data: Seq[T]): InputDataSets[T] = {
     implicit val encoder = ExpressionEncoder[T]()
@@ -51,4 +53,5 @@ object BenchmarkTestData {
   private lazy val people10Elements = for(i <- 1 to 10) yield peopleGenerator.sample.get
   private lazy val people100Elements = for(i <- 1 to 100) yield peopleGenerator.sample.get
   private lazy val people1000Elements = for(i <- 1 to 1000) yield peopleGenerator.sample.get
+  private lazy val people100000Elements = for(i <- 1 to 100000) yield peopleGenerator.sample.get
 }
