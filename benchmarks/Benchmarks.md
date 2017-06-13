@@ -1,22 +1,24 @@
 # Benchmark results
 
+This file summarizes benchmarks of different implementations.
+
 # Summary
 
 ## Sample size = 100 elements
 
-![](benchmarks/summary_100.png)
+![](summary_100.png)
 
 ## Sample size = 1000 elements
 
-![](benchmarks/summary_1000.png)
+![](summary_1000.png)
 
 ## Sample size = 10 elements
 
-![](benchmarks/summary_10.png)
+![](summary_10.png)
 
 ## Sample size = 100000 elements
 
-![](benchmarks/summary_100000.png)
+![](summary_100000.png)
 
 # Raw data
 

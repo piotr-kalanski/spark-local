@@ -21,11 +21,13 @@ object ResultsVisualization {
   private def generateHeader(): String = {
     s"""# Benchmark results
        |
+       |This file summarizes benchmarks of different implementations.
+       |
        |""".stripMargin
   }
 
   private def generateSummary(results: Iterable[BenchmarkResultNarrow]): String = {
-    val summaryFile = "benchmarks/summary"
+    val summaryFile = "summary"
 
     val buffer = new StringBuilder()
     buffer ++= "# Summary\n"
@@ -47,7 +49,7 @@ object ResultsVisualization {
           .titles(s"Total operations time by engine [ms] - sample size: $sampleSize", "", "")
           .legendVisible(false)
           .showAnnotations(true)
-          .save(file , ImageFormats.PNG)
+          .save("benchmarks/" + file , ImageFormats.PNG)
         buffer ++= s"![]($file)\n"
       }
 
