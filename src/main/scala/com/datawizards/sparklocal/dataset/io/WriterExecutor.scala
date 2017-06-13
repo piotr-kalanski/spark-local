@@ -2,7 +2,7 @@ package com.datawizards.sparklocal.dataset.io
 
 import com.datawizards.class2csv.CsvEncoder
 import com.datawizards.sparklocal.dataset.DataSetAPI
-import com.datawizards.sparklocal.dataset.io.class2jdbc.JdbcEncoder
+import com.datawizards.sparklocal.impl.scala.class2jdbc.JdbcEncoder
 import com.datawizards.sparklocal.datastore._
 import com.sksamuel.avro4s.{FromRecord, SchemaFor, ToRecord}
 import org.apache.spark.sql.{Encoder, SaveMode}

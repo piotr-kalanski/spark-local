@@ -1,7 +1,7 @@
 package com.datawizards.sparklocal.session
 
 import com.datawizards.sparklocal.SparkLocalBaseTest
-import com.datawizards.sparklocal.TestModel.{Person, PersonBigInt}
+import com.datawizards.sparklocal.TestModel._
 import com.datawizards.sparklocal.datastore.{CSVDataStore, JsonDataStore}
 import com.datawizards.sparklocal.implicits._
 import org.junit.runner.RunWith
@@ -12,11 +12,15 @@ class ReadFileTest extends SparkLocalBaseTest {
 
   test("read CSV") {
     testReadCSV(ExecutionEngine.ScalaEager)
+    testReadCSV(ExecutionEngine.ScalaLazy)
+    testReadCSV(ExecutionEngine.ScalaParallel)
     testReadCSV(ExecutionEngine.Spark)
   }
 
   test("read JSON") {
     testReadJson(ExecutionEngine.ScalaEager)
+    testReadJson(ExecutionEngine.ScalaLazy)
+    testReadJson(ExecutionEngine.ScalaParallel)
     testReadJson(ExecutionEngine.Spark)
   }
 
@@ -29,7 +33,7 @@ class ReadFileTest extends SparkLocalBaseTest {
       .master("local")
       .getOrCreate()
 
-    assertDatasetOperationResult(session.read[Person](peopleCSV)) {
+    assertDatasetOperationResultWithSorted(session.read[Person](peopleCSV)) {
       Array(
         Person("p1", 10),
         Person("p2", 20),
@@ -47,7 +51,7 @@ class ReadFileTest extends SparkLocalBaseTest {
       .master("local")
       .getOrCreate()
 
-    assertDatasetOperationResult(session.read[PersonBigInt](peopleJson)) {
+    assertDatasetOperationResultWithSorted(session.read[PersonBigInt](peopleJson)) {
       Array(
         PersonBigInt("p1", 10),
         PersonBigInt("p2", 20),

@@ -4,6 +4,8 @@ import com.datawizards.sparklocal.SparkLocalBaseTest
 import com.datawizards.sparklocal.TestModel.Person
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore.HiveDataStore
+import com.datawizards.sparklocal.impl.scala.eager.dataset.io.ReaderScalaEagerImpl
+import com.datawizards.sparklocal.impl.spark.dataset.io.ReaderSparkImpl
 import com.datawizards.sparklocal.implicits._
 import org.apache.spark.sql.SaveMode
 import org.junit.runner.RunWith
@@ -24,7 +26,7 @@ class WriteReadHiveTest extends SparkLocalBaseTest {
     val dataStore = HiveDataStore("default", "people_scala")
     expected.write(dataStore, SaveMode.Overwrite)
     assertResult(expected) {
-      ReaderScalaImpl.read[Person](dataStore)
+      ReaderScalaEagerImpl.read[Person](dataStore)
     }
   }
 
@@ -63,7 +65,7 @@ class WriteReadHiveTest extends SparkLocalBaseTest {
     expected.union(expected).write(dataStore, SaveMode.Overwrite)
     expected.write(dataStore, SaveMode.Overwrite)
     assertResult(expected) {
-      ReaderScalaImpl.read[Person](dataStore)
+      ReaderScalaEagerImpl.read[Person](dataStore)
     }
   }
 
@@ -85,7 +87,7 @@ class WriteReadHiveTest extends SparkLocalBaseTest {
     val ignored = expected.union(expected)
     ignored.write(dataStore, SaveMode.Ignore)
     assertResult(expected) {
-      ReaderScalaImpl.read[Person](dataStore)
+      ReaderScalaEagerImpl.read[Person](dataStore)
     }
   }
 
@@ -107,7 +109,7 @@ class WriteReadHiveTest extends SparkLocalBaseTest {
     single.write(dataStore, SaveMode.Overwrite)
     single.write.table(dataStore, SaveMode.Append)
     assertResult(expected) {
-      ReaderScalaImpl.read[Person].table(dataStore)
+      ReaderScalaEagerImpl.read[Person].table(dataStore)
     }
   }
 

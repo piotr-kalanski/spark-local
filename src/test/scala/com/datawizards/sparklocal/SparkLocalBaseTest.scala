@@ -1,15 +1,18 @@
 package com.datawizards.sparklocal
 
 import com.datawizards.sparklocal.dataset.DataSetAPI
+import com.datawizards.sparklocal.impl.scala.parallellazy.ParallelLazySeq
 import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.sql.{SQLContext, SparkSession}
 import org.scalatest.FunSuite
 
+import scala.collection.GenIterable
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe.TypeTag
 import scala.math.Ordering
+import scala.math.Ordering.Boolean
 
 trait SparkLocalBaseTest extends FunSuite {
   lazy val spark: SparkSession = {
@@ -19,6 +22,21 @@ trait SparkLocalBaseTest extends FunSuite {
   }
   lazy val sc: SparkContext = spark.sparkContext
   lazy val sqlContext: SQLContext = spark.sqlContext
+
+  implicit def genIterableOrdering[T](implicit ord: Ordering[T]): Ordering[GenIterable[T]] =
+    new Ordering[GenIterable[T]] {
+      def compare(x: GenIterable[T], y: GenIterable[T]): Int = {
+        val xe = x.iterator
+        val ye = y.iterator
+
+        while (xe.hasNext && ye.hasNext) {
+          val res = ord.compare(xe.next(), ye.next())
+          if (res != 0) return res
+        }
+
+        Boolean.compare(xe.hasNext, ye.hasNext)
+      }
+    }
 
   /**
     * Verifies that Dataset has the same elements as expected result
@@ -79,7 +97,16 @@ trait SparkLocalBaseTest extends FunSuite {
   def assertDatasetOperationReturnsSameResultWithEqual[T:ClassTag:TypeTag, Result](data: Seq[T], op: DataSetAPI[T] => Result)(eq: ((Result,Result) => Boolean)): Unit = {
     val ds = spark.createDataset(data)(ExpressionEncoder[T]())
 
-    assert(eq(op(DataSetAPI(data)),op(DataSetAPI(ds))))
+    val scalaEagerImpl = op(DataSetAPI(data))
+    val scalaLazyImpl = op(DataSetAPI(data.view))
+    val scalaParallelImpl = op(DataSetAPI(data.par))
+    val scalaParallelLazyImpl = op(DataSetAPI(new ParallelLazySeq(data.par)))
+    val sparkImpl = op(DataSetAPI(ds))
+
+    assert(eq(scalaEagerImpl, sparkImpl))
+    assert(eq(scalaEagerImpl, scalaLazyImpl))
+    assert(eq(scalaEagerImpl, scalaParallelImpl))
+    assert(eq(scalaEagerImpl, scalaParallelLazyImpl))
   }
 
   /**
@@ -175,7 +202,16 @@ trait SparkLocalBaseTest extends FunSuite {
   def assertRDDOperationReturnsSameResultWithEqual[T:ClassTag:TypeTag, Result](data: Seq[T], op: RDDAPI[T] => Result)(eq: ((Result,Result) => Boolean)): Unit = {
     val rdd = sc.parallelize(data)
 
-    assert(eq(op(RDDAPI(data)),op(RDDAPI(rdd))))
+    val scalaEagerImpl = op(RDDAPI(data))
+    val scalaLazyImpl = op(RDDAPI(data.view))
+    val scalaParallelImpl = op(RDDAPI(data.par))
+    val sparkImpl = op(RDDAPI(rdd))
+    val scalaParallelLazyImpl = op(RDDAPI(new ParallelLazySeq(data.par)))
+
+    assert(eq(scalaEagerImpl, sparkImpl))
+    assert(eq(scalaEagerImpl, scalaLazyImpl))
+    assert(eq(scalaEagerImpl, scalaParallelImpl))
+    assert(eq(scalaEagerImpl, scalaParallelLazyImpl))
   }
 
   /**

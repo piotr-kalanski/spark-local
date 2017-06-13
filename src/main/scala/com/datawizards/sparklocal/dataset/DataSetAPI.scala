@@ -2,16 +2,32 @@ package com.datawizards.sparklocal.dataset
 
 import com.datawizards.sparklocal.dataset.expressions.Expressions._
 import com.datawizards.sparklocal.dataset.io.WriterExecutor
+import com.datawizards.sparklocal.impl.scala.`lazy`.dataset.DataSetAPIScalaLazyImpl
+import com.datawizards.sparklocal.impl.scala.eager.dataset.DataSetAPIScalaEagerImpl
+import com.datawizards.sparklocal.impl.scala.parallel.dataset.DataSetAPIScalaParallelImpl
+import com.datawizards.sparklocal.impl.scala.parallellazy.ParallelLazySeq
+import com.datawizards.sparklocal.impl.scala.parallellazy.dataset.DataSetAPIScalaParallelLazyImpl
+import com.datawizards.sparklocal.impl.spark.dataset.DataSetAPISparkImpl
 import com.datawizards.sparklocal.rdd.RDDAPI
 import org.apache.spark.sql.{Column, Dataset, Encoder, SparkSession}
 import org.apache.spark.storage.StorageLevel
 
+import scala.collection.SeqView
+import scala.collection.parallel.ParSeq
 import scala.reflect.ClassTag
 
 object DataSetAPI {
-  def apply[T: ClassTag](iterable: Iterable[T])(implicit enc: Encoder[T]=null) =
-    new DataSetAPIScalaImpl(iterable)
-  def apply[T: ClassTag](ds: Dataset[T]) = new DataSetAPISparkImpl(ds)
+  def apply[T: ClassTag](iterable: Iterable[T]): DataSetAPI[T] =
+    apply(iterable.toSeq)
+  def apply[T: ClassTag](seq: Seq[T]): DataSetAPI[T] =
+    new DataSetAPIScalaEagerImpl(seq)
+  def apply[T: ClassTag](data: SeqView[T, Seq[T]]): DataSetAPI[T] =
+    new DataSetAPIScalaLazyImpl(data)
+  def apply[T: ClassTag](seq: ParSeq[T]): DataSetAPI[T] =
+    new DataSetAPIScalaParallelImpl(seq)
+  def apply[T: ClassTag](data: ParallelLazySeq[T]): DataSetAPI[T] =
+    new DataSetAPIScalaParallelLazyImpl(data)
+  def apply[T: ClassTag](ds: Dataset[T]): DataSetAPI[T] = new DataSetAPISparkImpl(ds)
 }
 
 trait DataSetAPI[T] {
@@ -19,7 +35,7 @@ trait DataSetAPI[T] {
   protected def createDataset[That](d: Seq[That])(implicit enc: Encoder[That]): Dataset[That] =
     spark.createDataset(d)
 
-  private[dataset] def toDataset(implicit enc: Encoder[T]): Dataset[T]
+  private[sparklocal] def toDataset(implicit enc: Encoder[T]): Dataset[T]
 
   def map[That: ClassTag](map: T => That)(implicit enc: Encoder[That]): DataSetAPI[That]
   def filter(p: T => Boolean): DataSetAPI[T]

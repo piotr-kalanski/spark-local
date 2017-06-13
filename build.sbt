@@ -2,7 +2,7 @@ name := "spark-local"
 
 organization := "com.github.piotr-kalanski"
 
-version := "0.4.0"
+version := "0.5.0"
 
 scalaVersion := "2.11.8"
 
@@ -30,13 +30,16 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-sql" % "2.1.0",
   "org.apache.spark" %% "spark-hive" % "2.1.0",
   "com.databricks" %% "spark-avro" % "3.2.0",
-  "com.github.piotr-kalanski" %% "csv2class" % "0.2.0",
+  "com.github.piotr-kalanski" %% "csv2class" % "0.2.1",
   "org.json4s" %% "json4s-native" % "3.5.2",
   "org.apache.parquet" % "parquet-avro" % "1.9.0",
   "com.sksamuel.avro4s" %% "avro4s-core" % "1.6.4",
   "org.scalatest" %% "scalatest" % "2.2.6" % "test",
   "junit" % "junit" % "4.10" % "test",
-  "com.h2database" % "h2" % "1.4.195" % "test"
+  "com.h2database" % "h2" % "1.4.195" % "test",
+  "com.storm-enroute" %% "scalameter-core" % "0.8.2" % "test",
+  "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.5" % "test",
+  "com.github.piotr-kalanski" % "splot" % "0.2.0" % "test"
 )
 
 coverageExcludedPackages := "com.datawizards.sparklocal.examples.*"

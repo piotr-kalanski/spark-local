@@ -27,7 +27,7 @@ class JoinsTest extends SparkLocalBaseTest {
   val rightRDD = RDDAPI(right)
 
   test("join result") {
-    assertRDDOperationResult(leftRDD.join(rightRDD)) {
+    assertRDDOperationResultWithSorted(leftRDD.join(rightRDD)) {
      Array(
        (1, ((2000,10), "Piotrek")),
        (1, ((2001,11), "Piotrek")),
@@ -39,7 +39,7 @@ class JoinsTest extends SparkLocalBaseTest {
   }
 
   test("left join result") {
-    assertRDDOperationResult(leftRDD.leftOuterJoin(rightRDD)) {
+    assertRDDOperationResultWithSorted(leftRDD.leftOuterJoin(rightRDD)) {
       Array(
         (1, ((2000,10), Some("Piotrek"))),
         (1, ((2001,11), Some("Piotrek"))),
@@ -53,7 +53,7 @@ class JoinsTest extends SparkLocalBaseTest {
   }
 
   test("right join result") {
-    assertRDDOperationResult(leftRDD.rightOuterJoin(rightRDD)) {
+    assertRDDOperationResultWithSorted(leftRDD.rightOuterJoin(rightRDD)) {
       Array(
         (1, (Some((2000,10)), "Piotrek")),
         (1, (Some((2001,11)), "Piotrek")),
@@ -66,7 +66,7 @@ class JoinsTest extends SparkLocalBaseTest {
   }
 
   test("full outer join result") {
-    assertRDDOperationResult(leftRDD.fullOuterJoin(rightRDD)) {
+    assertRDDOperationResultWithSorted(leftRDD.fullOuterJoin(rightRDD)) {
       Array(
         (1, (Some((2000,10)), Some("Piotrek"))),
         (1, (Some((2001,11)), Some("Piotrek"))),

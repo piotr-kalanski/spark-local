@@ -19,6 +19,14 @@ class CreateRDDTest extends SparkLocalBaseTest {
   test("Create RDD - equals") {
     assertRDDEquals(
       createRDD(ExecutionEngine.ScalaEager),
+      createRDD(ExecutionEngine.ScalaLazy)
+    )
+    assertRDDEquals(
+      createRDD(ExecutionEngine.ScalaEager),
+      createRDD(ExecutionEngine.ScalaParallel)
+    )
+    assertRDDEquals(
+      createRDD(ExecutionEngine.ScalaEager),
       createRDD(ExecutionEngine.Spark)
     )
   }

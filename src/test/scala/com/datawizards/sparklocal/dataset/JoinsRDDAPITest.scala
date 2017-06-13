@@ -26,7 +26,7 @@ class JoinsRDDAPITest extends SparkLocalBaseTest {
   val rightDataset = DataSetAPI(right)
 
   test("join result") {
-    assertDatasetOperationResult(leftDataset.join(rightDataset)(_._1, _._1)) {
+    assertDatasetOperationResultWithSorted(leftDataset.join(rightDataset)(_._1, _._1)) {
      Array(
        ((1,2000,10), (1,"Piotrek")),
        ((1,2001,11), (1,"Piotrek")),
@@ -38,7 +38,7 @@ class JoinsRDDAPITest extends SparkLocalBaseTest {
   }
 
   test("left join result") {
-    assertDatasetOperationResult(leftDataset.leftOuterJoin(rightDataset)(_._1, _._1)) {
+    assertDatasetOperationResultWithSorted(leftDataset.leftOuterJoin(rightDataset)(_._1, _._1)) {
       Array(
         ((1,2000,10), Some((1,"Piotrek"))),
         ((1,2001,11), Some((1,"Piotrek"))),
@@ -52,7 +52,7 @@ class JoinsRDDAPITest extends SparkLocalBaseTest {
   }
 
   test("right join result") {
-    assertDatasetOperationResult(leftDataset.rightOuterJoin(rightDataset)(_._1, _._1)) {
+    assertDatasetOperationResultWithSorted(leftDataset.rightOuterJoin(rightDataset)(_._1, _._1)) {
       Array(
         (Some((1,2000,10)), (1,"Piotrek")),
         (Some((1,2001,11)), (1,"Piotrek")),
@@ -65,7 +65,7 @@ class JoinsRDDAPITest extends SparkLocalBaseTest {
   }
 
   test("full outer join result") {
-    assertDatasetOperationResult(leftDataset.fullOuterJoin(rightDataset)(_._1, _._1)) {
+    assertDatasetOperationResultWithSorted(leftDataset.fullOuterJoin(rightDataset)(_._1, _._1)) {
       Array(
         (Some((1,2000,10)), Some((1,"Piotrek"))),
         (Some((1,2001,11)), Some((1,"Piotrek"))),
