@@ -12,6 +12,7 @@ object ResultsVisualization {
     import java.io._
     val pw = new PrintWriter(file)
     pw.write(generateHeader())
+    pw.write(generateSummary(results._2))
     pw.write(generateMarkdownTables(results._1))
     pw.write(generateMarkdownImages(generateCharts(results._2)))
     pw.close()
@@ -21,6 +22,36 @@ object ResultsVisualization {
     s"""# Benchmark results
        |
        |""".stripMargin
+  }
+
+  private def generateSummary(results: Iterable[BenchmarkResultNarrow]): String = {
+    val summaryFile = "benchmarks/summary"
+
+    val buffer = new StringBuilder()
+    buffer ++= "# Summary\n"
+
+    results
+      .groupBy(_.sampleSize)
+      .foreach{case (sampleSize, resultsWithinGroup) =>
+        buffer ++= s"\n## Sample size = $sampleSize elements\n\n"
+        val totalTimeByEngine = resultsWithinGroup
+            .groupBy(_.engine)
+            .mapValues(v => v.map(_.time).sum)
+            .toSeq
+            .sortBy(_._1)
+        val file = summaryFile + "_" + sampleSize + ".png"
+        totalTimeByEngine
+          .buildPlot()
+          .bar(_._1, _._2)
+          .size(800, 200)
+          .titles(s"Total operations time by engine [ms] - sample size: $sampleSize", "", "")
+          .legendVisible(false)
+          .showAnnotations(true)
+          .save(file , ImageFormats.PNG)
+        buffer ++= s"![]($file)\n"
+      }
+
+    buffer.toString
   }
 
   private def generateCharts(results: Iterable[BenchmarkResultNarrow]): Iterable[ChartMetaData] = {
@@ -77,7 +108,7 @@ object ResultsVisualization {
 
   private def generateMarkdownTables(results: Iterable[BenchmarkResult]): String = {
     val buffer = new StringBuilder()
-    buffer ++= "# Raw data\n"
+    buffer ++= "\n# Raw data\n"
       results
       .groupBy(_.collection)
       .foreach{case (collection, resultsWithinCollection) =>
@@ -101,7 +132,7 @@ object ResultsVisualization {
       }
 
     def round(time: Double, sparkTime: Double): String =
-      s"${math.round(time*1000) / 1000.0}\n(${math.round(time / sparkTime * 100)})%"
+      s"${math.round(time*1000) / 1000.0}<br/>(${math.round(time / sparkTime * 100)})%"
 
     buffer.toString()
   }
