@@ -2,8 +2,8 @@ package com.datawizards.sparklocal.performance
 
 object Runner extends App {
 
-  //run()
-  run(false)
+  run()
+  //run(false)
 
   def run(runTests: Boolean = true): Unit = {
     if(runTests) {

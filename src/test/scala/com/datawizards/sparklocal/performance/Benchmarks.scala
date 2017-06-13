@@ -7,6 +7,9 @@ import com.datawizards.sparklocal.implicits._
 
 object Benchmarks {
 
+  private val BASIC = "basic"
+  private val COMPLEX = "complex"
+
   private lazy val inputDataSets = Seq(
     dataSets10Elements,
     dataSets100Elements,
@@ -15,43 +18,50 @@ object Benchmarks {
   )
 
   lazy val peopleDataSetBenchmarks: Seq[DataSetBenchmarkSetting[Person]] = Seq(
-    dataSetBenchmarkSettings("map", inputDataSets) {
+    dataSetBenchmarkSettings(BASIC, "map", inputDataSets) {
       ds => ds.map(p => p.age + 1).collect()
     },
-    dataSetBenchmarkSettings("count", inputDataSets) {
+    dataSetBenchmarkSettings(BASIC, "count", inputDataSets) {
       ds => ds.count()
     },
-    dataSetBenchmarkSettings("filter", inputDataSets) {
+    dataSetBenchmarkSettings(BASIC, "filter", inputDataSets) {
       ds => ds.filter(p => p.age > 5).collect()
     },
-    dataSetBenchmarkSettings("union", inputDataSets) {
+    dataSetBenchmarkSettings(BASIC, "union", inputDataSets) {
       ds => ds.union(ds).collect()
     },
-    dataSetBenchmarkSettings("flatMap", inputDataSets) {
+    dataSetBenchmarkSettings(BASIC, "flatMap", inputDataSets) {
       ds => ds.flatMap(p => Seq(p,p)).collect()
     },
-    dataSetBenchmarkSettings("limit", inputDataSets) {
+    dataSetBenchmarkSettings(BASIC, "limit", inputDataSets) {
       ds => ds.limit(5).collect()
     },
-    dataSetBenchmarkSettings("take", inputDataSets) {
+    dataSetBenchmarkSettings(BASIC, "take", inputDataSets) {
       ds => ds.take(5)
     },
-    dataSetBenchmarkSettings("distinct", inputDataSets) {
+    dataSetBenchmarkSettings(BASIC, "distinct", inputDataSets) {
       ds => ds.distinct().collect()
     },
-    dataSetBenchmarkSettings("map().reduce", inputDataSets) {
+    dataSetBenchmarkSettings(COMPLEX, "map().map().map", inputDataSets) {
+      ds => ds
+        .map(p => p.age)
+        .map(x => x+1)
+        .map(x => x * 2)
+        .collect()
+    },
+    dataSetBenchmarkSettings(COMPLEX, "map().reduce", inputDataSets) {
       ds => ds.map(p => p.age).reduce(_ + _)
     },
-    dataSetBenchmarkSettings("groupByKey().count", inputDataSets) {
+    dataSetBenchmarkSettings(COMPLEX, "groupByKey().count", inputDataSets) {
       ds => ds.groupByKey(p => p.age).count().collect()
     },
-    dataSetBenchmarkSettings("groupByKey().mapGroups", inputDataSets) {
+    dataSetBenchmarkSettings(COMPLEX, "groupByKey().mapGroups", inputDataSets) {
       ds => ds
         .groupByKey(p => p.name)
         .mapGroups{case (name, people) => (name, people.size)}
         .collect()
     },
-    dataSetBenchmarkSettings("map().filter().groupByKey().mapGroups", inputDataSets) {
+    dataSetBenchmarkSettings(COMPLEX, "map().filter().groupByKey().mapGroups", inputDataSets) {
       ds => ds
         .map(p => Person(p.name, p.age*2))
         .filter(_.age > 5)
@@ -71,38 +81,45 @@ object Benchmarks {
   )
 
   lazy val peopleRDDBenchmarks: Seq[RDDBenchmarkSetting[Person]] = Seq(
-    rddBenchmarkSettings("map", inputRDDs) {
+    rddBenchmarkSettings(BASIC, "map", inputRDDs) {
       rdd => rdd.map(p => p.age + 1).collect()
     },
-    rddBenchmarkSettings("count", inputRDDs) {
+    rddBenchmarkSettings(BASIC, "count", inputRDDs) {
       rdd => rdd.count()
     },
-    rddBenchmarkSettings("filter", inputRDDs) {
+    rddBenchmarkSettings(BASIC, "filter", inputRDDs) {
       rdd => rdd.filter(p => p.age > 5).collect()
     },
-    rddBenchmarkSettings("union", inputRDDs) {
+    rddBenchmarkSettings(BASIC, "union", inputRDDs) {
       rdd => rdd.union(rdd).collect()
     },
-    rddBenchmarkSettings("flatMap", inputRDDs) {
+    rddBenchmarkSettings(BASIC, "flatMap", inputRDDs) {
       rdd => rdd.flatMap(p => Seq(p,p)).collect()
     },
-    rddBenchmarkSettings("take", inputRDDs) {
+    rddBenchmarkSettings(BASIC, "take", inputRDDs) {
       rdd => rdd.take(5)
     },
-    rddBenchmarkSettings("distinct", inputRDDs) {
+    rddBenchmarkSettings(BASIC, "distinct", inputRDDs) {
       rdd => rdd.distinct().collect()
     },
-    rddBenchmarkSettings("map().reduce", inputRDDs) {
-      rdd => rdd.map(p => p.age).reduce(_ + _)
-    },
-    rddBenchmarkSettings("zip", inputRDDs) {
+    rddBenchmarkSettings(BASIC, "zip", inputRDDs) {
       rdd => rdd.zip(rdd).collect()
     },
-    rddBenchmarkSettings("zipWithIndex", inputRDDs) {
+    rddBenchmarkSettings(BASIC, "zipWithIndex", inputRDDs) {
       rdd => rdd.zipWithIndex().collect()
     },
-    rddBenchmarkSettings("sortBy", inputRDDs) {
+    rddBenchmarkSettings(BASIC, "sortBy", inputRDDs) {
       rdd => rdd.sortBy(p => p.age).collect()
+    },
+    rddBenchmarkSettings(COMPLEX, "map().reduce", inputRDDs) {
+      rdd => rdd.map(p => p.age).reduce(_ + _)
+    },
+    rddBenchmarkSettings(COMPLEX, "map().map().map", inputRDDs) {
+      rdd => rdd
+        .map(p => p.age)
+        .map(x => x+1)
+        .map(x => x * 2)
+        .collect()
     }
   )
     .flatten

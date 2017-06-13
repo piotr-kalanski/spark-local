@@ -21,33 +21,36 @@ object BenchmarkModel {
                              )
 
   case class DataSetBenchmarkSetting[T](
+                                  operationCategory: String,
                                   operationName: String,
                                   dataSets: InputDataSets[T],
                                   op: DataSetAPI[T] => Unit
                                 )
 
-  def dataSetBenchmarkSetting[T](operationName: String, dataSets: InputDataSets[T])(op: DataSetAPI[T] => Unit): DataSetBenchmarkSetting[T] =
-    DataSetBenchmarkSetting(operationName, dataSets, op)
+  def dataSetBenchmarkSetting[T](operationCategory: String, operationName: String, dataSets: InputDataSets[T])(op: DataSetAPI[T] => Unit): DataSetBenchmarkSetting[T] =
+    DataSetBenchmarkSetting(operationCategory, operationName, dataSets, op)
 
-  def dataSetBenchmarkSettings[T](operationName: String, dataSets: Iterable[InputDataSets[T]])(op: DataSetAPI[T] => Unit): Iterable[DataSetBenchmarkSetting[T]] =
+  def dataSetBenchmarkSettings[T](operationCategory: String, operationName: String, dataSets: Iterable[InputDataSets[T]])(op: DataSetAPI[T] => Unit): Iterable[DataSetBenchmarkSetting[T]] =
     dataSets
-      .map(d => DataSetBenchmarkSetting(operationName, d, op))
+      .map(d => DataSetBenchmarkSetting(operationCategory, operationName, d, op))
 
   case class RDDBenchmarkSetting[T](
+                                     operationCategory: String,
                                      operationName: String,
                                      rdds: InputRDDs[T],
                                      op: RDDAPI[T] => Unit
                                    )
 
-  def rddBenchmarkSetting[T](operationName: String, rdds: InputRDDs[T])(op: RDDAPI[T] => Unit): RDDBenchmarkSetting[T] =
-    RDDBenchmarkSetting(operationName, rdds, op)
+  def rddBenchmarkSetting[T](operationCategory: String, operationName: String, rdds: InputRDDs[T])(op: RDDAPI[T] => Unit): RDDBenchmarkSetting[T] =
+    RDDBenchmarkSetting(operationCategory, operationName, rdds, op)
 
-  def rddBenchmarkSettings[T](operationName: String, rdds: Iterable[InputRDDs[T]])(op: RDDAPI[T] => Unit): Iterable[RDDBenchmarkSetting[T]] =
+  def rddBenchmarkSettings[T](operationCategory: String, operationName: String, rdds: Iterable[InputRDDs[T]])(op: RDDAPI[T] => Unit): Iterable[RDDBenchmarkSetting[T]] =
     rdds
-      .map(rdd => RDDBenchmarkSetting(operationName, rdd, op))
+      .map(rdd => RDDBenchmarkSetting(operationCategory, operationName, rdd, op))
 
   case class BenchmarkResult(
                               collection: String,
+                              operationCategory: String,
                               operationName: String,
                               sampleSize: Long,
                               scalaEagerTime: Double,
@@ -59,6 +62,7 @@ object BenchmarkModel {
 
   case class BenchmarkResultNarrow(
                                     collection: String,
+                                    operationCategory: String,
                                     operationName: String,
                                     sampleSize: Long,
                                     engine: String,

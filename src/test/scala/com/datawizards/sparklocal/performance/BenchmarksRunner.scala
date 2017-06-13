@@ -8,18 +8,19 @@ import com.datawizards.sparklocal.rdd.RDDAPI
 object BenchmarksRunner extends App {
 
   def runDataSetBenchmarks[T](benchmarks: Iterable[DataSetBenchmarkSetting[T]]): Iterable[BenchmarkResult] = {
-    for(b <- benchmarks)
-      yield benchmarkDataSetOperation(b.operationName, b.dataSets)(b.op)
+    for(b <- benchmarks.toStream)
+      yield benchmarkDataSetOperation(b.operationCategory, b.operationName, b.dataSets)(b.op)
   }
 
   def runRDDBenchmarks[T](benchmarks: Iterable[RDDBenchmarkSetting[T]]): Iterable[BenchmarkResult] = {
-    for(b <- benchmarks)
-      yield benchmarkRDDOperation(b.operationName, b.rdds)(b.op)
+    for(b <- benchmarks.toStream)
+      yield benchmarkRDDOperation(b.operationCategory, b.operationName, b.rdds)(b.op)
   }
 
-  private def benchmarkDataSetOperation[T](operationName: String, dataSets: InputDataSets[T])(op: DataSetAPI[T] => Unit): BenchmarkResult =
+  private def benchmarkDataSetOperation[T](operationCategory: String, operationName: String, dataSets: InputDataSets[T])(op: DataSetAPI[T] => Unit): BenchmarkResult =
     BenchmarkResult(
       collection = "DataSet",
+      operationCategory = operationCategory,
       operationName = operationName,
       sampleSize = dataSets.scalaEagerImpl.count(),
       scalaEagerTime = measureDataSetOperation(op, dataSets.scalaEagerImpl),
@@ -29,9 +30,10 @@ object BenchmarksRunner extends App {
       sparkTime = measureDataSetOperation(op, dataSets.sparkImpl)
     )
 
-  private def benchmarkRDDOperation[T](operationName: String, rdds: InputRDDs[T])(op: RDDAPI[T] => Unit): BenchmarkResult =
+  private def benchmarkRDDOperation[T](operationCategory: String, operationName: String, rdds: InputRDDs[T])(op: RDDAPI[T] => Unit): BenchmarkResult =
     BenchmarkResult(
       collection = "RDD",
+      operationCategory = operationCategory,
       operationName = operationName,
       sampleSize = rdds.scalaEagerImpl.count(),
       scalaEagerTime = measureRDDOperation(op, rdds.scalaEagerImpl),

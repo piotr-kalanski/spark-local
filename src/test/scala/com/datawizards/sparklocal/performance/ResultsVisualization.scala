@@ -27,8 +27,8 @@ object ResultsVisualization {
     val charts = new ListBuffer[ChartMetaData]
 
     results
-      .groupBy(r => (r.collection, r.operationName, r.sampleSize))
-      .foreach{ case ((collection, operationName, sampleSize), resultsInGroup) =>
+      .groupBy(r => (r.collection, r.operationCategory, r.operationName, r.sampleSize))
+      .foreach{ case ((collection, operationCategory, operationName, sampleSize), resultsInGroup) =>
         val file = s"${collection}_${operationName}_$sampleSize.png"
 
         resultsInGroup
@@ -41,7 +41,7 @@ object ResultsVisualization {
           .showAnnotations(true)
           .save("benchmarks/" + file , ImageFormats.PNG)
 
-        charts += ChartMetaData(file, collection, operationName, sampleSize)
+        charts += ChartMetaData(file, collection, operationCategory, operationName, sampleSize)
       }
 
     charts.toList
@@ -59,10 +59,16 @@ object ResultsVisualization {
           .groupBy(_.sampleSize)
           .toSeq
           .sortBy(_._1)
-          .foreach{case (sampleSize, resultsWithinGroup) =>
+          .foreach{case (sampleSize, resultsWithinSampleSizeGroup) =>
             buffer ++= s"\n### Sample size = $sampleSize elements\n\n"
-            for(chart <- resultsWithinGroup)
-              buffer ++= s"![](${chart.file})\n\n"
+            resultsWithinSampleSizeGroup
+              .groupBy(_.operationCategory)
+              .foreach{case (operationCategory, resultsWithinGroup) =>
+                buffer ++= s"\n#### Operations: $operationCategory\n"
+                for(chart <- resultsWithinGroup)
+                  buffer ++= s"![](${chart.file})\n\n"
+              }
+
           }
       }
 
@@ -80,20 +86,25 @@ object ResultsVisualization {
           .groupBy(_.sampleSize)
           .toSeq
           .sortBy(_._1)
-          .foreach{case (sampleSize, resultsWithinGroup) =>
+          .foreach{case (sampleSize, resultsWithinSampleSizeGroup) =>
             buffer ++= s"\n### Sample size = $sampleSize elements\n\n"
-            buffer ++= "|Operation|ScalaEager|ScalaLazy|ScalaParallel|ScalaParallelLazy|Spark|\n"
-            buffer ++= "|--|--|--|--|--|--|\n"
-            for(r <- resultsWithinGroup)
-              buffer ++= s"|${r.collection}.${r.operationName}()|${round(r.scalaEagerTime, r.sparkTime)}|${round(r.scalaLazyTime, r.sparkTime)}|${round(r.scalaParallelTime, r.sparkTime)}|${round(r.scalaParallelLazyTime, r.sparkTime)}|${round(r.sparkTime, r.sparkTime)}|\n"
+            resultsWithinSampleSizeGroup
+              .groupBy(_.operationCategory)
+              .foreach{case (operationCategory, resultsWithinGroup) =>
+                buffer ++= s"\n#### Operations: $operationCategory\n"
+                buffer ++= "|Operation|ScalaEager|ScalaLazy|ScalaParallel|ScalaParallelLazy|Spark|\n"
+                buffer ++= "|--|--|--|--|--|--|\n"
+                for(r <- resultsWithinGroup)
+                  buffer ++= s"|${r.collection}.${r.operationName}()|${round(r.scalaEagerTime, r.sparkTime)}|${round(r.scalaLazyTime, r.sparkTime)}|${round(r.scalaParallelTime, r.sparkTime)}|${round(r.scalaParallelLazyTime, r.sparkTime)}|${round(r.sparkTime, r.sparkTime)}|\n"
+              }
           }
       }
 
     def round(time: Double, sparkTime: Double): String =
-      s"${math.round(time*1000) / 1000.0} (${math.round(time / sparkTime * 100)})%"
+      s"${math.round(time*1000) / 1000.0}\n(${math.round(time / sparkTime * 100)})%"
 
     buffer.toString()
   }
 
-  case class ChartMetaData(file: String, collection: String, operationName: String, sampleSize: Long)
+  case class ChartMetaData(file: String, collection: String, operationCategory: String, operationName: String, sampleSize: Long)
 }
