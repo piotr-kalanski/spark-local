@@ -1,11 +1,11 @@
 .idea/
 
-*.class
 *.log
+
+sparklocal.log*
 
 # sbt specific
 .cache
-.history
 .lib/
 dist/*
 target/
