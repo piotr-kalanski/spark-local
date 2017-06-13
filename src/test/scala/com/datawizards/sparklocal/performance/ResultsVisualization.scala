@@ -66,6 +66,8 @@ object ResultsVisualization {
 
         resultsInGroup
           .filter(_.engine != "Spark")
+          .toSeq
+          .sortBy(_.engine)
           .buildPlot()
           .bar(_.engine, _.time)
           .size(800, 200)
