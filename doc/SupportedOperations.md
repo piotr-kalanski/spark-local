@@ -1,5 +1,77 @@
 # Supported Spark operations
 
+## SparkContext
+
+|Operation|Supported?|
+|---------|---------|
+|addFile||
+|addJar||
+|addSparkListener||
+|broadcast|![](images/API-supported-green.png)|
+|cancelAllJobs||
+|cancelJob||
+|cancelJobGroup||
+|cancelStage||
+|clearCallSite||
+|clearJobGroup||
+|collectionAccumulator||
+|defaultMinPartitions||
+|defaultParallelism||
+|deployMode||
+|doubleAccumulator||
+|emptyRDD||
+|files||
+|getAllPools||
+|getCheckpointDir||
+|getConf||
+|getExecutorMemoryStatus||
+|getExecutorStorageStatus||
+|getLocalProperty||
+|getPersistentRDDs||
+|getPoolForName||
+|getRDDStorageInfo||
+|getSchedulingMode||
+|hadoopConfiguration||
+|hadoopFile||
+|hadoopRDD||
+|isLocal||
+|isStopped||
+|jars||
+|killExecutor||
+|killExecutors||
+|listFiles||
+|listJars||
+|longAccumulator||
+|makeRDD||
+|master||
+|newAPIHadoopFile||
+|newAPIHadoopRDD||
+|objectFile||
+|parallelize||
+|range||
+|register||
+|requestExecutors||
+|requestTotalExecutors||
+|runApproximateJob||
+|runJob||
+|sequenceFile||
+|setCallSite||
+|setCheckpointDir||
+|setJobDescription||
+|setJobGroup||
+|setLocalProperty||
+|setLogLevel||
+|sparkUser||
+|startTime||
+|statusTracker||
+|stop||
+|submitJob||
+|textFile|![](images/API-supported-green.png)|
+|uiWebUr||
+|union||
+|version||
+|wholeTextFiles||
+
 ## RDD API
 
 ### RDD API - basic actions and transformations

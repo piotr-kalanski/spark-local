@@ -1,5 +1,6 @@
 package com.datawizards.sparklocal.session
 
+import com.datawizards.sparklocal.broadcast.BroadcastAPI
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.dataset.io.ReaderExecutor
 import com.datawizards.sparklocal.rdd.RDDAPI
@@ -93,6 +94,5 @@ trait SparkSessionAPI {
 
   */
 
-  //TODO - broadcast
-  //def broadcast[T: ClassTag](value: T): Broadcast[T]
+  def broadcast[T: ClassTag](value: T): BroadcastAPI[T]
 }
