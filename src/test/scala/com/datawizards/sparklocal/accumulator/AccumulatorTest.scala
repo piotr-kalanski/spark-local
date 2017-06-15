@@ -8,6 +8,37 @@ import org.scalatest.junit.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class AccumulatorTest extends SparkLocalBaseTest {
 
+  test("create accumulator") {
+    def testEngine[Session <: SparkSessionAPI](engine: ExecutionEngine[Session]): Unit = {
+      val session = SparkSessionAPI.builder(engine).master("local").getOrCreate()
+      val accLong = session.longAccumulator("accLong")
+      val accDouble = session.doubleAccumulator("accDouble")
+      val accColl = session.collectionAccumulator[Int]("accColl")
+
+      assert(accLong.isZero)
+      assert(accDouble.isZero)
+      assert(accColl.isZero)
+      assertResult(Some("accLong")){accLong.name}
+      assertResult(Some("accDouble")){accDouble.name}
+      assertResult(Some("accColl")){accColl.name}
+    }
+
+    testEngine(ExecutionEngine.ScalaEager)
+    testEngine(ExecutionEngine.Spark)
+  }
+
+  test("register accumulator - exception") {
+    val session1 = SparkSessionAPI.builder(ExecutionEngine.ScalaEager).master("local").getOrCreate()
+    val session2 = SparkSessionAPI.builder(ExecutionEngine.Spark).master("local").getOrCreate()
+
+    intercept[UnsupportedOperationException] {
+      session2.register(session1.longAccumulator)
+    }
+    intercept[UnsupportedOperationException] {
+      session2.register(session1.longAccumulator, "name")
+    }
+  }
+
   test("long accumulator") {
     def testEngine[Session <: SparkSessionAPI](engine: ExecutionEngine[Session]): Unit = {
       val session = SparkSessionAPI.builder(engine).master("local").getOrCreate()
@@ -16,7 +47,6 @@ class AccumulatorTest extends SparkLocalBaseTest {
       val rdd = session.createRDD(Seq(1,2,3))
       rdd.foreach(x => acc.add(x))
       assert(!acc.isZero)
-      assert(acc.id == 0L)
       assert(acc.isRegistered)
       assertResult(3L)(acc.count)
       assertResult(6L)(acc.sum)
@@ -89,6 +119,8 @@ class AccumulatorTest extends SparkLocalBaseTest {
       assert(!acc.isZero)
       assert(acc.isRegistered)
       assertResult(java.util.Arrays.asList(1,2,3))(acc.value)
+      acc.merge(acc)
+      assertResult(java.util.Arrays.asList(1,2,3,1,2,3))(acc.value)
     }
     testEngine(ExecutionEngine.ScalaEager)
     testEngine(ExecutionEngine.Spark)
@@ -113,7 +145,15 @@ class AccumulatorTest extends SparkLocalBaseTest {
     intercept[UnsupportedOperationException] {
       accColl1.merge(accColl2)
     }
-
+    intercept[UnsupportedOperationException] {
+      accLong2.merge(accLong1)
+    }
+    intercept[UnsupportedOperationException] {
+      accDouble2.merge(accDouble1)
+    }
+    intercept[UnsupportedOperationException] {
+      accColl2.merge(accColl1)
+    }
   }
 
 }

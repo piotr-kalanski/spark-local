@@ -56,7 +56,10 @@ class BroadcastTest extends SparkLocalBaseTest {
     val session = SparkSessionAPI.builder(executionEngine).master("local").getOrCreate()
     val b = session.broadcast(1)
     if(unpersist.isDefined)
-      b.unpersist(unpersist.get)
+      if(unpersist.get)
+        b.unpersist(unpersist.get)
+      else
+        b.unpersist()
     val rdd = session.createRDD(Seq(1,2,3))
     assertRDDOperationResultWithSorted(rdd.map(x => x + b.value)) {
       Array(2,3,4)
