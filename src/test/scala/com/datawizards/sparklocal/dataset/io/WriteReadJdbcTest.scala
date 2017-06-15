@@ -42,9 +42,9 @@ class WriteReadJdbcTest extends SparkLocalBaseTest {
     connection.createStatement().execute("""create table people_spark("name" VARCHAR, "age" INT)""")
     spark // just to initialize SparkSession
     val expected = DataSetAPI(data.toDS())
-    expected.write(dataStore, SaveMode.Append)
+    expected.write.jdbc(dataStore, SaveMode.Append)
     assertResult(expected) {
-      ReaderSparkImpl.read[Person](dataStore)
+      ReaderSparkImpl.read[Person].jdbc(dataStore)
     }
     connection.close()
   }

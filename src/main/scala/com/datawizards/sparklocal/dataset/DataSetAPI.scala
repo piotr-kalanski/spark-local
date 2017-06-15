@@ -145,6 +145,8 @@ trait DataSetAPI[T] {
                                 (implicit encT: Encoder[T], encU: Encoder[U], encTU: Encoder[(T,U)]): DataSetAPI[(T, U)]
   def write: WriterExecutor[T]
   def show: WriterExecutor[T] = write
+  def except(other: DataSetAPI[T])(implicit enc: Encoder[T]): DataSetAPI[T] = diff(other)
+  def diff(other: DataSetAPI[T])(implicit enc: Encoder[T]): DataSetAPI[T]
 
   override def toString: String = "DataSet(" + collect().mkString(",") + ")"
 

@@ -242,7 +242,7 @@
 |coalesce||
 |distinct|![](images/API-supported-green.png)|
 |dropDuplicates||
-|except||
+|except|![](images/API-supported-green.png)|
 |filter| ![](images/API-supported-green.png)|
 |flatMap| ![](images/API-supported-green.png)|
 |groupByKey|![](images/API-supported-green.png)|

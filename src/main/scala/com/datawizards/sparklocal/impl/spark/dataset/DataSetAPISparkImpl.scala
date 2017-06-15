@@ -126,4 +126,6 @@ class DataSetAPISparkImpl[T: ClassTag](val data: Dataset[T]) extends DataSetAPI[
 
   override def write: WriterExecutor[T] = new WriterSparkImpl[T].write(this)
 
+  override def diff(other: DataSetAPI[T])(implicit enc: Encoder[T]): DataSetAPI[T] =
+    create(data.except(other.toDataset))
 }
