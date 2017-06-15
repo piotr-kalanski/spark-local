@@ -2,7 +2,7 @@ name := "spark-local"
 
 organization := "com.github.piotr-kalanski"
 
-version := "0.5.0"
+version := "0.6.0-SNAPSHOT"
 
 scalaVersion := "2.11.8"
 
