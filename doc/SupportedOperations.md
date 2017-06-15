@@ -14,11 +14,11 @@
 |cancelStage||
 |clearCallSite||
 |clearJobGroup||
-|collectionAccumulator||
+|collectionAccumulator|![](images/API-supported-green.png)|
 |defaultMinPartitions||
 |defaultParallelism||
 |deployMode||
-|doubleAccumulator||
+|doubleAccumulator|![](images/API-supported-green.png)|
 |emptyRDD||
 |files||
 |getAllPools||
@@ -41,7 +41,7 @@
 |killExecutors||
 |listFiles||
 |listJars||
-|longAccumulator||
+|longAccumulator|![](images/API-supported-green.png)|
 |makeRDD||
 |master||
 |newAPIHadoopFile||
@@ -49,7 +49,7 @@
 |objectFile||
 |parallelize||
 |range||
-|register||
+|register|![](images/API-supported-green.png)|
 |requestExecutors||
 |requestTotalExecutors||
 |runApproximateJob||
