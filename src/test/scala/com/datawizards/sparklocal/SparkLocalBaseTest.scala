@@ -3,6 +3,7 @@ package com.datawizards.sparklocal
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.impl.scala.parallellazy.ParallelLazySeq
 import com.datawizards.sparklocal.rdd.RDDAPI
+import com.datawizards.sparklocal.session.{ExecutionEngine, SparkSessionAPI}
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.sql.{SQLContext, SparkSession}

@@ -36,6 +36,18 @@ class WriteStdoutTest extends SparkLocalBaseTest {
     assertDatasetOperationReturnsSameResult(data) {
       ds => ds.show()
     }
+    assertDatasetOperationReturnsSameResult(data) {
+      ds => ds.show(1)
+    }
+    assertDatasetOperationReturnsSameResult(data) {
+      ds => ds.write(Stdout())
+    }
+    assertDatasetOperationReturnsSameResult(Seq(1,2,3)) {
+      ds => ds.show()
+    }
+    assertDatasetOperationReturnsSameResult(Seq((1,"a"),(2,"b"))) {
+      ds => ds.show()
+    }
   }
 
 }

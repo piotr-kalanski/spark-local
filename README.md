@@ -17,6 +17,7 @@ API enabling switching between Spark execution engine and local implementation b
 - [Supported Spark versions](#supported-spark-versions)
 - [Supported Spark operations](doc/SupportedOperations.md)
 - [Benchmarks](benchmarks/Benchmarks.md)
+- [Contributing](CONTRIBUTING.md)
 
 # Goals
 
@@ -309,7 +310,7 @@ ds.write(JdbcDataStore(connectionString, database, table, properties, driverName
 
 # Bugs
 
-Please report any bugs or submit feature requests to [spark-local Github issue tracker](https://github.com/piotr-kalanski/spark-local/issues).
+Please report any bugs to [spark-local Github issue tracker](https://github.com/piotr-kalanski/spark-local/issues).
 
 # Continuous Integration
 
