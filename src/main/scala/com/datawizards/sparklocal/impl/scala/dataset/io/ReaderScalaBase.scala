@@ -9,7 +9,7 @@ import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.dataset.io.{Reader, ReaderExecutor}
 import com.datawizards.sparklocal.datastore
 import com.datawizards.sparklocal.datastore.FileDataStore
-import com.datawizards.sparklocal.impl.scala.jdbc2class._
+import com.datawizards.jdbc2class._
 import com.sksamuel.avro4s._
 import org.apache.avro.generic.GenericRecord
 import org.apache.hadoop.fs.Path
