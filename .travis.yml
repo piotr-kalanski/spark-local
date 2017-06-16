@@ -7,7 +7,8 @@ jdk:
   - oraclejdk8
 
 script:
-  - sbt clean coverage test coverageReport
+  - sbt -Dspark.version=2.1.0 clean test
+  - sbt -Dspark.version=2.1.1 clean coverage test coverageReport
 
 after_success:
 - bash <(curl -s https://codecov.io/bash) -t 20835e30-7fc1-4d64-9bd4-7e2bcc51858e

@@ -39,7 +39,7 @@ trait SparkSessionAPI {
     data.toDataSet
 
   /**
-    * Returns a [[ReaderExecutor]] that can be used to read non-streaming data in as a DataSet
+    * Returns a ReaderExecutor that can be used to read non-streaming data in as a DataSet
     */
   def read[T]: ReaderExecutor[T]
 
