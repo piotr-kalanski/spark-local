@@ -51,7 +51,7 @@ trait Builder[Session <: SparkSessionAPI] {
   def enableHiveSupport(): Builder[Session]
 
   /**
-    * Gets an existing [[SparkSessionAPI]] or, if there is no existing one, creates a new
+    * Gets an existing SparkSessionAPI or, if there is no existing one, creates a new
     * one based on the options set in this builder.
     *
     * This method first checks whether there is a valid thread-local SparkSession,

@@ -26,10 +26,12 @@ API enabling switching between Spark execution engine and local implementation b
 
 # Getting started
 
+## Spark 2.1.1
+
 Include dependency:
 
 ```scala
-"com.github.piotr-kalanski" % "spark-local_2.11" % "0.5.0"
+"com.github.piotr-kalanski" % "spark-local_2.1.1_2.11" % "0.6.0"
 ```
 
 or
@@ -37,8 +39,26 @@ or
 ```xml
 <dependency>
     <groupId>com.github.piotr-kalanski</groupId>
-    <artifactId>spark-local_2.11</artifactId>
-    <version>0.5.0</version>
+    <artifactId>spark-local_2.1.1_2.11</artifactId>
+    <version>0.6.0</version>
+</dependency>
+```
+
+## Spark 2.1.0
+
+Include dependency:
+
+```scala
+"com.github.piotr-kalanski" % "spark-local_2.1.0_2.11" % "0.6.0"
+```
+
+or
+
+```xml
+<dependency>
+    <groupId>com.github.piotr-kalanski</groupId>
+    <artifactId>spark-local_2.1.0_2.11</artifactId>
+    <version>0.6.0</version>
 </dependency>
 ```
 
@@ -302,6 +322,7 @@ ds.write(JdbcDataStore(connectionString, database, table, properties, driverName
 
 |spark-local|Spark version|
 |-----------|-------------|
+|0.6        |2.1.1<br/>2.1.0  |
 |0.5        |2.1.0        |
 |0.4        |2.1.0        |
 |0.3        |2.1.0        |

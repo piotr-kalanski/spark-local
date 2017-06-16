@@ -1,3 +1,5 @@
+import BuildKeys._
+
 name := "spark-local"
 
 organization := "com.github.piotr-kalanski"
@@ -5,6 +7,10 @@ organization := "com.github.piotr-kalanski"
 version := "0.6.0-SNAPSHOT"
 
 scalaVersion := "2.11.8"
+
+sparkVersion in ThisBuild := sys.props.getOrElse("spark.version", "2.1.1")
+
+normalizedName := normalizedName.value + "_" + sparkVersion.value
 
 licenses := Seq("Apache License, Version 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
 
@@ -27,8 +33,8 @@ developers := List(
 )
 
 libraryDependencies ++= Seq(
-  "org.apache.spark" %% "spark-sql" % "2.1.0",
-  "org.apache.spark" %% "spark-hive" % "2.1.0",
+  "org.apache.spark" %% "spark-sql" % sparkVersion.value,
+  "org.apache.spark" %% "spark-hive" % sparkVersion.value,
   "com.databricks" %% "spark-avro" % "3.2.0",
   "com.github.piotr-kalanski" %% "csv2class" % "0.2.1",
   "org.json4s" %% "json4s-native" % "3.5.2",
