@@ -7,7 +7,7 @@ import com.datawizards.class2csv._
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.dataset.io.{Writer, WriterExecutor}
 import com.datawizards.sparklocal.datastore._
-import com.datawizards.sparklocal.impl.scala.class2jdbc._
+import com.datawizards.class2jdbc._
 import com.sksamuel.avro4s._
 import org.apache.avro.generic.GenericRecord
 import org.apache.hadoop.fs.Path
@@ -81,7 +81,7 @@ class WriterScalaImpl[T] extends Writer[T] {
     }
 
     override def apply(dataStore: JdbcDataStore, saveMode: SaveMode)
-                      (implicit ct: ClassTag[T], jdbcEncoder: com.datawizards.sparklocal.impl.scala.class2jdbc.JdbcEncoder[T], encoder: Encoder[T]): Unit = {
+                      (implicit ct: ClassTag[T], jdbcEncoder: com.datawizards.class2jdbc.JdbcEncoder[T], encoder: Encoder[T]): Unit = {
       Class.forName(dataStore.driverClassName)
       val connection = DriverManager.getConnection(dataStore.url, dataStore.connectionProperties)
       val inserts = generateInserts(ds.collect(), dataStore.fullTableName)
