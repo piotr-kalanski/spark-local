@@ -7,7 +7,7 @@ import com.datawizards.sparklocal.dataset.io.{Writer, WriterExecutor}
 import com.datawizards.sparklocal.datastore._
 import com.sksamuel.avro4s.{FromRecord, SchemaFor, ToRecord}
 import org.apache.spark.sql.{Encoder, SaveMode}
-
+import org.elasticsearch.spark.sql._
 import scala.reflect.ClassTag
 
 class WriterSparkImpl[T] extends Writer[T] {
@@ -80,6 +80,11 @@ class WriterSparkImpl[T] extends Writer[T] {
         .jdbc(dataStore.url, dataStore.fullTableName, dataStore.connectionProperties)
     }
 
+    override protected def writeToElasticsearch(dataStore: ElasticsearchDataStore)
+                                               (implicit ct: ClassTag[T], encoder: Encoder[T]): Unit =
+      ds
+        .toDataset
+        .saveToEs(dataStore.elasticsearchResourceName, dataStore.getConfigForSparkWriter)
   }
 
 }

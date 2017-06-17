@@ -3,6 +3,7 @@ package com.datawizards.sparklocal.dataset.io
 import com.datawizards.class2csv.CsvEncoder
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.class2jdbc.JdbcEncoder
+import com.datawizards.esclient.repository.ElasticsearchRepositoryImpl
 import com.datawizards.sparklocal.datastore._
 import com.sksamuel.avro4s.{FromRecord, SchemaFor, ToRecord}
 import org.apache.spark.sql.{Encoder, SaveMode}
@@ -84,6 +85,13 @@ abstract class WriterExecutor[T](ds: DataSetAPI[T]) {
     println(result)
     result
   }
+  def apply(dataStore: ElasticsearchDataStore, saveMode: SaveMode)
+           (implicit ct: ClassTag[T], encoder: Encoder[T]): Unit = {
+    val repository = new ElasticsearchRepositoryImpl(dataStore.getRestAPIURL)
+    if(saveMode == SaveMode.Overwrite) repository.deleteIndexIfNotExists(dataStore.elasticsearchIndexName)
+    else if(saveMode == SaveMode.ErrorIfExists && repository.indexExists(dataStore.elasticsearchIndexName)) throw new Exception("Index exists: " + dataStore.elasticsearchIndexName)
+    writeToElasticsearch(dataStore)
+  }
 
   def csv(dataStore: CSVDataStore, saveMode: SaveMode)
            (implicit ct: ClassTag[T], csvEncoder: CsvEncoder[T], encoder: Encoder[T]): Unit =
@@ -103,4 +111,9 @@ abstract class WriterExecutor[T](ds: DataSetAPI[T]) {
   def jdbc(dataStore: JdbcDataStore, saveMode: SaveMode)
            (implicit ct: ClassTag[T], jdbcEncoder: JdbcEncoder[T], encoder: Encoder[T]): Unit =
     this.apply(dataStore, saveMode)
+  def es(dataStore: ElasticsearchDataStore, saveMode: SaveMode)
+        (implicit ct: ClassTag[T], encoder: Encoder[T]): Unit =
+    this.apply(dataStore, saveMode)
+
+  protected def writeToElasticsearch(dataStore: ElasticsearchDataStore)(implicit ct: ClassTag[T], encoder: Encoder[T]): Unit
 }

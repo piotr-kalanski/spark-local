@@ -2,6 +2,8 @@ package com.datawizards.sparklocal
 
 import java.util.Properties
 
+import com.datawizards.sparklocal.datastore.es._
+
 package object datastore {
 
   sealed trait DataStore
@@ -46,4 +48,40 @@ package object datastore {
   }
   case class JdbcDataStore(url: String, database: String, table: String, connectionProperties: Properties, driverClassName: String) extends DBDataStore
 
+  trait ElasticsearchDataStore extends DataStore {
+    def host: String
+    def elasticsearchIndexName: String
+    def elasticsearchTypeName: String
+
+    def elasticsearchResourceName: String = {
+      elasticsearchIndexName + "/" + elasticsearchTypeName
+    }
+
+    private [sparklocal] def getConfigForSparkWriter: Map[String, String] =
+      Map("es.nodes" -> host)
+
+    private [sparklocal] def getRestAPIURL: String =
+      s"http://$host:9200"
+  }
+
+  case class ElasticsearchSimpleIndexDataStore(host: String, elasticsearchIndexName: String, elasticsearchTypeName: String)
+    extends ElasticsearchDataStore
+
+  case class ElasticsearchTimeSeriesIndexDataStore(
+                                                    host: String,
+                                                    elasticsearchIndexPrefix: String,
+                                                    elasticsearchTypeName: String,
+                                                    elasticsearchTimeSeriesGranularity: ElasticsearchTimeSeriesGranularity,
+                                                    elasticsearchTimeSeriesIndexDate: ElasticsearchTimeSeriesIndexDate
+                                                  )
+    extends ElasticsearchDataStore
+  {
+
+    def elasticsearchIndexName: String = {
+      elasticsearchIndexPrefix +
+        "-" + elasticsearchTimeSeriesGranularity.getDateGranularity +
+        "-" + elasticsearchTimeSeriesGranularity.getDateFormat.format(elasticsearchTimeSeriesIndexDate.getDate)
+    }
+
+  }
 }

@@ -8,6 +8,7 @@ import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.dataset.io.{Writer, WriterExecutor}
 import com.datawizards.sparklocal.datastore._
 import com.datawizards.class2jdbc._
+import com.datawizards.esclient.repository.ElasticsearchRepositoryImpl
 import com.sksamuel.avro4s._
 import org.apache.avro.generic.GenericRecord
 import org.apache.hadoop.fs.Path
@@ -125,6 +126,17 @@ class WriterScalaImpl[T] extends Writer[T] {
     }
 
     private def uuid: String = java.util.UUID.randomUUID.toString
+
+    override protected def writeToElasticsearch(dataStore: ElasticsearchDataStore)(implicit ct: ClassTag[T], encoder: Encoder[T]): Unit = {
+      val repository = new ElasticsearchRepositoryImpl(dataStore.getRestAPIURL)
+      for(e <- ds) {
+        e match {
+          case a:AnyRef =>
+            repository.append(dataStore.elasticsearchIndexName, dataStore.elasticsearchTypeName, a)
+          case _ => throw new Exception("Not supported type for elasticsearch write!")
+        }
+      }
+    }
 
   }
 
