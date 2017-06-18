@@ -1,6 +1,6 @@
 package com.datawizards.sparklocal.dataset.io
 
-import com.datawizards.class2csv.CsvEncoder
+import com.datawizards.class2csv._
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.class2jdbc.JdbcEncoder
 import com.datawizards.esclient.repository.ElasticsearchRepositoryImpl

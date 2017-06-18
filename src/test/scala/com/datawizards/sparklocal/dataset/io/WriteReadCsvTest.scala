@@ -1,7 +1,7 @@
 package com.datawizards.sparklocal.dataset.io
 
 import com.datawizards.sparklocal.SparkLocalBaseTest
-import com.datawizards.sparklocal.TestModel.Person
+import com.datawizards.sparklocal.TestModel._
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore.CSVDataStore
 import com.datawizards.sparklocal.impl.scala.eager.dataset.io.ReaderScalaEagerImpl
@@ -19,6 +19,13 @@ class WriteReadCsvTest extends SparkLocalBaseTest {
     Person("p2", 20),
     Person("p3", 30),
     Person("p4", 40)
+  )
+
+  val peopleV2 = Seq(
+    PersonV2("p1", 10, Some("Mr")),
+    PersonV2("p2", 20, Some("Ms")),
+    PersonV2("p3", 30, None),
+    PersonV2("p4", 40, Some("Mr"))
   )
 
   test("Writing and reading file produces the same result - Scala") {
@@ -134,5 +141,25 @@ class WriteReadCsvTest extends SparkLocalBaseTest {
       ReaderSparkImpl.read[Person].csv(dataStore)
     }
   }
+
+  test("Versioning - Spark") {
+    import spark.implicits._
+    val file = "target/people_v1.csv"
+    val ds = DataSetAPI(peopleV2.toDS())
+    val dataStore = CSVDataStore(file)
+    val expectedPerson = data.toArray
+    val expectedPersonV3 = peopleV2.map(p => PersonV3(p.name, p.age, p.title, None)).toArray
+    ds.write(dataStore, SaveMode.Overwrite)
+    // Read previous version
+    assertDatasetOperationResultWithSorted(ReaderSparkImpl.read[Person].csv(dataStore)) {
+      expectedPerson
+    }
+    // Read future version
+    assertDatasetOperationResultWithSorted(ReaderSparkImpl.read[PersonV3].csv(dataStore)) {
+      expectedPersonV3
+    }
+  }
+
+  //TODO - similar tests for other formats and Scala
 
 }

@@ -26,7 +26,7 @@ import scala.reflect.runtime.universe.TypeTag
 trait ReaderScalaBase extends Reader {
   override def read[T]: ReaderExecutor[T] = new ReaderExecutor[T] {
     override def apply[L <: HList](dataStore: datastore.CSVDataStore)
-                                  (implicit ct: ClassTag[T], gen: Aux[T, L], fromRow: csv2class.FromRow[L], enc: Encoder[T]): DataSetAPI[T] = {
+                                  (implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L], fromRow: csv2class.FromRow[L], enc: Encoder[T]): DataSetAPI[T] = {
       genericFileRead(dataStore) { file =>
         parseCSV[T](
           path = file.getPath,
@@ -52,7 +52,7 @@ trait ReaderScalaBase extends Reader {
     }
 
     override def apply(dataStore: datastore.ParquetDataStore)
-                      (implicit ct: ClassTag[T], s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], enc: Encoder[T]): DataSetAPI[T] = {
+                      (implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], enc: Encoder[T]): DataSetAPI[T] = {
       val format = RecordFormat[T]
 
       genericFileRead(dataStore) { file =>
@@ -63,7 +63,7 @@ trait ReaderScalaBase extends Reader {
     }
 
     override def apply(dataStore: datastore.AvroDataStore)
-                      (implicit ct: ClassTag[T], s: SchemaFor[T], r: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] = {
+                      (implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], r: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] = {
       genericFileRead(dataStore) { file =>
         val is = AvroInputStream.data[T](file)
         val result = is.iterator.toList
@@ -73,11 +73,11 @@ trait ReaderScalaBase extends Reader {
     }
 
     override def apply(dataStore: datastore.HiveDataStore)
-                      (implicit ct: ClassTag[T], s: SchemaFor[T], r: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] =
+                      (implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], r: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] =
       apply(datastore.AvroDataStore(dataStore.localFilePath))
 
     override def apply[L <: HList](dataStore: datastore.JdbcDataStore)
-                                  (implicit ct: ClassTag[T], gen: Aux[T, L], fromRow: csv2class.FromRow[L], enc: Encoder[T]): DataSetAPI[T] = {
+                                  (implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L], fromRow: csv2class.FromRow[L], enc: Encoder[T]): DataSetAPI[T] = {
       Class.forName(dataStore.driverClassName)
       val connection = DriverManager.getConnection(dataStore.url, dataStore.connectionProperties)
       val result = selectTable[T](connection, dataStore.fullTableName)

@@ -14,6 +14,7 @@ trait ReaderExecutor[T] {
   def apply[L <: HList](dataStore: CSVDataStore)
                        (implicit
                           ct: ClassTag[T],
+                          tt: TypeTag[T],
                           gen: Generic.Aux[T, L],
                           fromRow: FromRow[L],
                           enc: Encoder[T]
@@ -28,6 +29,7 @@ trait ReaderExecutor[T] {
   def apply(dataStore: ParquetDataStore)
            (implicit
               ct: ClassTag[T],
+              tt: TypeTag[T],
               s: SchemaFor[T],
               fromR: FromRecord[T],
               toR: ToRecord[T],
@@ -37,6 +39,7 @@ trait ReaderExecutor[T] {
   def apply(dataStore: AvroDataStore)
            (implicit
               ct: ClassTag[T],
+              tt: TypeTag[T],
               s: SchemaFor[T],
               r: FromRecord[T],
               enc: Encoder[T]
@@ -45,6 +48,7 @@ trait ReaderExecutor[T] {
   def apply(dataStore: HiveDataStore)
            (implicit
               ct: ClassTag[T],
+              tt: TypeTag[T],
               s: SchemaFor[T],
               r: FromRecord[T],
               enc: Encoder[T]
@@ -53,6 +57,7 @@ trait ReaderExecutor[T] {
   def apply[L <: HList](dataStore: JdbcDataStore)
                        (implicit
                           ct: ClassTag[T],
+                          tt: TypeTag[T],
                           gen: Generic.Aux[T, L],
                           fromRow: FromRow[L],
                           enc: Encoder[T]
@@ -61,6 +66,7 @@ trait ReaderExecutor[T] {
   def csv[L <: HList](dataStore: CSVDataStore)
                        (implicit
                         ct: ClassTag[T],
+                        tt: TypeTag[T],
                         gen: Generic.Aux[T, L],
                         fromRow: FromRow[L],
                         enc: Encoder[T]
@@ -77,6 +83,7 @@ trait ReaderExecutor[T] {
   def parquet(dataStore: ParquetDataStore)
            (implicit
             ct: ClassTag[T],
+            tt: TypeTag[T],
             s: SchemaFor[T],
             fromR: FromRecord[T],
             toR: ToRecord[T],
@@ -87,6 +94,7 @@ trait ReaderExecutor[T] {
   def avro(dataStore: AvroDataStore)
            (implicit
             ct: ClassTag[T],
+            tt: TypeTag[T],
             s: SchemaFor[T],
             r: FromRecord[T],
             enc: Encoder[T]
@@ -96,6 +104,7 @@ trait ReaderExecutor[T] {
   def table(dataStore: HiveDataStore)
            (implicit
             ct: ClassTag[T],
+            tt: TypeTag[T],
             s: SchemaFor[T],
             r: FromRecord[T],
             enc: Encoder[T]
@@ -105,6 +114,7 @@ trait ReaderExecutor[T] {
   def jdbc[L <: HList](dataStore: JdbcDataStore)
                        (implicit
                         ct: ClassTag[T],
+                        tt: TypeTag[T],
                         gen: Generic.Aux[T, L],
                         fromRow: FromRow[L],
                         enc: Encoder[T]
