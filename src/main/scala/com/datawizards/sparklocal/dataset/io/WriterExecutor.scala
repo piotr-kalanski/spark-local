@@ -88,9 +88,21 @@ abstract class WriterExecutor[T](ds: DataSetAPI[T]) {
   def apply(dataStore: ElasticsearchDataStore, saveMode: SaveMode)
            (implicit ct: ClassTag[T], encoder: Encoder[T]): Unit = {
     val repository = new ElasticsearchRepositoryImpl(dataStore.getRestAPIURL)
-    if(saveMode == SaveMode.Overwrite) repository.deleteIndexIfNotExists(dataStore.elasticsearchIndexName)
-    else if(saveMode == SaveMode.ErrorIfExists && repository.indexExists(dataStore.elasticsearchIndexName)) throw new Exception("Index exists: " + dataStore.elasticsearchIndexName)
-    writeToElasticsearch(dataStore)
+    saveMode match {
+      case SaveMode.Append =>
+        writeToElasticsearch(dataStore)
+      case SaveMode.ErrorIfExists =>
+        if(repository.indexExists(dataStore.elasticsearchIndexName))
+          throw new Exception("Index exists: " + dataStore.elasticsearchIndexName)
+        else
+          writeToElasticsearch(dataStore)
+      case SaveMode.Overwrite =>
+        repository.deleteIndexIfNotExists(dataStore.elasticsearchIndexName)
+        writeToElasticsearch(dataStore)
+      case SaveMode.Ignore =>
+        if(!repository.indexExists(dataStore.elasticsearchIndexName))
+          writeToElasticsearch(dataStore)
+    }
   }
 
   def csv(dataStore: CSVDataStore, saveMode: SaveMode)

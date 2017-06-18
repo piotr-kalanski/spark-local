@@ -32,7 +32,6 @@ class ElasticsearchIntegrationTest extends SparkLocalBaseTest {
     // Run integration tests if Elasticsearch cluster is running
     if(repository.status()) {
       writeTest(ExecutionEngine.ScalaEager)
-      //TODO - not working saving Spark to Elasticsearch - jackson exception
       writeTest(ExecutionEngine.Spark)
     }
     else {
@@ -60,6 +59,7 @@ class ElasticsearchIntegrationTest extends SparkLocalBaseTest {
     result = repository.search[Person](indexName)
     assertResult(4)(result.total)
     ds.write.es(dataStore, SaveMode.Ignore)
+    Thread.sleep(1000)
     result = repository.search[Person](indexName)
     assertResult(4)(result.total)
   }
