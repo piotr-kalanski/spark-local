@@ -213,6 +213,7 @@ Supported formats:
 - Parquet
 - Avro
 - Hive
+- Elasticsearch
 
 ## CSV
 
@@ -316,6 +317,16 @@ reader.read[Person](JdbcDataStore(connectionString, database, table, properties,
 
 ```scala
 ds.write(JdbcDataStore(connectionString, database, table, properties, driverName), SaveMode.Append)
+```
+
+## Elasticsearch
+
+### Write to Elasticsearch index
+
+```scala
+val indexName = "people"
+val typeName = "person"
+ds.write(ElasticsearchSimpleIndexDataStore("localhost", indexName, typeName), SaveMode.Append)
 ```
 
 # Supported Spark versions
