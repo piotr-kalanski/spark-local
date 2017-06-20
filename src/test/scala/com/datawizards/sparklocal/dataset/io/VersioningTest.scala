@@ -73,6 +73,7 @@ class VersioningTest extends SparkLocalBaseTest {
   }
 
   private def versioningTestScenarioSpark(dataStore: DataStore): Unit = {
+    import spark.implicits._
     versioningTestScenario(DataSetAPI(peopleV2.toDS()), dataStore, ReaderSparkImpl)
   }
 

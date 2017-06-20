@@ -11,7 +11,8 @@ import com.datawizards.sparklocal.datastore
 import com.datawizards.sparklocal.datastore.FileDataStore
 import com.datawizards.jdbc2class._
 import com.sksamuel.avro4s._
-import org.apache.avro.generic.GenericRecord
+import org.apache.avro.file.{DataFileReader, SeekableFileInput}
+import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.avro.AvroParquetReader
 import org.apache.spark.sql.Encoder
@@ -20,6 +21,7 @@ import org.json4s.native.JsonMethods._
 import shapeless.Generic.Aux
 import shapeless.HList
 
+import scala.collection.mutable.ListBuffer
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe.TypeTag
 
@@ -63,12 +65,14 @@ trait ReaderScalaBase extends Reader {
     }
 
     override def apply(dataStore: datastore.AvroDataStore)
-                      (implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], r: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] = {
+                      (implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], fromRecord: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] = {
       genericFileRead(dataStore) { file =>
-        val is = AvroInputStream.data[T](file)
-        val result = is.iterator.toList
-        is.close()
-        result
+        val datumReader = new GenericDatumReader[GenericRecord]()
+        val dataFileReader = new DataFileReader[GenericRecord](new SeekableFileInput(file), datumReader)
+        val buffer = new ListBuffer[T]
+        while(dataFileReader.hasNext)
+          buffer += fromRecord(dataFileReader.next)
+        buffer.toList
       }
     }
 
