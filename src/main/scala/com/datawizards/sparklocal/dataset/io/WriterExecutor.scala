@@ -1,8 +1,8 @@
 package com.datawizards.sparklocal.dataset.io
 
-import com.datawizards.class2csv.CsvEncoder
+import com.datawizards.class2csv._
 import com.datawizards.sparklocal.dataset.DataSetAPI
-import com.datawizards.class2jdbc.JdbcEncoder
+import com.datawizards.class2jdbc._
 import com.datawizards.esclient.repository.ElasticsearchRepositoryImpl
 import com.datawizards.sparklocal.datastore._
 import com.sksamuel.avro4s.{FromRecord, SchemaFor, ToRecord}
@@ -103,6 +103,27 @@ abstract class WriterExecutor[T](ds: DataSetAPI[T]) {
         if(!repository.indexExists(dataStore.elasticsearchIndexName))
           writeToElasticsearch(dataStore)
     }
+  }
+
+  def apply(dataStore: DataStore, saveMode: SaveMode)
+           (implicit
+            ct: ClassTag[T],
+            csvEncoder: CsvEncoder[T],
+            s: SchemaFor[T],
+            fromR: FromRecord[T],
+            toR: ToRecord[T],
+            jdbcEncoder: JdbcEncoder[T],
+            encoder: Encoder[T]
+           ): Unit = dataStore match {
+    case d:CSVDataStore => this.apply(d, saveMode)
+    case d:JsonDataStore => this.apply(d, saveMode)
+    case d:ParquetDataStore => this.apply(d, saveMode)
+    case d:AvroDataStore => this.apply(d, saveMode)
+    case d:JdbcDataStore => this.apply(d, saveMode)
+    case d:ElasticsearchDataStore => this.apply(d, saveMode)
+    case d:HiveDataStore => this.apply(d, saveMode)
+    case d:Stdout => this.apply(d)
+    case _ => throw new IllegalArgumentException("Not supported: " + dataStore)
   }
 
   def csv(dataStore: CSVDataStore, saveMode: SaveMode)
