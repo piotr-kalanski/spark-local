@@ -18,13 +18,14 @@ import org.json4s.DefaultFormats
 import org.json4s.jackson.Serialization
 
 import scala.reflect.ClassTag
+import scala.reflect.runtime.universe.TypeTag
 
 class WriterScalaImpl[T] extends Writer[T] {
 
   override def write(ds: DataSetAPI[T]): WriterExecutor[T] = new WriterExecutor[T](ds) {
 
     override def apply(dataStore: CSVDataStore, saveMode: SaveMode)
-                      (implicit ct: ClassTag[T], csvEncoder: CsvEncoder[T], encoder: Encoder[T]): Unit =
+                      (implicit ct: ClassTag[T], tt: TypeTag[T], csvEncoder: CsvEncoder[T], encoder: Encoder[T]): Unit =
       genericFileWrite(dataStore, saveMode) {file =>
         writeCSV(
           data = ds.collect(),
@@ -38,7 +39,7 @@ class WriterScalaImpl[T] extends Writer[T] {
       }
 
     override def apply(dataStore: JsonDataStore, saveMode: SaveMode)
-                      (implicit encoder: Encoder[T]): Unit =
+                      (implicit encoder: Encoder[T], tt: TypeTag[T]): Unit =
       genericFileWrite(dataStore, saveMode) {file =>
         implicit val formats = DefaultFormats
         val pw = new PrintWriter(file)
@@ -53,7 +54,7 @@ class WriterScalaImpl[T] extends Writer[T] {
       }
 
     override def apply(dataStore: ParquetDataStore, saveMode: SaveMode)
-                      (implicit s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], encoder: Encoder[T]): Unit =
+                      (implicit tt: TypeTag[T], s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], encoder: Encoder[T]): Unit =
       genericFileWrite(dataStore, saveMode) {file =>
         val writer = AvroParquetWriter
           .builder[GenericRecord](new Path(file.getPath))
@@ -66,7 +67,7 @@ class WriterScalaImpl[T] extends Writer[T] {
       }
 
     override def apply(dataStore: AvroDataStore, saveMode: SaveMode)
-                      (implicit s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit =
+                      (implicit tt: TypeTag[T], s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit =
       genericFileWrite(dataStore, saveMode) {file =>
         val os = AvroOutputStream.data[T](file)
         os.write(ds.collect())
@@ -75,14 +76,14 @@ class WriterScalaImpl[T] extends Writer[T] {
       }
 
     override def apply(dataStore: HiveDataStore, saveMode: SaveMode)
-                      (implicit s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit = {
+                      (implicit tt: TypeTag[T], s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit = {
       val file = new File(dataStore.localDirectoryPath)
       file.mkdirs()
       apply(AvroDataStore(dataStore.localFilePath), saveMode)
     }
 
     override def apply(dataStore: JdbcDataStore, saveMode: SaveMode)
-                      (implicit ct: ClassTag[T], jdbcEncoder: com.datawizards.class2jdbc.JdbcEncoder[T], encoder: Encoder[T]): Unit = {
+                      (implicit ct: ClassTag[T], tt: TypeTag[T], jdbcEncoder: com.datawizards.class2jdbc.JdbcEncoder[T], encoder: Encoder[T]): Unit = {
       Class.forName(dataStore.driverClassName)
       val connection = DriverManager.getConnection(dataStore.url, dataStore.connectionProperties)
       val inserts = generateInserts(ds.collect(), dataStore.fullTableName)
@@ -127,7 +128,8 @@ class WriterScalaImpl[T] extends Writer[T] {
 
     private def uuid: String = java.util.UUID.randomUUID.toString
 
-    override protected def writeToElasticsearch(dataStore: ElasticsearchDataStore)(implicit ct: ClassTag[T], encoder: Encoder[T]): Unit = {
+    override protected def writeToElasticsearch(dataStore: ElasticsearchDataStore)
+                                               (implicit ct: ClassTag[T], tt: TypeTag[T], encoder: Encoder[T]): Unit = {
       val repository = new ElasticsearchRepositoryImpl(dataStore.getRestAPIURL)
       for(e <- ds) {
         e match {
