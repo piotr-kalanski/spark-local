@@ -36,7 +36,7 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-sql" % sparkVersion.value,
   "org.apache.spark" %% "spark-hive" % sparkVersion.value,
   "com.databricks" %% "spark-avro" % "3.2.0",
-  "com.github.piotr-kalanski" %% "csv2class" % "0.3.0",
+  "com.github.piotr-kalanski" %% "csv2class" % "0.3.1",
   "org.apache.parquet" % "parquet-avro" % "1.9.0",
   "com.sksamuel.avro4s" %% "avro4s-core" % "1.6.4",
   "com.github.piotr-kalanski" %% "class2sql" % "0.1.1",

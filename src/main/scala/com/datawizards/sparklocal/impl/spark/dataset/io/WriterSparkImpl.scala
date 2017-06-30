@@ -94,11 +94,7 @@ class WriterSparkImpl[T] extends Writer[T] {
                                                       (implicit tt: TypeTag[T], encoder: Encoder[T]): DataFrame =
       df.toDF(extractTargetColumns(dialect):_*)
 
-    private def extractTargetColumns(dialect: Dialect)
-                                    (implicit tt: TypeTag[T]): Seq[String] = {
-      val classTypeMetaData = MetaDataExtractor.extractClassMetaDataForDialect[T](dialect)
-      classTypeMetaData.fields.map(_.fieldName).toSeq
-    }
+
   }
 
 }

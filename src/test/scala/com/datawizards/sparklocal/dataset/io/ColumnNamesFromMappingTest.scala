@@ -184,6 +184,13 @@ class ColumnNamesFromMappingTest extends SparkLocalBaseTest {
     )
   }
 
+  test("Column mapping - CSV - Scala") {
+    columnMappingTestScenarioWithFileDataStoreScala(
+      CSVDataStore("target/people_raw_scala.csv"),
+      CSVDataStore("target/people_mapping_scala.csv")
+    )
+  }
+
   // TODO - add tests for Scala
   // TODO - add tests for nested fields
   // TODO - add tests for versioning + column mapping

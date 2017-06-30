@@ -5,8 +5,10 @@ import java.sql.DriverManager
 
 import com.datawizards.csv2class
 import com.datawizards.csv2class._
+import com.datawizards.dmg.dialects.Dialect
+import com.datawizards.dmg.metadata.MetaDataExtractor
 import com.datawizards.sparklocal.dataset.DataSetAPI
-import com.datawizards.sparklocal.dataset.io.{Reader, ReaderExecutor}
+import com.datawizards.sparklocal.dataset.io.{ModelDialects, Reader, ReaderExecutor}
 import com.datawizards.sparklocal.datastore
 import com.datawizards.sparklocal.datastore.FileDataStore
 import com.datawizards.jdbc2class._
@@ -36,7 +38,7 @@ trait ReaderScalaBase extends Reader {
           quote = dataStore.quote,
           escape = dataStore.escape,
           header = dataStore.header,
-          columns = dataStore.columns
+          customColumns = extractTargetColumns(ModelDialects.CSV)
         )._1
       }
     }
@@ -104,6 +106,12 @@ trait ReaderScalaBase extends Reader {
       val data = if(file.isDirectory) readAllFilesFromDirectory(file) else readFile(file)
 
       createDataSet(data)
+    }
+
+    protected def extractTargetColumns(dialect: Dialect)
+                                      (implicit tt: TypeTag[T]): Seq[String] = {
+      val classTypeMetaData = MetaDataExtractor.extractClassMetaDataForDialect[T](dialect)
+      classTypeMetaData.fields.map(_.fieldName).toSeq
     }
   }
 

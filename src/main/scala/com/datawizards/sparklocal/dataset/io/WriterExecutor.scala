@@ -3,6 +3,8 @@ package com.datawizards.sparklocal.dataset.io
 import com.datawizards.class2csv._
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.class2jdbc._
+import com.datawizards.dmg.dialects.Dialect
+import com.datawizards.dmg.metadata.MetaDataExtractor
 import com.datawizards.esclient.repository.ElasticsearchRepositoryImpl
 import com.datawizards.sparklocal.datastore._
 import com.sksamuel.avro4s.{FromRecord, SchemaFor, ToRecord}
@@ -151,4 +153,10 @@ abstract class WriterExecutor[T](ds: DataSetAPI[T]) {
     this.apply(dataStore, saveMode)
 
   protected def writeToElasticsearch(dataStore: ElasticsearchDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], encoder: Encoder[T]): Unit
+
+  protected def extractTargetColumns(dialect: Dialect)
+                                  (implicit tt: TypeTag[T]): Seq[String] = {
+    val classTypeMetaData = MetaDataExtractor.extractClassMetaDataForDialect[T](dialect)
+    classTypeMetaData.fields.map(_.fieldName).toSeq
+  }
 }

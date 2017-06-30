@@ -5,7 +5,7 @@ import java.sql.DriverManager
 
 import com.datawizards.class2csv._
 import com.datawizards.sparklocal.dataset.DataSetAPI
-import com.datawizards.sparklocal.dataset.io.{Writer, WriterExecutor}
+import com.datawizards.sparklocal.dataset.io.{ModelDialects, Writer, WriterExecutor}
 import com.datawizards.sparklocal.datastore._
 import com.datawizards.class2jdbc._
 import com.datawizards.esclient.repository.ElasticsearchRepositoryImpl
@@ -32,7 +32,7 @@ class WriterScalaImpl[T] extends Writer[T] {
           path = file.getPath,
           delimiter = dataStore.delimiter,
           header = dataStore.header,
-          columns = dataStore.columns,
+          columns = extractTargetColumns(ModelDialects.CSV),
           escape = dataStore.escape,
           quote = dataStore.quote
         )
