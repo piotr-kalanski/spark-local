@@ -12,17 +12,17 @@ object TestModel {
 
   @table("PEOPLE", dialect = dialects.Hive)
   case class PersonWithMapping(
-    @column("PERSON_NAME", dialect = dialects.Hive)
-    @column("PERSON_NAME", dialect = ModelDialects.CSV)
-    @column("personName", dialect = ModelDialects.JSON)
-    @column("personName", dialect = ModelDialects.Avro)
-    @column("personName", dialect = ModelDialects.Parquet)
+    @column("PERSON_NAME_HIVE", dialect = dialects.Hive)
+    @column("PERSON_NAME_CSV", dialect = ModelDialects.CSV)
+    @column("personNameJson", dialect = ModelDialects.JSON)
+    @column("personNameAvro", dialect = ModelDialects.Avro)
+    @column("personNameParquet", dialect = ModelDialects.Parquet)
     name: String,
-    @column("PERSON_AGE", dialect = dialects.Hive)
-    @column("PERSON_AGE", dialect = ModelDialects.CSV)
-    @column("personAge", dialect = ModelDialects.JSON)
-    @column("personAge", dialect = ModelDialects.Avro)
-    @column("personAge", dialect = ModelDialects.Parquet)
+    @column("PERSON_AGE_HIVE", dialect = dialects.Hive)
+    @column("PERSON_AGE_CSV", dialect = ModelDialects.CSV)
+    @column("personAgeJson", dialect = ModelDialects.JSON)
+    @column("personAgeAvro", dialect = ModelDialects.Avro)
+    @column("personAgeParquet", dialect = ModelDialects.Parquet)
     age: Int
   )
 

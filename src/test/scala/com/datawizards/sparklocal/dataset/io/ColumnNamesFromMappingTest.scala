@@ -191,14 +191,13 @@ class ColumnNamesFromMappingTest extends SparkLocalBaseTest {
     )
   }
 
-  /*
   test("Column mapping - json - Scala") {
     columnMappingTestScenarioWithFileDataStoreScala(
       JsonDataStore("target/people_raw_scala.json"),
       JsonDataStore("target/people_mapping_scala.json")
     )
   }
-*/
+
   test("Column mapping - parquet - Scala") {
     columnMappingTestScenarioWithFileDataStoreScala(
       ParquetDataStore("target/people_raw_scala.parquet"),

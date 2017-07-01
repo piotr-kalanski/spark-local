@@ -1,24 +1,11 @@
 package com.datawizards.sparklocal.impl.scala.dataset.io
 
-import com.datawizards.dmg.metadata.MetaDataExtractor
-import com.datawizards.sparklocal.dataset.io.AvroDialect
 import org.apache.avro.generic.GenericRecord
 import org.apache.avro.{Schema, SchemaBuilder}
 
 import scala.collection.JavaConversions._
-import scala.reflect.runtime.universe.TypeTag
 
 object AvroUtils {
-  def constructFieldNameMapping[T: TypeTag](fromOriginal: Boolean): Map[String, String] = {
-    val classTypeMetaData = MetaDataExtractor.extractClassMetaDataForDialect[T](AvroDialect)
-    classTypeMetaData
-      .fields
-      .map{ f =>
-        if(fromOriginal) f.originalFieldName -> f.fieldName
-        else f.fieldName -> f.originalFieldName
-      }
-      .toMap
-  }
 
   def mapSchema(originalSchema: Schema, fieldNameMapping: Map[String, String]): Schema = {
     var customSchemaBuilder = SchemaBuilder

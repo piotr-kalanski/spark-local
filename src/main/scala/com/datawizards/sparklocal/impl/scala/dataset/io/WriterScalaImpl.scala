@@ -6,9 +6,10 @@ import java.sql.DriverManager
 
 import com.datawizards.class2csv._
 import com.datawizards.sparklocal.dataset.DataSetAPI
-import com.datawizards.sparklocal.dataset.io.{ModelDialects, Writer, WriterExecutor}
+import com.datawizards.sparklocal.dataset.io._
 import com.datawizards.sparklocal.datastore._
 import com.datawizards.class2jdbc._
+import com.datawizards.dmg.dialects.{Dialect, HiveDialect}
 import com.datawizards.esclient.repository.ElasticsearchRepositoryImpl
 import com.sksamuel.avro4s._
 import org.apache.avro.file.DataFileWriter
@@ -16,8 +17,10 @@ import org.apache.avro.generic.{GenericDatumWriter, GenericRecord}
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.avro.AvroParquetWriter
 import org.apache.spark.sql.{Encoder, SaveMode}
-import org.json4s.DefaultFormats
-import org.json4s.jackson.Serialization
+import org.json4s.JsonAST.JObject
+import org.json4s.{DefaultFormats, Extraction, JValue}
+import org.json4s.jackson.JsonMethods
+
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe.TypeTag
 
@@ -40,24 +43,28 @@ class WriterScalaImpl[T] extends Writer[T] {
       }
 
     override def apply(dataStore: JsonDataStore, saveMode: SaveMode)
-                      (implicit encoder: Encoder[T], tt: TypeTag[T]): Unit =
-      genericFileWrite(dataStore, saveMode) {file =>
+                      (implicit encoder: Encoder[T], tt: TypeTag[T]): Unit = {
+      genericFileWrite(dataStore, saveMode) { file =>
         implicit val formats = DefaultFormats
         val pw = new PrintWriter(file)
-        for(e <- ds) {
+        for (e <- ds) {
           e match {
-            case a:AnyRef => pw.write(Serialization.write(a)(formats))
+            case a: AnyRef =>
+              val json = Extraction.decompose(a)(formats)
+              val mappedJson = FieldNamesMappingUtils.changeJsonObjectFieldNames[T](json, true)
+              pw.write(JsonMethods.mapper.writeValueAsString(mappedJson))
             case _ => throw new Exception("Not supported type for JSON serialization!")
           }
           pw.write("\n")
         }
         pw.close()
       }
+    }
 
     override def apply(dataStore: ParquetDataStore, saveMode: SaveMode)
                       (implicit tt: TypeTag[T], s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], encoder: Encoder[T]): Unit =
       genericFileWrite(dataStore, saveMode) {file =>
-        val fieldNameMapping = AvroUtils.constructFieldNameMapping(true)
+        val fieldNameMapping = FieldNamesMappingUtils.constructFieldNameMapping(ParquetDialect)
         val mappedSchema = AvroUtils.mapSchema(s(), fieldNameMapping)
         val writer = AvroParquetWriter
           .builder[GenericRecord](new Path(file.getPath))
@@ -70,8 +77,28 @@ class WriterScalaImpl[T] extends Writer[T] {
       }
 
     override def apply(dataStore: AvroDataStore, saveMode: SaveMode)
+                      (implicit tt: TypeTag[T], s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit =
+      writeAvro(dataStore, saveMode, AvroDialect)
+
+    override def apply(dataStore: HiveDataStore, saveMode: SaveMode)
                       (implicit tt: TypeTag[T], s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit = {
-      val fieldNameMapping = AvroUtils.constructFieldNameMapping(true)
+      val file = new File(dataStore.localDirectoryPath)
+      file.mkdirs()
+      writeAvro(AvroDataStore(dataStore.localFilePath), saveMode, HiveDialect)
+    }
+
+    override def apply(dataStore: JdbcDataStore, saveMode: SaveMode)
+                      (implicit ct: ClassTag[T], tt: TypeTag[T], jdbcEncoder: com.datawizards.class2jdbc.JdbcEncoder[T], encoder: Encoder[T]): Unit = {
+      Class.forName(dataStore.driverClassName)
+      val connection = DriverManager.getConnection(dataStore.url, dataStore.connectionProperties)
+      val inserts = generateInserts(ds.collect(), dataStore.fullTableName)
+      connection.createStatement().execute(inserts.mkString(";"))
+      connection.close()
+    }
+
+    private def writeAvro(dataStore: AvroDataStore, saveMode: SaveMode, dialect: Dialect)
+                         (implicit tt: TypeTag[T], s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit = {
+      val fieldNameMapping = FieldNamesMappingUtils.constructFieldNameMapping(dialect)
       val mappedSchema = AvroUtils.mapSchema(s(), fieldNameMapping)
 
       genericFileWrite(dataStore, saveMode) { file =>
@@ -90,22 +117,6 @@ class WriterScalaImpl[T] extends Writer[T] {
         dataFileWriter.close()
         os.close()
       }
-    }
-
-    override def apply(dataStore: HiveDataStore, saveMode: SaveMode)
-                      (implicit tt: TypeTag[T], s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit = {
-      val file = new File(dataStore.localDirectoryPath)
-      file.mkdirs()
-      apply(AvroDataStore(dataStore.localFilePath), saveMode)
-    }
-
-    override def apply(dataStore: JdbcDataStore, saveMode: SaveMode)
-                      (implicit ct: ClassTag[T], tt: TypeTag[T], jdbcEncoder: com.datawizards.class2jdbc.JdbcEncoder[T], encoder: Encoder[T]): Unit = {
-      Class.forName(dataStore.driverClassName)
-      val connection = DriverManager.getConnection(dataStore.url, dataStore.connectionProperties)
-      val inserts = generateInserts(ds.collect(), dataStore.fullTableName)
-      connection.createStatement().execute(inserts.mkString(";"))
-      connection.close()
     }
 
     private def genericFileWrite(dataStore: FileDataStore, saveMode: SaveMode)
