@@ -6,13 +6,11 @@ import java.sql.DriverManager
 
 import com.datawizards.class2csv._
 import com.datawizards.sparklocal.dataset.DataSetAPI
-import com.datawizards.sparklocal.dataset.io.{AvroDialect, ModelDialects, Writer, WriterExecutor}
+import com.datawizards.sparklocal.dataset.io.{ModelDialects, Writer, WriterExecutor}
 import com.datawizards.sparklocal.datastore._
 import com.datawizards.class2jdbc._
-import com.datawizards.dmg.metadata.MetaDataExtractor
 import com.datawizards.esclient.repository.ElasticsearchRepositoryImpl
 import com.sksamuel.avro4s._
-import org.apache.avro.{Schema, SchemaBuilder}
 import org.apache.avro.file.DataFileWriter
 import org.apache.avro.generic.{GenericDatumWriter, GenericRecord}
 import org.apache.hadoop.fs.Path
@@ -20,7 +18,6 @@ import org.apache.parquet.avro.AvroParquetWriter
 import org.apache.spark.sql.{Encoder, SaveMode}
 import org.json4s.DefaultFormats
 import org.json4s.jackson.Serialization
-import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe.TypeTag
 
@@ -72,63 +69,21 @@ class WriterScalaImpl[T] extends Writer[T] {
 
     override def apply(dataStore: AvroDataStore, saveMode: SaveMode)
                       (implicit tt: TypeTag[T], s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit = {
-
-      def constructFieldNameMapping(): Map[String, String] = {
-        val classTypeMetaData = MetaDataExtractor.extractClassMetaDataForDialect[T](AvroDialect)
-        classTypeMetaData.fields.map(f => f.originalFieldName -> f.fieldName).toMap
-      }
-
-      def mapSchema(originalSchema: Schema, fieldNameMapping: Map[String, String]): Schema = {
-        var customSchemaBuilder = SchemaBuilder
-          .builder(originalSchema.getNamespace)
-          .record(originalSchema.getName)
-          .fields()
-
-        originalSchema.getFields.toList.foreach { f =>
-          customSchemaBuilder = customSchemaBuilder
-            .name(fieldNameMapping(f.name()))
-            .`type`(f.schema())
-            .noDefault()
-        }
-
-        customSchemaBuilder.endRecord()
-      }
-
-      def convertToGenericRecordsWithMapping(objects: Iterable[T], mappedSchema: Schema, fieldNameMapping: Map[String, String]): Iterable[GenericRecord] = {
-        def convertToGenericRecords(): Iterable[GenericRecord] = {
-          val toRecord = implicitly[ToRecord[T]]
-          objects.map(toRecord.apply)
-        }
-
-        def mapGenericRecord(record: GenericRecord, mappedSchema: Schema, fieldNameMapping: Map[String, String]): GenericRecord = {
-          val customRecord = new org.apache.avro.generic.GenericData.Record(mappedSchema)
-          record.getSchema.getFields.foreach{ f =>
-            customRecord.put(fieldNameMapping(f.name()), record.get(f.name()))
-          }
-          customRecord
-        }
-
-        def mapGenericRecords(records: Iterable[GenericRecord], mappedSchema: Schema, fieldNameMapping: Map[String, String]): Iterable[GenericRecord] =
-          records.map(r => mapGenericRecord(r, mappedSchema, fieldNameMapping))
-
-        mapGenericRecords(
-          convertToGenericRecords(),
-          mappedSchema,
-          fieldNameMapping
-        )
-      }
-
-      val originalSchema = s()
-      val fieldNameMapping = constructFieldNameMapping()
-      val mappedSchema = mapSchema(originalSchema, fieldNameMapping)
+      val fieldNameMapping = AvroUtils.constructFieldNameMapping(true)
+      val mappedSchema = AvroUtils.mapSchema(s(), fieldNameMapping)
 
       genericFileWrite(dataStore, saveMode) { file =>
         val datumWriter = new GenericDatumWriter[GenericRecord](mappedSchema)
         val dataFileWriter = new DataFileWriter[GenericRecord](datumWriter)
         val os = Files.newOutputStream(file.toPath)
         dataFileWriter.create(mappedSchema, os)
-        val records = convertToGenericRecordsWithMapping(ds.collect(), mappedSchema, fieldNameMapping)
-        records.foreach(r => dataFileWriter.append(r))
+        val toRecord = implicitly[ToRecord[T]]
+        ds
+          .collect()
+          .map(o => toRecord.apply(o))
+          .map(r => AvroUtils.mapGenericRecordFromOriginalToTarget(r, mappedSchema, fieldNameMapping))
+          .foreach(r => dataFileWriter.append(r))
+
         dataFileWriter.flush()
         dataFileWriter.close()
         os.close()

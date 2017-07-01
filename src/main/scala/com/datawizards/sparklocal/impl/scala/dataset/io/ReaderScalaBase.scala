@@ -69,11 +69,12 @@ trait ReaderScalaBase extends Reader {
     override def apply(dataStore: datastore.AvroDataStore)
                       (implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], fromRecord: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] = {
       genericFileRead(dataStore) { file =>
+        val fieldNameMapping = AvroUtils.constructFieldNameMapping(true)
         val datumReader = new GenericDatumReader[GenericRecord]()
         val dataFileReader = new DataFileReader[GenericRecord](new SeekableFileInput(file), datumReader)
         val buffer = new ListBuffer[T]
         while(dataFileReader.hasNext)
-          buffer += fromRecord(dataFileReader.next) //TODO convert generic record
+          buffer += fromRecord(AvroUtils.mapGenericRecordFromTargetToOriginal(dataFileReader.next, s(), fieldNameMapping))
         buffer.toList
       }
     }

@@ -42,7 +42,7 @@ package object datastore {
   }
   case class HiveDataStore(database: String, table: String) extends DBDataStore {
     def localDirectoryPath: String = localHiveWarehouseDirectoryPath + database + "/" + table
-    def localFilePath: String = localDirectoryPath + "/data.avro"
+    def localFilePath: String = localDirectoryPath
 
     private def localHiveWarehouseDirectoryPath = "spark-warehouse/"
   }
