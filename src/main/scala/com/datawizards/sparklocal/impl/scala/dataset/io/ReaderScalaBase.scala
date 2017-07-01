@@ -58,10 +58,14 @@ trait ReaderScalaBase extends Reader {
     override def apply(dataStore: datastore.ParquetDataStore)
                       (implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], enc: Encoder[T]): DataSetAPI[T] = {
       val format = RecordFormat[T]
-
+      val fieldNameMapping = AvroUtils.constructFieldNameMapping(true)
       genericFileRead(dataStore) { file =>
+        val schema = s()
         val reader = AvroParquetReader.builder[GenericRecord](new Path(file.getPath)).build()
-        val iterator = Iterator.continually(reader.read).takeWhile(_ != null).map(format.from)
+        val iterator = Iterator
+          .continually(reader.read)
+          .takeWhile(_ != null)
+          .map(r => format.from(AvroUtils.mapGenericRecordFromTargetToOriginal(r, schema, fieldNameMapping)))
         iterator.toList
       }
     }
@@ -69,12 +73,13 @@ trait ReaderScalaBase extends Reader {
     override def apply(dataStore: datastore.AvroDataStore)
                       (implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], fromRecord: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] = {
       genericFileRead(dataStore) { file =>
+        val schema = s()
         val fieldNameMapping = AvroUtils.constructFieldNameMapping(true)
         val datumReader = new GenericDatumReader[GenericRecord]()
         val dataFileReader = new DataFileReader[GenericRecord](new SeekableFileInput(file), datumReader)
         val buffer = new ListBuffer[T]
         while(dataFileReader.hasNext)
-          buffer += fromRecord(AvroUtils.mapGenericRecordFromTargetToOriginal(dataFileReader.next, s(), fieldNameMapping))
+          buffer += fromRecord(AvroUtils.mapGenericRecordFromTargetToOriginal(dataFileReader.next, schema, fieldNameMapping))
         buffer.toList
       }
     }

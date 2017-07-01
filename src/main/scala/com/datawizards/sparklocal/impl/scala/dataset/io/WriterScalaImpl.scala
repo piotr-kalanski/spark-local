@@ -57,13 +57,15 @@ class WriterScalaImpl[T] extends Writer[T] {
     override def apply(dataStore: ParquetDataStore, saveMode: SaveMode)
                       (implicit tt: TypeTag[T], s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], encoder: Encoder[T]): Unit =
       genericFileWrite(dataStore, saveMode) {file =>
+        val fieldNameMapping = AvroUtils.constructFieldNameMapping(true)
+        val mappedSchema = AvroUtils.mapSchema(s(), fieldNameMapping)
         val writer = AvroParquetWriter
           .builder[GenericRecord](new Path(file.getPath))
-          .withSchema(s())
+          .withSchema(mappedSchema)
           .build()
         val format = RecordFormat[T]
         for(e <- ds)
-          writer.write(format.to(e))
+          writer.write(AvroUtils.mapGenericRecordFromOriginalToTarget(format.to(e), mappedSchema, fieldNameMapping))
         writer.close()
       }
 
