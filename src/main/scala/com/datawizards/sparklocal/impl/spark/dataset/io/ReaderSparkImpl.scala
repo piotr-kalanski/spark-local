@@ -13,6 +13,7 @@ import com.sksamuel.avro4s.{FromRecord, SchemaFor, ToRecord}
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.sql.{DataFrame, Encoder, SparkSession}
 import org.apache.spark.sql.functions.lit
+import org.apache.spark.sql.types.StructType
 import shapeless.Generic.Aux
 import shapeless.HList
 
@@ -25,6 +26,8 @@ object ReaderSparkImpl extends Reader {
   override def read[T]: ReaderExecutor[T] = new ReaderExecutor[T] {
     override def apply[L <: HList](dataStore: datastore.CSVDataStore)
                                   (implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L], fromRow: csv2class.FromRow[L], enc: Encoder[T]): DataSetAPI[T] = {
+
+      val classTypeMetaData = extractClassMetaData(ModelDialects.CSV)
       var df = spark
         .read
         .option("header", dataStore.header.toString)
@@ -32,79 +35,95 @@ object ReaderSparkImpl extends Reader {
         .option("quote", dataStore.quote.toString)
         .option("escape", dataStore.escape.toString)
         .option("parserLib", "univocity")
-        .schema(enc.schema)
+        .schema(buildSchema(classTypeMetaData))
         .csv(dataStore.path)
 
-      if(!dataStore.header) {
+      if (!dataStore.header) {
         df = df.toDF(dataStore.columns: _*)
       }
 
-      mapInputDataFrameToDataset(df, ModelDialects.CSV)
+      mapInputDataFrameToDataset(df, classTypeMetaData)
     }
 
     override def apply(dataStore: datastore.JsonDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T]): DataSetAPI[T] = {
-      val enc = ExpressionEncoder[T]()
+      val classTypeMetaData = extractClassMetaData(ModelDialects.JSON)
+      implicit val enc = ExpressionEncoder[T]()
       mapInputDataFrameToDataset(
         spark
           .read
-          .schema(enc.schema)
+          .schema(buildSchema(classTypeMetaData))
           .json(dataStore.path),
-        ModelDialects.JSON
+        classTypeMetaData
       )(enc, ct, tt)
-
     }
 
     override def apply(dataStore: datastore.ParquetDataStore)
-                      (implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], enc: Encoder[T]): DataSetAPI[T] =
+                      (implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], enc: Encoder[T]): DataSetAPI[T] = {
+      val classTypeMetaData = extractClassMetaData(ModelDialects.Parquet)
       mapInputDataFrameToDataset(
         spark
           .read
-          .schema(enc.schema)
+          .schema(buildSchema(classTypeMetaData))
           .parquet(dataStore.path),
-        ModelDialects.Parquet
+        classTypeMetaData
       )
+    }
 
     override def apply(dataStore: datastore.AvroDataStore)
-                      (implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], r: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] =
+                      (implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], r: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] = {
+      val classTypeMetaData = extractClassMetaData(ModelDialects.Avro)
       mapInputDataFrameToDataset(
         spark
           .read
-          .schema(enc.schema)
+          .schema(buildSchema(classTypeMetaData))
           .avro(dataStore.path),
-        ModelDialects.Avro
+        classTypeMetaData
       )
+    }
 
     override def apply(dataStore: datastore.HiveDataStore)
-                      (implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], r: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] =
+                      (implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], r: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] = {
+      val classTypeMetaData = extractClassMetaData(dialects.Hive)
       mapInputDataFrameToDataset(
         spark
           .read
+          .schema(buildSchema(classTypeMetaData))
           .table(dataStore.fullTableName),
-        dialects.Hive
+        classTypeMetaData
       )
+    }
 
     override def apply[L <: HList](dataStore: datastore.JdbcDataStore)
                                   (implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L], fromRow: csv2class.FromRow[L], enc: Encoder[T]): DataSetAPI[T] = {
       Class.forName(dataStore.driverClassName)
-      //TODO - mapInputDataFrameToDataset - map driver name to dialect???
-      DataSetAPI(
+      val classTypeMetaData = extractClassMetaData(dataStore.dialect)
+      mapInputDataFrameToDataset(
         spark
           .read
-          .jdbc(dataStore.url, dataStore.fullTableName, dataStore.connectionProperties)
-          .as[T]
+          .jdbc(dataStore.url, dataStore.fullTableName, dataStore.connectionProperties),
+        classTypeMetaData
       )
     }
 
-    private def mapInputDataFrameToDataset(input: DataFrame, dialect: Dialect)
-                                          (implicit enc: Encoder[T], ct: ClassTag[T], tt: TypeTag[T]): DataSetAPI[T] = {
-      val classTypeMetaData = extractClassMetaData(dialect)
+    private def buildSchema(classTypeMetaData: ClassTypeMetaData)
+                           (implicit enc: Encoder[T], ct: ClassTag[T], tt: TypeTag[T]): StructType = {
+      val typeSchema = enc.schema
+      val mapping = getColumnsMappingFromOriginalToAnnotation(classTypeMetaData)
+      StructType(
+        typeSchema
+          .fields
+          .map(f => f.copy(name = mapping(f.name)))
+      )
+    }
+
+    private def mapInputDataFrameToDataset(input: DataFrame, classTypeMetaData: ClassTypeMetaData)
+                                          (implicit enc: Encoder[T], ct: ClassTag[T], tt: TypeTag[T]): DataSetAPI[T] =
       DataSetAPI(
-        projectTargetColumns(
-          mapInputColumnsToDatasetColumns(input, classTypeMetaData),
+        mapSourceColumnsToDatasetFields(
+          projectTargetColumns(input, classTypeMetaData),
           classTypeMetaData
         ).as[T]
       )
-    }
 
     private def extractClassMetaData(dialect: Dialect)
                                     (implicit tt: TypeTag[T]) =
@@ -113,9 +132,8 @@ object ReaderSparkImpl extends Reader {
     private def projectTargetColumns(df: DataFrame, classTypeMetaData: ClassTypeMetaData): DataFrame =
       projectSelectedColumns(df, classTypeMetaData.fields.map(_.fieldName).toSeq)
 
-    private def projectSelectedColumns(df: DataFrame, columns: Seq[String]): DataFrame = {
+    private def projectSelectedColumns(df: DataFrame, columns: Seq[String]): DataFrame =
       addMissingColumnsToDf(selectCommonColumns(df, columns), columns)
-    }
 
     private def selectCommonColumns(df: DataFrame, columns: Seq[String]): DataFrame = {
       val commonColumns = df.columns.intersect(columns)
@@ -130,20 +148,24 @@ object ReaderSparkImpl extends Reader {
       result
     }
 
-    private def mapInputColumnsToDatasetColumns(input: DataFrame, classTypeMetaData: ClassTypeMetaData): DataFrame = {
-      val columnsMapping = getColumnsMapping(classTypeMetaData)
-      mapColumns(input, columnsMapping.values, columnsMapping.keys)
+    private def mapSourceColumnsToDatasetFields(input: DataFrame, classTypeMetaData: ClassTypeMetaData): DataFrame = {
+      val columnsMapping = getColumnsMappingFromAnnotationToOriginal(classTypeMetaData)
+      input.toDF(
+        input.schema.fields.map(f => columnsMapping(f.name)):_*
+      )
     }
 
-    private def getColumnsMapping(classTypeMetaData: ClassTypeMetaData): Map[String, String] =
+    private def getColumnsMappingFromOriginalToAnnotation(classTypeMetaData: ClassTypeMetaData): Map[String, String] =
       classTypeMetaData
         .fields
         .map(f => (f.originalFieldName, f.fieldName))
         .toMap
 
-    private def mapColumns(input: DataFrame, srcColumns: Iterable[String], dstColumns: Iterable[String]): DataFrame =
-      if(srcColumns.isEmpty) input
-      else mapColumns(input.withColumnRenamed(srcColumns.head, dstColumns.head), srcColumns.tail, dstColumns.tail)
+    private def getColumnsMappingFromAnnotationToOriginal(classTypeMetaData: ClassTypeMetaData): Map[String, String] =
+      classTypeMetaData
+        .fields
+        .map(f => (f.fieldName, f.originalFieldName))
+        .toMap
 
   }
 

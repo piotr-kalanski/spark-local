@@ -1,37 +1,88 @@
 package com.datawizards.sparklocal.dataset.io
 
+import java.sql.DriverManager
+
 import com.datawizards.class2csv._
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.class2jdbc._
+import com.datawizards.dmg.DataModelGenerator
+import com.datawizards.dmg.dialects.Dialect
+import com.datawizards.dmg.metadata.MetaDataExtractor
 import com.datawizards.esclient.repository.ElasticsearchRepositoryImpl
 import com.datawizards.sparklocal.datastore._
 import com.sksamuel.avro4s.{FromRecord, SchemaFor, ToRecord}
 import org.apache.spark.sql.{Encoder, SaveMode}
 
 import scala.reflect.ClassTag
+import scala.reflect.runtime.universe.TypeTag
 
 abstract class WriterExecutor[T](ds: DataSetAPI[T]) {
   def apply(dataStore: CSVDataStore, saveMode: SaveMode)
-           (implicit ct: ClassTag[T], csvEncoder: CsvEncoder[T], encoder: Encoder[T]): Unit
+           (implicit ct: ClassTag[T], tt: TypeTag[T], csvEncoder: CsvEncoder[T], encoder: Encoder[T]): Unit
   def apply(dataStore: JsonDataStore, saveMode: SaveMode)
-           (implicit encoder: Encoder[T]): Unit
+           (implicit encoder: Encoder[T], tt: TypeTag[T]): Unit
   def apply(dataStore: ParquetDataStore, saveMode: SaveMode)
-           (implicit s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], encoder: Encoder[T]): Unit
+           (implicit tt: TypeTag[T], s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], encoder: Encoder[T]): Unit
   def apply(dataStore: AvroDataStore, saveMode: SaveMode)
-           (implicit s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit
+           (implicit tt: TypeTag[T], s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit
   def apply(dataStore: HiveDataStore, saveMode: SaveMode)
-           (implicit s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit
+           (implicit tt: TypeTag[T], s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit
   def apply(dataStore: JdbcDataStore, saveMode: SaveMode)
-           (implicit ct: ClassTag[T], jdbcEncoder: JdbcEncoder[T], encoder: Encoder[T]): Unit
-  def apply()(implicit ct: ClassTag[T], csvEncoder: CsvEncoder[T]): String =
+           (implicit ct: ClassTag[T], tt: TypeTag[T], jdbcEncoder: JdbcEncoder[T], encoder: Encoder[T]): Unit = {
+    val connection = DriverManager.getConnection(dataStore.url, dataStore.connectionProperties)
+    val tableName = dataStore.fullTableName
+
+    def tableExists(): Boolean = {
+      val meta = connection.getMetaData
+      val res = meta.getTables(null, null, tableName, Array[String]("TABLE"))
+      res.next()
+    }
+
+    def deleteTable(): Unit = {
+      connection.createStatement().execute(s"DROP TABLE $tableName")
+    }
+
+    def createTable(): Unit = {
+      val classTypeMetaData = MetaDataExtractor
+        .extractClassMetaDataForDialect[T](dataStore.dialect)
+        .copy(typeName = tableName)
+      val sql = DataModelGenerator.generate(dataStore.dialect, classTypeMetaData)
+      connection.createStatement().execute(sql)
+      val r = connection.createStatement().executeQuery(s"select * from $tableName")
+    }
+
+    saveMode match {
+      case SaveMode.Append =>
+        if(!tableExists())
+          createTable()
+        writeToJdbc(dataStore)
+      case SaveMode.ErrorIfExists =>
+        if(tableExists())
+          throw new Exception("Table exists: " + tableName)
+        else
+          createTable()
+          writeToJdbc(dataStore)
+      case SaveMode.Overwrite =>
+        if(tableExists())
+          deleteTable()
+        createTable()
+        writeToJdbc(dataStore)
+      case SaveMode.Ignore =>
+        if(!tableExists()) {
+          createTable()
+          writeToJdbc(dataStore)
+        }
+    }
+  }
+  def apply()(implicit ct: ClassTag[T], tt: TypeTag[T], csvEncoder: CsvEncoder[T]): String =
     apply(Stdout())
-  def apply(rows:Int)(implicit ct: ClassTag[T], csvEncoder: CsvEncoder[T]): String =
+  def apply(rows:Int)(implicit ct: ClassTag[T], tt: TypeTag[T], csvEncoder: CsvEncoder[T]): String =
     apply(Stdout(rows))
   def apply(dataStore: Stdout, saveMode: SaveMode)
-           (implicit ct: ClassTag[T], csvEncoder: CsvEncoder[T]): String =
+           (implicit ct: ClassTag[T], tt: TypeTag[T], csvEncoder: CsvEncoder[T]): String =
     apply(dataStore)
   def apply(dataStore: Stdout)
-           (implicit ct: ClassTag[T], csvEncoder: CsvEncoder[T]): String = {
+           (implicit ct: ClassTag[T], tt: TypeTag[T], csvEncoder: CsvEncoder[T]): String = {
     val sep = "|"
     val encodedRows = ds.take(dataStore.rows).map(r => csvEncoder.encode(r))
     val classFields = ct.runtimeClass.getDeclaredFields.map(_.getName)
@@ -86,7 +137,7 @@ abstract class WriterExecutor[T](ds: DataSetAPI[T]) {
     result
   }
   def apply(dataStore: ElasticsearchDataStore, saveMode: SaveMode)
-           (implicit ct: ClassTag[T], encoder: Encoder[T]): Unit = {
+           (implicit ct: ClassTag[T], tt: TypeTag[T], encoder: Encoder[T]): Unit = {
     val repository = new ElasticsearchRepositoryImpl(dataStore.getRestAPIURL)
     saveMode match {
       case SaveMode.Append =>
@@ -108,6 +159,7 @@ abstract class WriterExecutor[T](ds: DataSetAPI[T]) {
   def apply(dataStore: DataStore, saveMode: SaveMode)
            (implicit
             ct: ClassTag[T],
+            tt: TypeTag[T],
             csvEncoder: CsvEncoder[T],
             s: SchemaFor[T],
             fromR: FromRecord[T],
@@ -127,26 +179,35 @@ abstract class WriterExecutor[T](ds: DataSetAPI[T]) {
   }
 
   def csv(dataStore: CSVDataStore, saveMode: SaveMode)
-           (implicit ct: ClassTag[T], csvEncoder: CsvEncoder[T], encoder: Encoder[T]): Unit =
+           (implicit ct: ClassTag[T], tt: TypeTag[T], csvEncoder: CsvEncoder[T], encoder: Encoder[T]): Unit =
     this.apply(dataStore, saveMode)
   def json(dataStore: JsonDataStore, saveMode: SaveMode)
-           (implicit encoder: Encoder[T]): Unit =
+           (implicit tt: TypeTag[T], encoder: Encoder[T]): Unit =
     this.apply(dataStore, saveMode)
   def parquet(dataStore: ParquetDataStore, saveMode: SaveMode)
-           (implicit s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], encoder: Encoder[T]): Unit =
+           (implicit tt: TypeTag[T], s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], encoder: Encoder[T]): Unit =
     this.apply(dataStore, saveMode)
   def avro(dataStore: AvroDataStore, saveMode: SaveMode)
-           (implicit s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit =
+           (implicit tt: TypeTag[T], s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit =
     this.apply(dataStore, saveMode)
   def table(dataStore: HiveDataStore, saveMode: SaveMode)
-           (implicit s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit =
+           (implicit tt: TypeTag[T], s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit =
     this.apply(dataStore, saveMode)
   def jdbc(dataStore: JdbcDataStore, saveMode: SaveMode)
-           (implicit ct: ClassTag[T], jdbcEncoder: JdbcEncoder[T], encoder: Encoder[T]): Unit =
+           (implicit ct: ClassTag[T], tt: TypeTag[T], jdbcEncoder: JdbcEncoder[T], encoder: Encoder[T]): Unit =
     this.apply(dataStore, saveMode)
   def es(dataStore: ElasticsearchDataStore, saveMode: SaveMode)
-        (implicit ct: ClassTag[T], encoder: Encoder[T]): Unit =
+        (implicit ct: ClassTag[T], tt: TypeTag[T], encoder: Encoder[T]): Unit =
     this.apply(dataStore, saveMode)
 
-  protected def writeToElasticsearch(dataStore: ElasticsearchDataStore)(implicit ct: ClassTag[T], encoder: Encoder[T]): Unit
+  protected def writeToJdbc(dataStore: JdbcDataStore)
+                           (implicit ct: ClassTag[T], tt: TypeTag[T], jdbcEncoder: JdbcEncoder[T], encoder: Encoder[T]): Unit
+
+  protected def writeToElasticsearch(dataStore: ElasticsearchDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], encoder: Encoder[T]): Unit
+
+  protected def extractTargetColumns(dialect: Dialect)
+                                  (implicit tt: TypeTag[T]): Seq[String] = {
+    val classTypeMetaData = MetaDataExtractor.extractClassMetaDataForDialect[T](dialect)
+    classTypeMetaData.fields.map(_.fieldName).toSeq
+  }
 }
