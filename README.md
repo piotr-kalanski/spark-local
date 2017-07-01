@@ -14,21 +14,27 @@ API enabling switching between Spark execution engine and local implementation b
 - [Getting started](#getting-started)
 - [Examples](#examples)
 - [IO operations](#io-operations)
+  - [Supported formats](#supported-formats)
+  - [Data model versioning](#data-model-versioning)
+  - [Column mapping](#column-mapping)
 - [Supported Spark versions](#supported-spark-versions)
 - [Supported Spark operations](doc/SupportedOperations.md)
 - [Benchmarks](benchmarks/Benchmarks.md)
+- [Contributing](CONTRIBUTING.md)
 
 # Goals
 
-- Speed up unit testing when using Spark
+- Speed up unit testing for Spark applications
 - Enable switching between Spark execution engine and Scala collections depending on use case, especially size of data without changing implementation
 
 # Getting started
 
+## Spark 2.1.1
+
 Include dependency:
 
 ```scala
-"com.github.piotr-kalanski" % "spark-local_2.11" % "0.5.0"
+"com.github.piotr-kalanski" % "spark-local_2.1.1_2.11" % "0.6.0"
 ```
 
 or
@@ -36,8 +42,26 @@ or
 ```xml
 <dependency>
     <groupId>com.github.piotr-kalanski</groupId>
-    <artifactId>spark-local_2.11</artifactId>
-    <version>0.5.0</version>
+    <artifactId>spark-local_2.1.1_2.11</artifactId>
+    <version>0.6.0</version>
+</dependency>
+```
+
+## Spark 2.1.0
+
+Include dependency:
+
+```scala
+"com.github.piotr-kalanski" % "spark-local_2.1.0_2.11" % "0.6.0"
+```
+
+or
+
+```xml
+<dependency>
+    <groupId>com.github.piotr-kalanski</groupId>
+    <artifactId>spark-local_2.1.0_2.11</artifactId>
+    <version>0.6.0</version>
 </dependency>
 ```
 
@@ -186,16 +210,22 @@ object ExampleHRReport {
 
 Library provides dedicated API for input/output operations with implementation for Spark and Scala collections.
 
+## Supported formats
+
 Supported formats:
 - CSV
 - JSON
 - Parquet
 - Avro
 - Hive
+- JDBC
+  - H2
+  - MySQL
+- Elasticsearch
 
-## CSV
+### CSV
 
-### Read CSV file
+#### Read CSV file
 
 ```scala
 val reader: Reader = ReaderScalaImpl // Scala implementation
@@ -211,96 +241,238 @@ reader.read[Person](
 )
 ```
 
-### Write to CSV file
+#### Write to CSV file
 
 ```scala
 ds.write(CSVDataStore(file), SaveMode.Overwrite)
 ```
 
-## JSON
+### JSON
 
-### Read JSON file
+#### Read JSON file
 
 ```scala
 reader.read[Person](JsonDataStore("people.json"))
 ```
 
-### Write to JSON file
+#### Write to JSON file
 
 ```scala
 ds.write(JsonDataStore("people.json"), SaveMode.Overwrite)
 ```
 
-## Avro
+### Avro
 
 Current implementation produces different binary files for Spark and Scala.
 Spark by default compress files with snappy and spark-local implementation is based on: https://github.com/sksamuel/avro4s, which saves data without compression.
 
-### Read Avro file
+#### Read Avro file
 
 ```scala
 reader.read[Person](AvroDataStore("people.avro"))
 ```
 
-### Write to Avro file
+#### Write to Avro file
 
 ```scala
 ds.write(AvroDataStore("people.avro"), SaveMode.Overwrite)
 ```
 
-## Parquet
+### Parquet
 
-### Read Parquet file
+#### Read Parquet file
 
 ```scala
 reader.read[Person](ParquetDataStore("people.parquet"))
 ```
 
-### Write to Parquet file
+#### Write to Parquet file
 
 ```scala
 ds.write(ParquetDataStore("people.parquet"), SaveMode.Overwrite)
 ```
 
-## Hive
+### Hive
 
-### Read Hive table
+#### Read Hive table
 
 ```scala
 reader.read[Person](HiveDataStore("db", "table"))
 ```
 
-### Write to Hive table
+#### Write to Hive table
 
 ```scala
 ds.write(HiveDataStore("db", "table"), SaveMode.Overwrite)
 ```
 
-## JDBC
+### JDBC
 
-Currently library supports only appending data to existing table.
-
-### Read JDBC table
+#### Read JDBC table
 
 ```scala
 
 val database = "public"
 val table = "people"
 val properties = new java.util.Properties()
-val driverName = "org.h2.Driver"
-reader.read[Person](JdbcDataStore(connectionString, database, table, properties, driverName))
+reader.read[Person](H2DataStore(connectionString, database, table, properties))
 ```
 
-### Write to JDBC table
+#### Write to JDBC table
 
 ```scala
-ds.write(JdbcDataStore(connectionString, database, table, properties, driverName), SaveMode.Append)
+ds.write(H2DataStore(connectionString, database, table, properties), SaveMode.Append)
 ```
+
+### Elasticsearch
+
+#### Write to Elasticsearch index
+
+```scala
+val indexName = "people"
+val typeName = "person"
+ds.write(ElasticsearchSimpleIndexDataStore("localhost", indexName, typeName), SaveMode.Append)
+```
+
+## Data model versioning
+
+Library supports reading data using old and new version of data model.
+
+Reading with old version of data model is straightforward, just existing fields will be read.
+On other hand, when reading with new version of data model, new columns should be `Option` type and value `None` is assigned to those fields.
+
+**Example**
+
+```scala
+import com.datawizards.sparklocal.datastore.CSVDataStore
+import com.datawizards.sparklocal.session.{ExecutionEngine, SparkSessionAPI}
+import org.apache.spark.sql.SaveMode
+
+case class Person(name: String, age: Int)
+case class PersonV2(name: String, age: Int, title: Option[String])
+case class PersonV3(name: String, age: Int, title: Option[String], salary: Option[Long])
+
+val session = SparkSessionAPI
+      .builder(ExecutionEngine.ScalaEager)
+      .master("local")
+      .getOrCreate()
+
+import session.implicits._
+
+val peopleV2 = session.createDataset(Seq(
+    PersonV2("p1", 10, Some("Mr")),
+    PersonV2("p2", 20, Some("Ms")),
+    PersonV2("p3", 30, None),
+    PersonV2("p4", 40, Some("Mr"))
+))
+
+val dataStore = CSVDataStore("people_v2.csv")
+peopleV2.write(dataStore, SaveMode.Overwrite)
+
+// Read old version:
+val peopleV1 = session.read[Person](dataStore)
+
+// Read new version:
+val peopleV3 = session.read[PersonV3](dataStore)
+
+peopleV1.show()
+peopleV3.show()
+```
+
+```
++----+---+
+|name|age|
++----+---+
+|p1  |10 |
+|p2  |20 |
+|p3  |30 |
+|p4  |40 |
++----+---+
+
++----+---+-----+------+
+|name|age|title|salary|
++----+---+-----+------+
+|p1  |10 |Mr   |      |
+|p2  |20 |Ms   |      |
+|p3  |30 |     |      |
+|p4  |40 |Mr   |      |
++----+---+-----+------+
+```
+
+## Column mapping
+
+Library supports changing name of fields when writing and reading data.
+
+Mapping is provided using `column` annotation from project: https://github.com/piotr-kalanski/data-model-generator.
+
+**Example**
+
+```scala
+import com.datawizards.dmg.annotations.column
+import com.datawizards.sparklocal.dataset.io.ModelDialects
+import com.datawizards.sparklocal.datastore.JsonDataStore
+import com.datawizards.sparklocal.session.{ExecutionEngine, SparkSessionAPI}
+import org.apache.spark.sql.SaveMode
+
+case class PersonWithMapping(
+    @column("personName", dialect = ModelDialects.JSON)
+    name: String,
+    @column("personAge", dialect = ModelDialects.JSON)
+    age: Int
+)
+
+val session = SparkSessionAPI
+      .builder(ExecutionEngine.ScalaEager)
+      .master("local")
+      .getOrCreate()
+
+import session.implicits._
+
+val people = session.createDataset(Seq(
+    PersonWithMapping("p1", 10),
+    PersonWithMapping("p2", 20),
+    PersonWithMapping("p3", 30),
+    PersonWithMapping("p4", 40)
+))
+
+val dataStore = JsonDataStore("people_mapping.json")
+people.write(dataStore, SaveMode.Overwrite)
+
+```
+
+Name of fields in JSON file are consistent with column names provided in annotations:
+
+```json
+{"personName":"p1","personAge":10}
+{"personName":"p2","personAge":20}
+{"personName":"p3","personAge":30}
+{"personName":"p4","personAge":40}
+```
+
+Reading data:
+```scala
+val people2 = session.read[PersonWithMapping](dataStore)
+people2.show()
+```
+
+Names of columns are the same as case class fields:
+```
++----+---+
+|name|age|
++----+---+
+|p1  |10 |
+|p2  |20 |
+|p3  |30 |
+|p4  |40 |
++----+---+
+```
+
 
 # Supported Spark versions
 
 |spark-local|Spark version|
 |-----------|-------------|
+|0.6        |2.1.1<br/>2.1.0  |
 |0.5        |2.1.0        |
 |0.4        |2.1.0        |
 |0.3        |2.1.0        |
@@ -309,7 +481,7 @@ ds.write(JdbcDataStore(connectionString, database, table, properties, driverName
 
 # Bugs
 
-Please report any bugs or submit feature requests to [spark-local Github issue tracker](https://github.com/piotr-kalanski/spark-local/issues).
+Please report any bugs to [spark-local Github issue tracker](https://github.com/piotr-kalanski/spark-local/issues).
 
 # Continuous Integration
 

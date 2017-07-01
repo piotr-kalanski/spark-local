@@ -14,6 +14,7 @@ class ReadFileTest extends SparkLocalBaseTest {
     testReadCSV(ExecutionEngine.ScalaEager)
     testReadCSV(ExecutionEngine.ScalaLazy)
     testReadCSV(ExecutionEngine.ScalaParallel)
+    testReadCSV(ExecutionEngine.ScalaParallelLazy)
     testReadCSV(ExecutionEngine.Spark)
   }
 
@@ -21,6 +22,7 @@ class ReadFileTest extends SparkLocalBaseTest {
     testReadJson(ExecutionEngine.ScalaEager)
     testReadJson(ExecutionEngine.ScalaLazy)
     testReadJson(ExecutionEngine.ScalaParallel)
+    testReadJson(ExecutionEngine.ScalaParallelLazy)
     testReadJson(ExecutionEngine.Spark)
   }
 

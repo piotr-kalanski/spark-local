@@ -1,5 +1,7 @@
 package com.datawizards.sparklocal.session
 
+import com.datawizards.sparklocal.accumulator.{AccumulatorV2API, CollectionAccumulatorAPI, DoubleAccumulatorAPI, LongAccumulatorAPI}
+import com.datawizards.sparklocal.broadcast.BroadcastAPI
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.dataset.io.ReaderExecutor
 import com.datawizards.sparklocal.rdd.RDDAPI
@@ -37,7 +39,7 @@ trait SparkSessionAPI {
     data.toDataSet
 
   /**
-    * Returns a [[ReaderExecutor]] that can be used to read non-streaming data in as a DataSet
+    * Returns a ReaderExecutor that can be used to read non-streaming data in as a DataSet
     */
   def read[T]: ReaderExecutor[T]
 
@@ -47,52 +49,52 @@ trait SparkSessionAPI {
     */
   def textFile(path: String, minPartitions: Int = 2): RDDAPI[String]
 
-  //TODO - accumulator
-  /*
+  /**
+    * Register the given accumulator with given name.
+    */
+  def register(acc: AccumulatorV2API[_, _], name: String): Unit
 
-  def register(acc: AccumulatorV2[_, _]): Unit = {
-    acc.register(this)
-  }
+  /**
+    * Register the given accumulator.
+    */
+  def register(acc: AccumulatorV2API[_, _]): Unit
 
-  def register(acc: AccumulatorV2[_, _], name: String): Unit = {
-    acc.register(this, name = Some(name))
-  }
+  /**
+    * Create and register a long accumulator, which starts with 0 and accumulates inputs by `add`.
+    */
+  def longAccumulator: LongAccumulatorAPI
 
-  def longAccumulator: LongAccumulator = {
-    val acc = new LongAccumulator
-    register(acc)
-    acc
-  }
+  /**
+    * Create and register a long accumulator, which starts with 0 and accumulates inputs by `add`.
+    */
+  def longAccumulator(name: String): LongAccumulatorAPI
 
+  /**
+    * Create and register a double accumulator, which starts with 0 and accumulates inputs by `add`.
+    */
+  def doubleAccumulator: DoubleAccumulatorAPI
 
-  def longAccumulator(name: String): LongAccumulator = {
-    val acc = new LongAccumulator
-    register(acc, name)
-    acc
-  }
+  /**
+    * Create and register a double accumulator, which starts with 0 and accumulates inputs by `add`.
+    */
+  def doubleAccumulator(name: String): DoubleAccumulatorAPI
 
+  /**
+    * Create and register a `CollectionAccumulator`, which starts with empty list and accumulates
+    * inputs by adding them into the list.
+    */
+  def collectionAccumulator[T]: CollectionAccumulatorAPI[T]
 
-  def doubleAccumulator: DoubleAccumulator = {
-    val acc = new DoubleAccumulator
-    register(acc)
-    acc
-  }
+  /**
+    * Create and register a `CollectionAccumulator`, which starts with empty list and accumulates
+    * inputs by adding them into the list.
+    */
+  def collectionAccumulator[T](name: String): CollectionAccumulatorAPI[T]
 
-  def doubleAccumulator(name: String): DoubleAccumulator = {
-    val acc = new DoubleAccumulator
-    register(acc, name)
-    acc
-  }
-
-
-  def collectionAccumulator[T]: CollectionAccumulator[T] = {
-    val acc = new CollectionAccumulator[T]
-    register(acc)
-    acc
-  }
-
-  */
-
-  //TODO - broadcast
-  //def broadcast[T: ClassTag](value: T): Broadcast[T]
+  /**
+    * Broadcast a read-only variable to the cluster, returning a
+    * broadcast object for reading it in distributed functions.
+    * The variable will be sent to each cluster only once.
+    */
+  def broadcast[T: ClassTag](value: T): BroadcastAPI[T]
 }

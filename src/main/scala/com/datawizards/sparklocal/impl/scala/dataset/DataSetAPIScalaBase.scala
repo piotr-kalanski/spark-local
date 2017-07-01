@@ -227,6 +227,13 @@ abstract class DataSetAPIScalaBase[T: ClassTag] extends DataSetAPI[T] {
 
   override def write: WriterExecutor[T] = new WriterScalaImpl[T].write(this)
 
+  override def diff(other: DataSetAPI[T])(implicit enc: Encoder[T]): DataSetAPI[T] = other match {
+    case dsSpark:DataSetAPISparkImpl[T] => DataSetAPI(this.toDataset.except(dsSpark.data))
+    case dsScala:DataSetAPIScalaBase[T] => diff(data, dsScala)
+  }
+
+  override def isEmpty(): Boolean = data.isEmpty
+
   protected def union(data: InternalCollection, dsScala: DataSetAPIScalaBase[T]): DataSetAPIScalaBase[T]
   protected def intersect(data: InternalCollection, dsScala: DataSetAPIScalaBase[T]): DataSetAPIScalaBase[T]
   protected def diff(data: InternalCollection, dsScala: DataSetAPIScalaBase[T]): DataSetAPIScalaBase[T]

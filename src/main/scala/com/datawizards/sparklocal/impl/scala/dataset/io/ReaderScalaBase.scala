@@ -5,28 +5,32 @@ import java.sql.DriverManager
 
 import com.datawizards.csv2class
 import com.datawizards.csv2class._
+import com.datawizards.dmg.dialects.{Dialect, HiveDialect}
+import com.datawizards.dmg.metadata.MetaDataExtractor
 import com.datawizards.sparklocal.dataset.DataSetAPI
-import com.datawizards.sparklocal.dataset.io.{Reader, ReaderExecutor}
+import com.datawizards.sparklocal.dataset.io._
 import com.datawizards.sparklocal.datastore
 import com.datawizards.sparklocal.datastore.FileDataStore
-import com.datawizards.sparklocal.impl.scala.jdbc2class._
+import com.datawizards.jdbc2class._
 import com.sksamuel.avro4s._
-import org.apache.avro.generic.GenericRecord
+import org.apache.avro.file.{DataFileReader, SeekableFileInput}
+import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.avro.AvroParquetReader
 import org.apache.spark.sql.Encoder
-import org.json4s._
+import org.json4s.DefaultFormats
 import org.json4s.native.JsonMethods._
 import shapeless.Generic.Aux
 import shapeless.HList
 
+import scala.collection.mutable.ListBuffer
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe.TypeTag
 
 trait ReaderScalaBase extends Reader {
   override def read[T]: ReaderExecutor[T] = new ReaderExecutor[T] {
     override def apply[L <: HList](dataStore: datastore.CSVDataStore)
-                                  (implicit ct: ClassTag[T], gen: Aux[T, L], fromRow: csv2class.FromRow[L], enc: Encoder[T]): DataSetAPI[T] = {
+                                  (implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L], fromRow: csv2class.FromRow[L], enc: Encoder[T]): DataSetAPI[T] = {
       genericFileRead(dataStore) { file =>
         parseCSV[T](
           path = file.getPath,
@@ -34,7 +38,7 @@ trait ReaderScalaBase extends Reader {
           quote = dataStore.quote,
           escape = dataStore.escape,
           header = dataStore.header,
-          columns = dataStore.columns
+          customColumns = if(dataStore.columns.nonEmpty) dataStore.columns else extractTargetColumns(ModelDialects.CSV)
         )._1
       }
     }
@@ -46,43 +50,60 @@ trait ReaderScalaBase extends Reader {
         scala.io.Source
           .fromFile(file)
           .getLines()
-          .map(line => parse(line).extract[T])
+          .map{line =>
+            val json = parse(line)
+            val mappedJson = FieldNamesMappingUtils.changeJsonObjectFieldNames[T](json, fromOriginal=false)
+            mappedJson.extract[T]
+          }
           .toIterable
       }
     }
 
     override def apply(dataStore: datastore.ParquetDataStore)
-                      (implicit ct: ClassTag[T], s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], enc: Encoder[T]): DataSetAPI[T] = {
+                      (implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], enc: Encoder[T]): DataSetAPI[T] = {
       val format = RecordFormat[T]
-
+      val fieldNameMapping = FieldNamesMappingUtils.constructFieldNameMapping(ParquetDialect)
       genericFileRead(dataStore) { file =>
+        val schema = s()
         val reader = AvroParquetReader.builder[GenericRecord](new Path(file.getPath)).build()
-        val iterator = Iterator.continually(reader.read).takeWhile(_ != null).map(format.from)
+        val iterator = Iterator
+          .continually(reader.read)
+          .takeWhile(_ != null)
+          .map(r => format.from(AvroUtils.mapGenericRecordFromTargetToOriginal(r, schema, fieldNameMapping)))
         iterator.toList
       }
     }
 
     override def apply(dataStore: datastore.AvroDataStore)
-                      (implicit ct: ClassTag[T], s: SchemaFor[T], r: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] = {
-      genericFileRead(dataStore) { file =>
-        val is = AvroInputStream.data[T](file)
-        val result = is.iterator.toList
-        is.close()
-        result
-      }
-    }
+                      (implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], fromRecord: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] =
+      readAvro(dataStore, AvroDialect)
 
     override def apply(dataStore: datastore.HiveDataStore)
-                      (implicit ct: ClassTag[T], s: SchemaFor[T], r: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] =
-      apply(datastore.AvroDataStore(dataStore.localFilePath))
+                      (implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], r: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] =
+      readAvro(datastore.AvroDataStore(dataStore.localFilePath), HiveDialect)
 
     override def apply[L <: HList](dataStore: datastore.JdbcDataStore)
-                                  (implicit ct: ClassTag[T], gen: Aux[T, L], fromRow: csv2class.FromRow[L], enc: Encoder[T]): DataSetAPI[T] = {
+                                  (implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L], fromRow: csv2class.FromRow[L], enc: Encoder[T]): DataSetAPI[T] = {
       Class.forName(dataStore.driverClassName)
       val connection = DriverManager.getConnection(dataStore.url, dataStore.connectionProperties)
-      val result = selectTable[T](connection, dataStore.fullTableName)
+      val classTypeMetaData = MetaDataExtractor.extractClassMetaDataForDialect[T](dataStore.dialect)
+      val result = selectTable[T](connection, dataStore.fullTableName, classTypeMetaData.fields.map(f => f.fieldName))
       connection.close()
       createDataSet(result._1)
+    }
+
+    private def readAvro(dataStore: datastore.AvroDataStore, dialect: Dialect)
+                               (implicit ct: ClassTag[T], tt: TypeTag[T], s: SchemaFor[T], fromRecord: FromRecord[T], enc: Encoder[T]): DataSetAPI[T] = {
+      genericFileRead(dataStore) { file =>
+        val schema = s()
+        val fieldNameMapping = FieldNamesMappingUtils.constructFieldNameMapping(dialect)
+        val datumReader = new GenericDatumReader[GenericRecord]()
+        val dataFileReader = new DataFileReader[GenericRecord](new SeekableFileInput(file), datumReader)
+        val buffer = new ListBuffer[T]
+        while(dataFileReader.hasNext)
+          buffer += fromRecord(AvroUtils.mapGenericRecordFromTargetToOriginal(dataFileReader.next, schema, fieldNameMapping))
+        buffer.toList
+      }
     }
 
     private def genericFileRead(dataStore: FileDataStore)
@@ -100,6 +121,12 @@ trait ReaderScalaBase extends Reader {
       val data = if(file.isDirectory) readAllFilesFromDirectory(file) else readFile(file)
 
       createDataSet(data)
+    }
+
+    protected def extractTargetColumns(dialect: Dialect)
+                                      (implicit tt: TypeTag[T]): Seq[String] = {
+      val classTypeMetaData = MetaDataExtractor.extractClassMetaDataForDialect[T](dialect)
+      classTypeMetaData.fields.map(_.fieldName).toSeq
     }
   }
 
