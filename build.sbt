@@ -39,7 +39,7 @@ libraryDependencies ++= Seq(
   "com.github.piotr-kalanski" %% "csv2class" % "0.3.1",
   "org.apache.parquet" % "parquet-avro" % "1.9.0",
   "com.sksamuel.avro4s" %% "avro4s-core" % "1.6.4",
-  "com.github.piotr-kalanski" %% "class2sql" % "0.1.1",
+  "com.github.piotr-kalanski" %% "class2sql" % "0.1.2",
   "com.github.piotr-kalanski" %% "es-client" % "0.2.1",
   "org.elasticsearch" %% "elasticsearch-spark-20" % "5.4.1",
   "com.github.piotr-kalanski" %% "data-model-generator" % "0.5.1",

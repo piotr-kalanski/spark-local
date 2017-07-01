@@ -52,7 +52,7 @@ trait ReaderScalaBase extends Reader {
           .getLines()
           .map{line =>
             val json = parse(line)
-            val mappedJson = FieldNamesMappingUtils.changeJsonObjectFieldNames[T](json, false)
+            val mappedJson = FieldNamesMappingUtils.changeJsonObjectFieldNames[T](json, fromOriginal=false)
             mappedJson.extract[T]
           }
           .toIterable
@@ -86,7 +86,8 @@ trait ReaderScalaBase extends Reader {
                                   (implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L], fromRow: csv2class.FromRow[L], enc: Encoder[T]): DataSetAPI[T] = {
       Class.forName(dataStore.driverClassName)
       val connection = DriverManager.getConnection(dataStore.url, dataStore.connectionProperties)
-      val result = selectTable[T](connection, dataStore.fullTableName)
+      val classTypeMetaData = MetaDataExtractor.extractClassMetaDataForDialect[T](dataStore.dialect)
+      val result = selectTable[T](connection, dataStore.fullTableName, classTypeMetaData.fields.map(f => f.fieldName))
       connection.close()
       createDataSet(result._1)
     }

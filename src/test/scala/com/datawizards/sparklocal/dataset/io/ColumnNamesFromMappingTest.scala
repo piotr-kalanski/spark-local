@@ -5,7 +5,7 @@ import java.nio.file.{Files, Paths}
 import java.sql.DriverManager
 
 import com.datawizards.sparklocal.SparkLocalBaseTest
-import com.datawizards.sparklocal.TestModel.{Person, PersonUppercase, PersonV2, PersonV3, PersonWithMapping}
+import com.datawizards.sparklocal.TestModel.{Person, PersonUppercase, PersonWithMapping}
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore._
 import com.datawizards.sparklocal.impl.scala.eager.dataset.io.ReaderScalaEagerImpl
@@ -69,7 +69,7 @@ class ColumnNamesFromMappingTest extends SparkLocalBaseTest {
                                        ): Unit = {
     dsWithMapping.write(dataStoreWithMapping, SaveMode.Overwrite)
     dsRaw.write(dataStoreRaw, SaveMode.Overwrite)
-    assert(readFileContentFromDirectory(pathWithMapping, postfix) != readFileContentFromDirectory(pathRaw, postfix))
+    assert(!(readFileContentFromDirectory(pathWithMapping, postfix) sameElements readFileContentFromDirectory(pathRaw, postfix)))
     assertDatasetOperationResultWithSorted(reader.read[PersonWithMapping](dataStoreWithMapping)) {
       peopleWithMapping.toArray
     }
@@ -290,8 +290,5 @@ class ColumnNamesFromMappingTest extends SparkLocalBaseTest {
       H2DataStore(connectionString, "public", "PEOPLE_MAPPING_SCALA", new java.util.Properties())
     )
   }
-
-  // TODO - add tests for versioning + column mapping
-
 
 }
