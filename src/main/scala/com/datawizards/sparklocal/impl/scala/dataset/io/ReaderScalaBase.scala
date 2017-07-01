@@ -38,7 +38,7 @@ trait ReaderScalaBase extends Reader {
           quote = dataStore.quote,
           escape = dataStore.escape,
           header = dataStore.header,
-          customColumns = extractTargetColumns(ModelDialects.CSV)
+          customColumns = if(dataStore.columns.nonEmpty) dataStore.columns else extractTargetColumns(ModelDialects.CSV)
         )._1
       }
     }
@@ -73,7 +73,7 @@ trait ReaderScalaBase extends Reader {
         val dataFileReader = new DataFileReader[GenericRecord](new SeekableFileInput(file), datumReader)
         val buffer = new ListBuffer[T]
         while(dataFileReader.hasNext)
-          buffer += fromRecord(dataFileReader.next)
+          buffer += fromRecord(dataFileReader.next) //TODO convert generic record
         buffer.toList
       }
     }

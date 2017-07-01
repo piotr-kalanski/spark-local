@@ -191,6 +191,37 @@ class ColumnNamesFromMappingTest extends SparkLocalBaseTest {
     )
   }
 
+  /*test("Column mapping - json - Scala") {
+    columnMappingTestScenarioWithFileDataStoreSpark(
+      JsonDataStore("target/people_raw_scala.json"),
+      JsonDataStore("target/people_mapping_scala.json")
+    )
+  }
+
+  test("Column mapping - parquet - Scala") {
+    columnMappingTestScenarioWithFileDataStoreSpark(
+      ParquetDataStore("target/people_raw_scala.parquet"),
+      ParquetDataStore("target/people_mapping_scala.parquet")
+    )
+  }
+
+  test("Column mapping - avro - Scala") {
+    columnMappingTestScenarioWithFileDataStoreSpark(
+      AvroDataStore("target/people_raw_scala.avro"),
+      AvroDataStore("target/people_mapping_scala.avro")
+    )
+  }
+
+  test("Column mapping - hive - Scala") {
+    columnMappingTestScenarioSpark(
+      HiveDataStore("default", "people_raw_scala"),
+      HiveDataStore("default", "people_mapping_scala"),
+      "spark-warehouse/people_raw_spark",
+      "spark-warehouse/people_mapping_spark",
+      "parquet"
+    )
+  }*/
+
   // TODO - add tests for Scala
   // TODO - add tests for nested fields
   // TODO - add tests for versioning + column mapping
