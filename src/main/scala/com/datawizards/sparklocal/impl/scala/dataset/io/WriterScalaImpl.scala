@@ -10,6 +10,7 @@ import com.datawizards.sparklocal.dataset.io._
 import com.datawizards.sparklocal.datastore._
 import com.datawizards.class2jdbc._
 import com.datawizards.dmg.dialects.{Dialect, HiveDialect}
+import com.datawizards.dmg.metadata.MetaDataExtractor
 import com.datawizards.esclient.repository.ElasticsearchRepositoryImpl
 import com.sksamuel.avro4s._
 import org.apache.avro.file.DataFileWriter
@@ -87,11 +88,12 @@ class WriterScalaImpl[T] extends Writer[T] {
       writeAvro(AvroDataStore(dataStore.localFilePath), saveMode, HiveDialect)
     }
 
-    override def apply(dataStore: JdbcDataStore, saveMode: SaveMode)
+    override protected def writeToJdbc(dataStore: JdbcDataStore)
                       (implicit ct: ClassTag[T], tt: TypeTag[T], jdbcEncoder: com.datawizards.class2jdbc.JdbcEncoder[T], encoder: Encoder[T]): Unit = {
       Class.forName(dataStore.driverClassName)
       val connection = DriverManager.getConnection(dataStore.url, dataStore.connectionProperties)
-      val inserts = generateInserts(ds.collect(), dataStore.fullTableName)
+      val classTypeMetaData = MetaDataExtractor.extractClassMetaDataForDialect[T](dataStore.dialect)
+      val inserts = generateInserts(ds.collect(), dataStore.fullTableName, classTypeMetaData.fields.map(f => f.fieldName).toSeq)
       connection.createStatement().execute(inserts.mkString(";"))
       connection.close()
     }

@@ -9,16 +9,18 @@ object TestModel {
   case class PersonV2(name: String, age: Int, title: Option[String])
   case class PersonV3(name: String, age: Int, title: Option[String], salary: Option[Long])
   case class PersonBigInt(name: String, age: BigInt)
-
+  case class PersonUppercase(NAME: String, AGE: Int)
   @table("PEOPLE", dialect = dialects.Hive)
   case class PersonWithMapping(
     @column("PERSON_NAME_HIVE", dialect = dialects.Hive)
+    @column("PERSON_NAME_H2", dialect = dialects.H2)
     @column("PERSON_NAME_CSV", dialect = ModelDialects.CSV)
     @column("personNameJson", dialect = ModelDialects.JSON)
     @column("personNameAvro", dialect = ModelDialects.Avro)
     @column("personNameParquet", dialect = ModelDialects.Parquet)
     name: String,
     @column("PERSON_AGE_HIVE", dialect = dialects.Hive)
+    @column("PERSON_AGE_H2", dialect = dialects.H2)
     @column("PERSON_AGE_CSV", dialect = ModelDialects.CSV)
     @column("personAgeJson", dialect = ModelDialects.JSON)
     @column("personAgeAvro", dialect = ModelDialects.Avro)

@@ -2,8 +2,10 @@ package com.datawizards.sparklocal.dataset.io
 
 import java.io.File
 import java.nio.file.{Files, Paths}
+import java.sql.DriverManager
+
 import com.datawizards.sparklocal.SparkLocalBaseTest
-import com.datawizards.sparklocal.TestModel.{Person, PersonV2, PersonV3, PersonWithMapping}
+import com.datawizards.sparklocal.TestModel.{Person, PersonUppercase, PersonV2, PersonV3, PersonWithMapping}
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.datastore._
 import com.datawizards.sparklocal.impl.scala.eager.dataset.io.ReaderScalaEagerImpl
@@ -30,10 +32,21 @@ class ColumnNamesFromMappingTest extends SparkLocalBaseTest {
     Person("p4", 40)
   )
 
+  val peopleUppercase = Seq(
+    PersonUppercase("p1", 10),
+    PersonUppercase("p2", 20),
+    PersonUppercase("p3", 30),
+    PersonUppercase("p4", 40)
+  )
+
+  private val connectionString = "jdbc:h2:mem:test"
+
   lazy val peopleWithMappingDataSetScala = DataSetAPI(peopleWithMapping)
   lazy val peopleWithMappingDataSetSpark = DataSetAPI(peopleWithMapping.toDS())
   lazy val peopleDataSetScala = DataSetAPI(people)
   lazy val peopleDataSetSpark = DataSetAPI(people.toDS())
+  lazy val peopleUppercaseDataSetScala = DataSetAPI(peopleUppercase)
+  lazy val peopleUppercaseDataSetSpark = DataSetAPI(peopleUppercase.toDS())
 
   private def readFileContentFromDirectory(directory: String, postfix: String): Array[Byte] = {
     val dir = new File(directory)
@@ -146,6 +159,48 @@ class ColumnNamesFromMappingTest extends SparkLocalBaseTest {
     )
   }
 
+  private def columnMappingJdbcTestScenarioSpark(dataStoreRaw: JdbcDataStore,
+                                                 dataStoreWithMapping: JdbcDataStore): Unit = {
+    spark  // to initialize spark session
+    columnMappingJdbcTestScenario(
+      peopleUppercaseDataSetSpark,
+      peopleWithMappingDataSetSpark,
+      dataStoreRaw,
+      dataStoreWithMapping,
+      ReaderSparkImpl
+    )
+  }
+
+  private def columnMappingJdbcTestScenarioScala(dataStoreRaw: JdbcDataStore,
+                                                 dataStoreWithMapping: JdbcDataStore): Unit = {
+    columnMappingJdbcTestScenario(
+      peopleUppercaseDataSetScala,
+      peopleWithMappingDataSetScala,
+      dataStoreRaw,
+      dataStoreWithMapping,
+      ReaderScalaEagerImpl
+    )
+  }
+
+  private def columnMappingJdbcTestScenario(dsRaw: DataSetAPI[PersonUppercase],
+                                                 dsWithMapping: DataSetAPI[PersonWithMapping],
+                                                 dataStoreRaw: JdbcDataStore,
+                                                 dataStoreWithMapping: JdbcDataStore,
+                                                 reader: Reader): Unit = {
+    dsWithMapping.write(dataStoreWithMapping, SaveMode.Overwrite)
+    dsRaw.write(dataStoreRaw, SaveMode.Overwrite)
+    assertDatasetOperationResultWithSorted(reader.read[PersonWithMapping](dataStoreWithMapping)) {
+      peopleWithMapping.toArray
+    }
+
+    val connection = DriverManager.getConnection(connectionString, "", "")
+    val rawResult = connection.createStatement().executeQuery(s"select * from ${dataStoreRaw.fullTableName}")
+    val personMappingResult = connection.createStatement().executeQuery(s"select * from ${dataStoreWithMapping.fullTableName}")
+    assert(rawResult.getMetaData.getColumnName(1) != personMappingResult.getMetaData.getColumnName(1))
+    assert(rawResult.getMetaData.getColumnName(2) != personMappingResult.getMetaData.getColumnName(2))
+    connection.close()
+  }
+
   test("Column mapping - CSV - Spark") {
     columnMappingTestScenarioWithFileDataStoreSpark(
       CSVDataStore("target/people_raw_spark.csv"),
@@ -181,6 +236,13 @@ class ColumnNamesFromMappingTest extends SparkLocalBaseTest {
       "spark-warehouse/people_raw_spark",
       "spark-warehouse/people_mapping_spark",
       "parquet"
+    )
+  }
+
+  test("Column mapping - JDBC - Spark") {
+    columnMappingJdbcTestScenarioSpark(
+      H2DataStore(connectionString, "public", "PEOPLE_RAW_SPARK", new java.util.Properties()),
+      H2DataStore(connectionString, "public", "PEOPLE_MAPPING_SPARK", new java.util.Properties())
     )
   }
 
@@ -222,9 +284,14 @@ class ColumnNamesFromMappingTest extends SparkLocalBaseTest {
     )
   }
 
-  // TODO - add tests for Scala
-  // TODO - add tests for nested fields
+  test("Column mapping - JDBC - Scala") {
+    columnMappingJdbcTestScenarioScala(
+      H2DataStore(connectionString, "public", "PEOPLE_RAW_SCALA", new java.util.Properties()),
+      H2DataStore(connectionString, "public", "PEOPLE_MAPPING_SCALA", new java.util.Properties())
+    )
+  }
+
   // TODO - add tests for versioning + column mapping
-  // TODO - add tests for JDBC
+
 
 }

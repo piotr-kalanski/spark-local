@@ -42,7 +42,7 @@ libraryDependencies ++= Seq(
   "com.github.piotr-kalanski" %% "class2sql" % "0.1.1",
   "com.github.piotr-kalanski" %% "es-client" % "0.2.1",
   "org.elasticsearch" %% "elasticsearch-spark-20" % "5.4.1",
-  "com.github.piotr-kalanski" %% "data-model-generator" % "0.5.0",
+  "com.github.piotr-kalanski" %% "data-model-generator" % "0.5.1",
   "org.scalatest" %% "scalatest" % "2.2.6" % "test",
   "junit" % "junit" % "4.10" % "test",
   "com.h2database" % "h2" % "1.4.195" % "test",

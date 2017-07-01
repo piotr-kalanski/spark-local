@@ -1,8 +1,11 @@
 package com.datawizards.sparklocal.dataset.io
 
+import java.sql.DriverManager
+
 import com.datawizards.class2csv._
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.class2jdbc._
+import com.datawizards.dmg.DataModelGenerator
 import com.datawizards.dmg.dialects.Dialect
 import com.datawizards.dmg.metadata.MetaDataExtractor
 import com.datawizards.esclient.repository.ElasticsearchRepositoryImpl
@@ -25,7 +28,52 @@ abstract class WriterExecutor[T](ds: DataSetAPI[T]) {
   def apply(dataStore: HiveDataStore, saveMode: SaveMode)
            (implicit tt: TypeTag[T], s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit
   def apply(dataStore: JdbcDataStore, saveMode: SaveMode)
-           (implicit ct: ClassTag[T], tt: TypeTag[T], jdbcEncoder: JdbcEncoder[T], encoder: Encoder[T]): Unit
+           (implicit ct: ClassTag[T], tt: TypeTag[T], jdbcEncoder: JdbcEncoder[T], encoder: Encoder[T]): Unit = {
+    val connection = DriverManager.getConnection(dataStore.url, dataStore.connectionProperties)
+    val tableName = dataStore.fullTableName
+
+    def tableExists(): Boolean = {
+      val meta = connection.getMetaData
+      val res = meta.getTables(null, null, tableName, Array[String]("TABLE"))
+      res.next()
+    }
+
+    def deleteTable(): Unit = {
+      connection.createStatement().execute(s"DROP TABLE $tableName")
+    }
+
+    def createTable(): Unit = {
+      val classTypeMetaData = MetaDataExtractor
+        .extractClassMetaDataForDialect[T](dataStore.dialect)
+        .copy(typeName = tableName)
+      val sql = DataModelGenerator.generate(dataStore.dialect, classTypeMetaData)
+      connection.createStatement().execute(sql)
+      val r = connection.createStatement().executeQuery(s"select * from $tableName")
+    }
+
+    saveMode match {
+      case SaveMode.Append =>
+        if(!tableExists())
+          createTable()
+        writeToJdbc(dataStore)
+      case SaveMode.ErrorIfExists =>
+        if(tableExists())
+          throw new Exception("Table exists: " + tableName)
+        else
+          createTable()
+          writeToJdbc(dataStore)
+      case SaveMode.Overwrite =>
+        if(tableExists())
+          deleteTable()
+        createTable()
+        writeToJdbc(dataStore)
+      case SaveMode.Ignore =>
+        if(!tableExists()) {
+          createTable()
+          writeToJdbc(dataStore)
+        }
+    }
+  }
   def apply()(implicit ct: ClassTag[T], tt: TypeTag[T], csvEncoder: CsvEncoder[T]): String =
     apply(Stdout())
   def apply(rows:Int)(implicit ct: ClassTag[T], tt: TypeTag[T], csvEncoder: CsvEncoder[T]): String =
@@ -151,6 +199,9 @@ abstract class WriterExecutor[T](ds: DataSetAPI[T]) {
   def es(dataStore: ElasticsearchDataStore, saveMode: SaveMode)
         (implicit ct: ClassTag[T], tt: TypeTag[T], encoder: Encoder[T]): Unit =
     this.apply(dataStore, saveMode)
+
+  protected def writeToJdbc(dataStore: JdbcDataStore)
+                           (implicit ct: ClassTag[T], tt: TypeTag[T], jdbcEncoder: JdbcEncoder[T], encoder: Encoder[T]): Unit
 
   protected def writeToElasticsearch(dataStore: ElasticsearchDataStore)(implicit ct: ClassTag[T], tt: TypeTag[T], encoder: Encoder[T]): Unit
 

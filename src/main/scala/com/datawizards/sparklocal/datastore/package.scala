@@ -2,6 +2,7 @@ package com.datawizards.sparklocal
 
 import java.util.Properties
 
+import com.datawizards.dmg.dialects.{Dialect, H2Dialect, MySQLDialect}
 import com.datawizards.sparklocal.datastore.es._
 
 package object datastore {
@@ -46,7 +47,20 @@ package object datastore {
 
     private def localHiveWarehouseDirectoryPath = "spark-warehouse/"
   }
-  case class JdbcDataStore(url: String, database: String, table: String, connectionProperties: Properties, driverClassName: String) extends DBDataStore
+  trait JdbcDataStore extends DBDataStore {
+    def url: String
+    def connectionProperties: Properties
+    def driverClassName: String
+    def dialect: Dialect
+  }
+  case class H2DataStore(url: String, database: String, table: String, connectionProperties: Properties) extends JdbcDataStore {
+    override def driverClassName: String = "org.h2.Driver"
+    override def dialect = H2Dialect
+  }
+  case class MySQLDataStore(url: String, database: String, table: String, connectionProperties: Properties) extends JdbcDataStore {
+    override def driverClassName: String = "com.mysql.jdbc.Driver"
+    override def dialect = MySQLDialect
+  }
 
   trait ElasticsearchDataStore extends DataStore {
     def host: String

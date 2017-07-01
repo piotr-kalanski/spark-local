@@ -96,20 +96,17 @@ object ReaderSparkImpl extends Reader {
     override def apply[L <: HList](dataStore: datastore.JdbcDataStore)
                                   (implicit ct: ClassTag[T], tt: TypeTag[T], gen: Aux[T, L], fromRow: csv2class.FromRow[L], enc: Encoder[T]): DataSetAPI[T] = {
       Class.forName(dataStore.driverClassName)
-      // TODO - mapInputDataFrameToDataset - map driver name to dialect???
-      // create subclasses of JdbcDataStore. JdbcDataStore should be abstract in this case to force providing supported dialect!
-      DataSetAPI(
+      val classTypeMetaData = extractClassMetaData(dataStore.dialect)
+      mapInputDataFrameToDataset(
         spark
           .read
-          //TODO - add schema using JDBC dialect
-          .jdbc(dataStore.url, dataStore.fullTableName, dataStore.connectionProperties)
-          .as[T]
+          .jdbc(dataStore.url, dataStore.fullTableName, dataStore.connectionProperties),
+        classTypeMetaData
       )
     }
 
     private def buildSchema(classTypeMetaData: ClassTypeMetaData)
                            (implicit enc: Encoder[T], ct: ClassTag[T], tt: TypeTag[T]): StructType = {
-      //TODO - support for nested fields
       val typeSchema = enc.schema
       val mapping = getColumnsMappingFromOriginalToAnnotation(classTypeMetaData)
       StructType(
