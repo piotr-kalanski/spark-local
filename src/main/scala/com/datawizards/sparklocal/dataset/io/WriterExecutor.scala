@@ -200,6 +200,30 @@ abstract class WriterExecutor[T](ds: DataSetAPI[T]) {
         (implicit ct: ClassTag[T], tt: TypeTag[T], encoder: Encoder[T]): Unit =
     this.apply(dataStore, saveMode)
 
+
+  /**
+    * Partitions the output by the given columns on the file system. If specified, the output is
+    * laid out on the file system similar to Hive's partitioning scheme. As an example, when we
+    * partition a dataset by year and then month, the directory layout would look like:
+    *
+    *   - year=2016/month=01/
+    *   - year=2016/month=02/
+    *
+    * Partitioning is one of the most widely used techniques to optimize physical data layout.
+    * It provides a coarse-grained index for skipping unnecessary data reads when queries have
+    * predicates on the partitioned columns. In order for partitioning to work well, the number
+    * of distinct values in each column should typically be less than tens of thousands.
+    *
+    * This is applicable for all file-based data sources (e.g. Parquet, JSON)
+    */
+  @scala.annotation.varargs
+  def partitionBy(colNames: String*): WriterExecutor[T] = {
+    this.partitioningColumns = Option(colNames)
+    this
+  }
+
+  protected var partitioningColumns: Option[Seq[String]] = None
+
   protected def writeToJdbc(dataStore: JdbcDataStore)
                            (implicit ct: ClassTag[T], tt: TypeTag[T], jdbcEncoder: JdbcEncoder[T], encoder: Encoder[T]): Unit
 

@@ -472,6 +472,7 @@ Names of columns are the same as case class fields:
 
 |spark-local|Spark version|
 |-----------|-------------|
+|0.7        |2.1.1<br/>2.1.0  |
 |0.6        |2.1.1<br/>2.1.0  |
 |0.5        |2.1.0        |
 |0.4        |2.1.0        |
