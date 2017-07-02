@@ -135,4 +135,19 @@ class WriteReadAvroTest extends SparkLocalBaseTest {
     }
   }
 
+  test("Writing with partitioning - Spark") {
+    import spark.implicits._
+    val file = "target/people_partitioned_spark.avro"
+    val ds = DataSetAPI(data.toDS())
+    val expected = data.toArray
+    val dataStore = AvroDataStore(file)
+    ds.write.partitionBy("age")(dataStore, SaveMode.Overwrite)
+    assertDatasetOperationResultWithSorted(ReaderSparkImpl.read[Person](dataStore)) {
+      expected
+    }
+    assertResult(Seq("age=10","age=20","age=30","age=40","._SUCCESS.crc","_SUCCESS").sorted) {
+      listFilesInDirectory(file).toSeq.sorted
+    }
+  }
+
 }

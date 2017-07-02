@@ -1,5 +1,7 @@
 package com.datawizards.sparklocal
 
+import java.io.File
+
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.impl.scala.parallellazy.ParallelLazySeq
 import com.datawizards.sparklocal.rdd.RDDAPI
@@ -246,6 +248,13 @@ trait SparkLocalBaseTest extends FunSuite {
     val d1c = rdd1.collect().sorted(ord)
     val d2c = rdd2.collect().sorted(ord)
     assert((d1c sameElements d2c) || {println(d1c.mkString(",")); println(d2c.mkString(",")); false})
+  }
+
+  /**
+    * Return list of files in directory
+    */
+  def listFilesInDirectory(path: String): Iterable[String] = {
+    new File(path).list()
   }
 
 }

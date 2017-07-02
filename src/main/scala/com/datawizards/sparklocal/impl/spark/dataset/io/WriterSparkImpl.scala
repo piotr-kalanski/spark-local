@@ -4,12 +4,11 @@ import com.databricks.spark.avro._
 import com.datawizards.class2csv
 import com.datawizards.dmg.dialects
 import com.datawizards.dmg.dialects.Dialect
-import com.datawizards.dmg.metadata.MetaDataExtractor
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.dataset.io.{ModelDialects, Writer, WriterExecutor}
 import com.datawizards.sparklocal.datastore._
 import com.sksamuel.avro4s.{FromRecord, SchemaFor, ToRecord}
-import org.apache.spark.sql.{DataFrame, Encoder, SaveMode}
+import org.apache.spark.sql._
 import org.elasticsearch.spark.sql._
 
 import scala.reflect.ClassTag
@@ -27,48 +26,54 @@ class WriterSparkImpl[T] extends Writer[T] {
         df = df.toDF(dataStore.columns: _*)
       }
 
-      df
-        .repartition(1)
-        .write
-        .format("org.apache.spark.sql.execution.datasources.csv.CSVFileFormat")
-        .option("header", dataStore.header.toString)
-        .option("delimiter", dataStore.delimiter.toString)
-        .option("quote", dataStore.quote.toString)
-        .option("escape", dataStore.escape.toString)
-        //.option("charset", dataStore.charset)
-        .mode(saveMode)
+      addPartitioning(
+        df
+          .write
+          .format("org.apache.spark.sql.execution.datasources.csv.CSVFileFormat")
+          .option("header", dataStore.header.toString)
+          .option("delimiter", dataStore.delimiter.toString)
+          .option("quote", dataStore.quote.toString)
+          .option("escape", dataStore.escape.toString)
+          //.option("charset", dataStore.charset)
+          .mode(saveMode)
+        )
         .csv(dataStore.path)
     }
 
     override def apply(dataStore: JsonDataStore, saveMode: SaveMode)
                       (implicit encoder: Encoder[T], tt: TypeTag[T]): Unit =
-      mapDataSetToDataFrameWithTargetColumns(ds, ModelDialects.JSON)
-        .repartition(1)
-        .write
-        .mode(saveMode)
+        addPartitioning(
+          mapDataSetToDataFrameWithTargetColumns(ds, ModelDialects.JSON)
+            .write
+            .mode(saveMode)
+        )
         .json(dataStore.path)
 
     override def apply(dataStore: ParquetDataStore, saveMode: SaveMode)
                       (implicit tt: TypeTag[T], s: SchemaFor[T], fromR: FromRecord[T], toR: ToRecord[T], encoder: Encoder[T]): Unit =
-      mapDataSetToDataFrameWithTargetColumns(ds, ModelDialects.Parquet)
-        .repartition(1)
-        .write
-        .mode(saveMode)
+        addPartitioning(
+          mapDataSetToDataFrameWithTargetColumns(ds, ModelDialects.Parquet)
+            .write
+            .mode(saveMode)
+        )
         .parquet(dataStore.path)
 
     override def apply(dataStore: AvroDataStore, saveMode: SaveMode)
                       (implicit tt: TypeTag[T], s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit =
-      mapDataSetToDataFrameWithTargetColumns(ds, ModelDialects.Avro)
-        .repartition(1)
-        .write
-        .mode(saveMode)
+        addPartitioning(
+          mapDataSetToDataFrameWithTargetColumns(ds, ModelDialects.Avro)
+            .write
+            .mode(saveMode)
+        )
         .avro(dataStore.path)
 
     override def apply(dataStore: HiveDataStore, saveMode: SaveMode)
                       (implicit tt: TypeTag[T], s: SchemaFor[T], r: ToRecord[T], encoder: Encoder[T]): Unit =
-      mapDataSetToDataFrameWithTargetColumns(ds, dialects.Hive)
-        .write
-        .mode(saveMode)
+        addPartitioning(
+          mapDataSetToDataFrameWithTargetColumns(ds, dialects.Hive)
+            .write
+            .mode(saveMode)
+        )
         .saveAsTable(dataStore.fullTableName)
 
     override protected def writeToJdbc(dataStore: JdbcDataStore)
@@ -93,6 +98,10 @@ class WriterSparkImpl[T] extends Writer[T] {
                                                       (implicit tt: TypeTag[T], encoder: Encoder[T]): DataFrame =
       df.toDF(extractTargetColumns(dialect):_*)
 
+    private def addPartitioning(writer: DataFrameWriter[Row]): DataFrameWriter[Row] = {
+      if(partitioningColumns.isEmpty) writer
+      else writer.partitionBy(partitioningColumns.get:_*)
+    }
 
   }
 
