@@ -48,7 +48,7 @@ abstract class WriterExecutor[T](ds: DataSetAPI[T]) {
         .copy(typeName = tableName)
       val sql = DataModelGenerator.generate(dataStore.dialect, classTypeMetaData)
       connection.createStatement().execute(sql)
-      val r = connection.createStatement().executeQuery(s"select * from $tableName")
+      connection.commit()
     }
 
     saveMode match {
