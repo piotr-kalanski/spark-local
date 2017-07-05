@@ -1,5 +1,6 @@
 package com.datawizards.sparklocal.dataset
 
+import com.datawizards.sparklocal.dataset.agg.AggregationFunction
 import org.apache.spark.sql.{Encoder, KeyValueGroupedDataset, SparkSession}
 
 import scala.reflect.ClassTag
@@ -27,4 +28,10 @@ trait KeyValueGroupedDataSetAPI[K, V] {
                                           encKV: Encoder[(K,V)]=null,
                                           encKU: Encoder[(K,U)]=null
                                        ): DataSetAPI[R]
+
+  def agg[U1: ClassTag](agg1: AggregationFunction[V, U1])
+                                (implicit enc1: Encoder[U1]): DataSetAPI[(K,U1)]
+
+  def agg[U1: ClassTag, U2: ClassTag](agg1: AggregationFunction[V, U1], agg2: AggregationFunction[V, U2])
+                                              (implicit enc1: Encoder[U1], enc2: Encoder[U2], enc: Encoder[(U1,U2)]): DataSetAPI[(K, U1, U2)]
 }

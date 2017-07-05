@@ -2,13 +2,14 @@ package com.datawizards.sparklocal.impl.scala.dataset
 
 import java.util
 
+import com.datawizards.sparklocal.dataset.agg.AggregationFunction
 import com.datawizards.sparklocal.dataset.expressions.Expressions
 import com.datawizards.sparklocal.dataset.io.WriterExecutor
 import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.impl.scala.dataset.io.WriterScalaImpl
 import com.datawizards.sparklocal.impl.spark.dataset.DataSetAPISparkImpl
 import com.datawizards.sparklocal.rdd.RDDAPI
-import org.apache.spark.sql.{Column, Dataset, Encoder}
+import org.apache.spark.sql.{Column, Encoder}
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.util.random.{BernoulliCellSampler, BernoulliSampler, PoissonSampler}
 

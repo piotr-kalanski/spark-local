@@ -1,5 +1,6 @@
 package com.datawizards.sparklocal.impl.spark.dataset
 
+import com.datawizards.sparklocal.dataset.agg.AggregationFunction
 import com.datawizards.sparklocal.dataset.{DataSetAPI, KeyValueGroupedDataSetAPI}
 import org.apache.spark.sql.{Encoder, KeyValueGroupedDataset}
 
@@ -44,5 +45,11 @@ class KeyValueGroupedDataSetAPISparkImpl[K: ClassTag, T: ClassTag](private[datas
     DataSetAPI(data.cogroup(other.toKeyValueGroupedDataSet)(f))
   }
 
+  override def agg[U1: ClassTag](agg1: AggregationFunction[T, U1])
+                                (implicit enc1: Encoder[U1]): DataSetAPI[(K, U1)] =
+    DataSetAPI(data.agg(agg1.toTypedColumn))
 
+  override def agg[U1: ClassTag, U2: ClassTag](agg1: AggregationFunction[T, U1], agg2: AggregationFunction[T, U2])
+                                              (implicit enc1: Encoder[U1], enc2: Encoder[U2], enc: Encoder[(U1, U2)]): DataSetAPI[(K, U1, U2)] =
+    DataSetAPI(data.agg(agg1.toTypedColumn, agg2.toTypedColumn))
 }
