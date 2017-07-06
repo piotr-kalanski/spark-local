@@ -8,7 +8,7 @@ import com.datawizards.sparklocal.dataset.DataSetAPI
 import com.datawizards.sparklocal.impl.scala.dataset.io.WriterScalaImpl
 import com.datawizards.sparklocal.impl.spark.dataset.DataSetAPISparkImpl
 import com.datawizards.sparklocal.rdd.RDDAPI
-import org.apache.spark.sql.{Column, Dataset, Encoder}
+import org.apache.spark.sql.{Column, Encoder}
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.util.random.{BernoulliCellSampler, BernoulliSampler, PoissonSampler}
 
@@ -232,7 +232,7 @@ abstract class DataSetAPIScalaBase[T: ClassTag] extends DataSetAPI[T] {
     case dsScala:DataSetAPIScalaBase[T] => diff(data, dsScala)
   }
 
-  override def isEmpty(): Boolean = data.isEmpty
+  override def isEmpty: Boolean = data.isEmpty
 
   protected def union(data: InternalCollection, dsScala: DataSetAPIScalaBase[T]): DataSetAPIScalaBase[T]
   protected def intersect(data: InternalCollection, dsScala: DataSetAPIScalaBase[T]): DataSetAPIScalaBase[T]

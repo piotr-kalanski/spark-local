@@ -1,5 +1,6 @@
 package com.datawizards.sparklocal.impl.spark.dataset
 
+import com.datawizards.sparklocal.dataset.agg.AggregationFunction
 import com.datawizards.sparklocal.dataset.{DataSetAPI, KeyValueGroupedDataSetAPI}
 import org.apache.spark.sql.{Encoder, KeyValueGroupedDataset}
 
@@ -44,5 +45,47 @@ class KeyValueGroupedDataSetAPISparkImpl[K: ClassTag, T: ClassTag](private[datas
     DataSetAPI(data.cogroup(other.toKeyValueGroupedDataSet)(f))
   }
 
+  override def agg[U1: ClassTag](agg1: AggregationFunction[T, U1])
+                                (implicit enc1: Encoder[U1]): DataSetAPI[(K, U1)] =
+    DataSetAPI(data.agg(agg1.toTypedColumn))
+
+  override def agg[U1: ClassTag, U2: ClassTag](
+                                                agg1: AggregationFunction[T,U1],
+                                                agg2: AggregationFunction[T,U2]
+                                              )
+                                              (implicit
+                                               enc1: Encoder[U1],
+                                               enc2: Encoder[U2],
+                                               enc: Encoder[(U1,U2)]
+                                              ): DataSetAPI[(K,U1,U2)] =
+    DataSetAPI(data.agg(agg1.toTypedColumn, agg2.toTypedColumn))
+
+  override def agg[U1: ClassTag, U2: ClassTag, U3: ClassTag](
+                                                              agg1: AggregationFunction[T,U1],
+                                                              agg2: AggregationFunction[T,U2],
+                                                              agg3: AggregationFunction[T,U3]
+                                                            )
+                                                            (implicit
+                                                             enc1: Encoder[U1],
+                                                             enc2: Encoder[U2],
+                                                             enc3: Encoder[U3],
+                                                             enc: Encoder[(U1,U2,U3)]
+                                                            ): DataSetAPI[(K,U1,U2,U3)] =
+    DataSetAPI(data.agg(agg1.toTypedColumn, agg2.toTypedColumn, agg3.toTypedColumn))
+
+  override def agg[U1: ClassTag, U2: ClassTag, U3: ClassTag, U4: ClassTag](
+                                                                            agg1: AggregationFunction[T,U1],
+                                                                            agg2: AggregationFunction[T,U2],
+                                                                            agg3: AggregationFunction[T,U3],
+                                                                            agg4: AggregationFunction[T,U4]
+                                                                          )
+                                                                          (implicit
+                                                                           enc1: Encoder[U1],
+                                                                           enc2: Encoder[U2],
+                                                                           enc3: Encoder[U3],
+                                                                           enc4: Encoder[U4],
+                                                                           enc: Encoder[(U1,U2,U3,U4)]
+                                                                          ): DataSetAPI[(K,U1,U2,U3,U4)] =
+    DataSetAPI(data.agg(agg1.toTypedColumn, agg2.toTypedColumn, agg3.toTypedColumn, agg4.toTypedColumn))
 
 }

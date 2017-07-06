@@ -1,5 +1,6 @@
 package com.datawizards.sparklocal.impl.scala.dataset
 
+import com.datawizards.sparklocal.dataset.agg.AggregationFunction
 import com.datawizards.sparklocal.dataset.{DataSetAPI, KeyValueGroupedDataSetAPI}
 import com.datawizards.sparklocal.impl.spark.dataset.KeyValueGroupedDataSetAPISparkImpl
 import org.apache.spark.sql.{Encoder, KeyValueGroupedDataset}
@@ -69,4 +70,60 @@ abstract class KeyValueGroupedDataSetAPIScalaBase[K: ClassTag, T: ClassTag] exte
     })
   }
 
+  override def agg[U1: ClassTag](agg1: AggregationFunction[T, U1])
+                                (implicit enc1: Encoder[U1]): DataSetAPI[(K, U1)] =
+    create(
+      data.mapValues(values => agg1.aggregate(values))
+    )
+
+  override def agg[U1: ClassTag, U2: ClassTag](
+                                                agg1: AggregationFunction[T,U1],
+                                                agg2: AggregationFunction[T,U2]
+                                              )
+                                              (implicit
+                                               enc1: Encoder[U1],
+                                               enc2: Encoder[U2],
+                                               enc: Encoder[(U1,U2)]
+                                              ): DataSetAPI[(K,U1,U2)] =
+    create(
+      data
+        .mapValues(values => (agg1.aggregate(values), agg2.aggregate(values)))
+        .map{case (k,(a1,a2)) => (k,a1,a2)}
+    )
+
+  override def agg[U1: ClassTag, U2: ClassTag, U3: ClassTag](
+                                                              agg1: AggregationFunction[T,U1],
+                                                              agg2: AggregationFunction[T,U2],
+                                                              agg3: AggregationFunction[T,U3]
+                                                            )
+                                                            (implicit
+                                                             enc1: Encoder[U1],
+                                                             enc2: Encoder[U2],
+                                                             enc3: Encoder[U3],
+                                                             enc: Encoder[(U1,U2,U3)]
+                                                            ): DataSetAPI[(K,U1,U2,U3)] =
+    create(
+      data
+        .mapValues(values => (agg1.aggregate(values), agg2.aggregate(values), agg3.aggregate(values)))
+        .map{case (k,(a1,a2,a3)) => (k,a1,a2,a3)}
+    )
+
+  override def agg[U1: ClassTag, U2: ClassTag, U3: ClassTag, U4: ClassTag](
+                                                                            agg1: AggregationFunction[T,U1],
+                                                                            agg2: AggregationFunction[T,U2],
+                                                                            agg3: AggregationFunction[T,U3],
+                                                                            agg4: AggregationFunction[T,U4]
+                                                                          )
+                                                                          (implicit
+                                                                           enc1: Encoder[U1],
+                                                                           enc2: Encoder[U2],
+                                                                           enc3: Encoder[U3],
+                                                                           enc4: Encoder[U4],
+                                                                           enc: Encoder[(U1,U2,U3,U4)]
+                                                                          ): DataSetAPI[(K,U1,U2,U3,U4)] =
+    create(
+      data
+        .mapValues(values => (agg1.aggregate(values), agg2.aggregate(values), agg3.aggregate(values), agg4.aggregate(values)))
+        .map{case (k,(a1,a2,a3,a4)) => (k,a1,a2,a3,a4)}
+    )
 }

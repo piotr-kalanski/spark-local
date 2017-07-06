@@ -129,5 +129,5 @@ class DataSetAPISparkImpl[T: ClassTag](val data: Dataset[T]) extends DataSetAPI[
   override def diff(other: DataSetAPI[T])(implicit enc: Encoder[T]): DataSetAPI[T] =
     create(data.except(other.toDataset))
 
-  override def isEmpty(): Boolean = data.rdd.isEmpty()
+  override def isEmpty: Boolean = data.rdd.isEmpty()
 }
