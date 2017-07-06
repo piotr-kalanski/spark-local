@@ -20,18 +20,6 @@ class AggregationAPITest extends SparkLocalBaseTest {
   lazy val peopleDataSetScala = DataSetAPI(people)
   lazy val peopleDataSetSpark = DataSetAPI(people.toDS())
 
-  /*test("Sum aggregation - result") {
-    assertDatasetOperationResult(peopleDataSetScala.agg(sum(_.age))) {
-      Array(100.0)
-    }
-  }
-
-  test("Sum aggregation - equals") {
-    assertDatasetOperationReturnsSameResultWithSorted(people) {
-      ds => ds.agg(sum(_.age))
-    }
-  }*/
-
   test("Group by sum aggregation - result") {
     assertDatasetOperationResultWithSorted(peopleDataSetScala.groupByKey(_.name).agg(sum(_.age))) {
       Array(("p1", 30.0), ("p2", 70.0))
@@ -53,6 +41,93 @@ class AggregationAPITest extends SparkLocalBaseTest {
   test("Group by count aggregation - equals") {
     assertDatasetOperationReturnsSameResultWithSorted(people) {
       ds => ds.groupByKey(_.name).agg(count())
+    }
+  }
+
+  test("Group by mean aggregation - result") {
+    assertDatasetOperationResultWithSorted(peopleDataSetScala.groupByKey(_.name).agg(mean(_.age))) {
+      Array(("p1", 15.0), ("p2", 35.0))
+    }
+  }
+
+  test("Group by mean aggregation - equals") {
+    assertDatasetOperationReturnsSameResultWithSorted(people) {
+      ds => ds.groupByKey(_.name).agg(mean(_.age))
+    }
+  }
+
+  test("Group by max aggregation - result") {
+    assertDatasetOperationResultWithSorted(peopleDataSetScala.groupByKey(_.name).agg(max(_.age))) {
+      Array(("p1", 20.0), ("p2", 40.0))
+    }
+  }
+
+  test("Group by max aggregation - equals") {
+    assertDatasetOperationReturnsSameResultWithSorted(people) {
+      ds => ds.groupByKey(_.name).agg(max(_.age))
+    }
+  }
+
+  test("Group by min aggregation - result") {
+    assertDatasetOperationResultWithSorted(peopleDataSetScala.groupByKey(_.name).agg(min(_.age))) {
+      Array(("p1", 10.0), ("p2", 30.0))
+    }
+  }
+
+  test("Group by min aggregation - equals") {
+    assertDatasetOperationReturnsSameResultWithSorted(people) {
+      ds => ds.groupByKey(_.name).agg(min(_.age))
+    }
+  }
+
+  test("Two aggregations - result") {
+    val result = peopleDataSetScala
+      .groupByKey(_.name)
+      .agg(sum(_.age), count())
+    assertDatasetOperationResultWithSorted(result) {
+      Array(("p1", 30.0, 2L), ("p2", 70.0, 2L))
+    }
+  }
+
+  test("Two aggregations - equals") {
+    assertDatasetOperationReturnsSameResultWithSorted(people) {
+      ds => ds
+        .groupByKey(_.name)
+        .agg(sum(_.age), count())
+    }
+  }
+
+  test("Three aggregations - result") {
+    val result = peopleDataSetScala
+      .groupByKey(_.name)
+      .agg(sum(_.age), count(), mean(_.age))
+    assertDatasetOperationResultWithSorted(result) {
+      Array(("p1", 30.0, 2L, 15.0), ("p2", 70.0, 2L, 35.0))
+    }
+  }
+
+  test("Three aggregations - equals") {
+    assertDatasetOperationReturnsSameResultWithSorted(people) {
+      ds => ds
+        .groupByKey(_.name)
+        .agg(sum(_.age), count(), mean(_.age))
+    }
+  }
+
+  test("Four aggregations - result") {
+    val result = peopleDataSetScala
+      .groupByKey(_.name)
+      .agg(sum(_.age), count(), mean(_.age), max(_.age))
+    assertDatasetOperationResultWithSorted(result) {
+      Array(("p1", 30.0, 2L, 15.0, 20.0), ("p2", 70.0, 2L, 35.0, 40.0))
+    }
+  }
+
+  test("Four aggregations - equals") {
+    assertDatasetOperationReturnsSameResultWithSorted(people) {
+      ds => ds
+        .groupByKey(_.name)
+        .agg(sum(_.age), count(), mean(_.age), max(_.age))
     }
   }
 }

@@ -17,6 +17,7 @@ API enabling switching between Spark execution engine and local implementation b
   - [Supported formats](#supported-formats)
   - [Data model versioning](#data-model-versioning)
   - [Column mapping](#column-mapping)
+- [Aggregations](#aggregations)
 - [Supported Spark versions](#supported-spark-versions)
 - [Supported Spark operations](doc/SupportedOperations.md)
 - [Benchmarks](benchmarks/Benchmarks.md)
@@ -467,6 +468,19 @@ Names of columns are the same as case class fields:
 +----+---+
 ```
 
+# Aggregations
+
+Library provides custom type-safe API for aggregations.
+
+Example operations:
+
+```scala
+import com.datawizards.sparklocal.dataset.agg._
+
+ds
+    .groupByKey(_.name)
+    .agg(sum(_.age), count(), mean(_.age), max(_.age))
+```
 
 # Supported Spark versions
 

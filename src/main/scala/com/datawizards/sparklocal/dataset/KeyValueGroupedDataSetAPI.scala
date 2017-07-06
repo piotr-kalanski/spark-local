@@ -32,6 +32,39 @@ trait KeyValueGroupedDataSetAPI[K, V] {
   def agg[U1: ClassTag](agg1: AggregationFunction[V, U1])
                                 (implicit enc1: Encoder[U1]): DataSetAPI[(K,U1)]
 
-  def agg[U1: ClassTag, U2: ClassTag](agg1: AggregationFunction[V, U1], agg2: AggregationFunction[V, U2])
-                                              (implicit enc1: Encoder[U1], enc2: Encoder[U2], enc: Encoder[(U1,U2)]): DataSetAPI[(K, U1, U2)]
+  def agg[U1: ClassTag, U2: ClassTag](
+                                                     agg1: AggregationFunction[V,U1],
+                                                     agg2: AggregationFunction[V,U2]
+                                                   )
+                                                   (implicit
+                                                    enc1: Encoder[U1],
+                                                    enc2: Encoder[U2],
+                                                    enc: Encoder[(U1,U2)]
+                                                   ): DataSetAPI[(K,U1,U2)]
+
+  def agg[U1: ClassTag, U2: ClassTag, U3: ClassTag](
+                                                                   agg1: AggregationFunction[V,U1],
+                                                                   agg2: AggregationFunction[V,U2],
+                                                                   agg3: AggregationFunction[V,U3]
+                                                                 )
+                                                                 (implicit
+                                                                  enc1: Encoder[U1],
+                                                                  enc2: Encoder[U2],
+                                                                  enc3: Encoder[U3],
+                                                                  enc: Encoder[(U1,U2,U3)]
+                                                                 ): DataSetAPI[(K,U1,U2,U3)]
+
+  def agg[U1: ClassTag, U2: ClassTag, U3: ClassTag, U4: ClassTag](
+                                                                   agg1: AggregationFunction[V,U1],
+                                                                   agg2: AggregationFunction[V,U2],
+                                                                   agg3: AggregationFunction[V,U3],
+                                                                   agg4: AggregationFunction[V,U4]
+                                                                 )
+                                                                 (implicit
+                                                                  enc1: Encoder[U1],
+                                                                  enc2: Encoder[U2],
+                                                                  enc3: Encoder[U3],
+                                                                  enc4: Encoder[U4],
+                                                                  enc: Encoder[(U1,U2,U3,U4)]
+                                                                 ): DataSetAPI[(K,U1,U2,U3,U4)]
 }

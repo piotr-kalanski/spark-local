@@ -2,7 +2,6 @@ package com.datawizards.sparklocal.impl.scala.dataset
 
 import java.util
 
-import com.datawizards.sparklocal.dataset.agg.AggregationFunction
 import com.datawizards.sparklocal.dataset.expressions.Expressions
 import com.datawizards.sparklocal.dataset.io.WriterExecutor
 import com.datawizards.sparklocal.dataset.DataSetAPI
@@ -233,7 +232,7 @@ abstract class DataSetAPIScalaBase[T: ClassTag] extends DataSetAPI[T] {
     case dsScala:DataSetAPIScalaBase[T] => diff(data, dsScala)
   }
 
-  override def isEmpty(): Boolean = data.isEmpty
+  override def isEmpty: Boolean = data.isEmpty
 
   protected def union(data: InternalCollection, dsScala: DataSetAPIScalaBase[T]): DataSetAPIScalaBase[T]
   protected def intersect(data: InternalCollection, dsScala: DataSetAPIScalaBase[T]): DataSetAPIScalaBase[T]

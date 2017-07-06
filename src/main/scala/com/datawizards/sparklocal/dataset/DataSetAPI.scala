@@ -1,6 +1,5 @@
 package com.datawizards.sparklocal.dataset
 
-import com.datawizards.sparklocal.dataset.agg.AggregationFunction
 import com.datawizards.sparklocal.dataset.expressions.Expressions._
 import com.datawizards.sparklocal.dataset.io.WriterExecutor
 import com.datawizards.sparklocal.impl.scala.`lazy`.dataset.DataSetAPIScalaLazyImpl
@@ -148,17 +147,7 @@ trait DataSetAPI[T] {
   def show: WriterExecutor[T] = write
   def except(other: DataSetAPI[T])(implicit enc: Encoder[T]): DataSetAPI[T] = diff(other)
   def diff(other: DataSetAPI[T])(implicit enc: Encoder[T]): DataSetAPI[T]
-  def isEmpty(): Boolean
-  /*def agg[U1: ClassTag](agg1: AggregationFunction[T, U1])
-             (implicit enc1: Encoder[U1]): DataSetAPI[U1] =
-    groupByKey(x => 1)
-      .agg(agg1)
-      .map(_._2)
-  def agg[U1: ClassTag, U2: ClassTag](agg1: AggregationFunction[T, U1], agg2: AggregationFunction[T, U2])
-                 (implicit enc1: Encoder[U1], enc2: Encoder[U2], enc: Encoder[(U1,U2)]): DataSetAPI[(U1, U2)] =
-    groupByKey(x => 1)
-      .agg(agg1, agg2)
-      .map{case (k,v1,v2) => (v1,v2)}*/
+  def isEmpty: Boolean
 
   override def toString: String = "DataSet(" + collect().mkString(",") + ")"
 
